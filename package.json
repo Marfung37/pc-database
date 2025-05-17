@@ -14,17 +14,23 @@
     "@sveltejs/adapter-auto": "1.0.0-next.65",
     "@sveltejs/kit": "1.0.0-next.428",
     "@types/cookie": "^0.5.1",
+    "@types/lzma-native": "^4.0.4",
+    "@types/yargs": "^17.0.33",
     "prettier": "^2.6.2",
     "prettier-plugin-svelte": "^2.7.0",
     "svelte": "^3.46.0",
     "svelte-check": "^2.7.1",
     "typescript": "^4.7.4",
-    "vite": "^3.0.8"
+    "vite": "^3.0.8",
+    "yargs": "^17.7.2"
   },
   "type": "module",
   "dependencies": {
     "@fontsource/fira-mono": "^4.5.0",
     "cookie": "^0.4.1",
+    "csv-parse": "^5.6.0",
+    "csv-stringify": "^6.5.2",
+    "lzma-native": "^8.0.6",
     "web-vitals": "^2.1.4"
   }
 }
