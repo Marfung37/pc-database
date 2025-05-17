@@ -12,17 +12,22 @@ CREATE TABLE "setups" (
   "setup_id" setupid PRIMARY KEY,
   "leftover" varchar(7) NOT NULL CHECK (leftover ~ '[TILJSZO]+'), -- enforce tetris pieces
   "build" varchar(10) NOT NULL CHECK (build ~ '[TILJSZO]+'), -- enforce tetris pieces
-  "cover_dependence" varchar(255) NOT NULL,
-  "cover_data" bytea,
-  "oqb_path" varchar(109) CHECK (oqb_path IS NULL OR oqb_path ~ '^[0-9]{10}(\.[0-9]{10})*$'), -- enforce max depth 9
-  "oqb_depth" int GENERATED ALWAYS AS (array_length(string_to_array(oqb_path, '.'), 1)) STORED,
+  "cover_dependence" varchar(255) NOT NULL, -- difficult to constrain
+  "cover_data" bytea, -- NULL is cover dependence is exactly what the setup covered by
+  "oqb_path" varchar(109) CHECK (oqb_path IS NULL OR oqb_path ~ '^[0-9a-f]{10}(\.[0-9a-f]{10})*$'), -- enforce max depth 9
+  "oqb_depth" int GENERATED ALWAYS AS (
+    CASE 
+      WHEN oqb_path IS NULL THEN NULL
+      ELSE array_length(string_to_array(oqb_path, '.'), 1)
+    END
+  ) STORED,
   "fumen" varchar(1000) NOT NULL CHECK (fumen ~ '^v115@[A-Za-z0-9+/]+'), -- enforce fumen structure with version 115
-  "pieces" varchar(100),
+  "pieces" varchar(100), -- difficult to constrain
   "solve_percent" decimal(5,2) CHECK (solve_percent IS NULL OR solve_percent <= 100),
   "solve_fraction" fraction,
   "mirror" setupid,
   "minimal_solves" varchar(1000) CHECK (minimal_solves IS NULL OR minimal_solves ~ '^v115@[A-Za-z0-9+/]+'),
-  "path_file" varchar(500),
+  "path_file" varchar(500) CHECK (path_file IS NULL OR path_file ~ '^[0-9a-f]{10}\.csv\.xz'), -- enforce the file has xz file extension
   "credit" varchar(255)
 
   CHECK (
@@ -32,17 +37,27 @@ CREATE TABLE "setups" (
       (solve_fraction).denominator <> 0
     )
   )
+
+  -- either all columns about solves are filled or is an oqb setup that doesn't solve
+  CONSTRAINT no_solve_oqb_setup CHECK (
+    (
+      pieces IS NULL AND solve_percent IS NULL AND solve_fraction IS NULL AND oqb_path IS NOT NULL
+    ) OR (
+      pieces IS NOT NULL AND solve_percent IS NOT NULL AND solve_fraction IS NOT NULL
+    )
+  )
 );
 
 CREATE TABLE "setup_variants" (
-  "variant_id" int NOT NULL,
   "setup_id" setupid NOT NULL,
+  "variant_id" int NOT NULL CHECK (variant_id > 0), -- 1 index with intent 0 is the entry in setups
   "build" varchar(10) NOT NULL CHECK (build ~ '[TILJSZO]+'), -- enforce tetris pieces
   "cover_dependence" varchar(255) NOT NULL,
   "cover_data" bytea,
   "fumen" varchar(1000) NOT NULL CHECK (fumen ~ '^v115@[A-Za-z0-9+/]+'), -- enforce fumen structure with version 115
   "pieces" varchar(100),
-  "minimal_solves" varchar(1000) CHECK (minimal_solves IS NULL OR minimal_solves ~ '^v115@[A-Za-z0-9+/]+')
+  "minimal_solves" varchar(1000) CHECK (minimal_solves IS NULL OR minimal_solves ~ '^v115@[A-Za-z0-9+/]+'),
+  PRIMARY KEY (setup_id, variant_id)
 );
 
 CREATE TABLE "saves" (
@@ -60,7 +75,6 @@ CREATE TABLE "saves" (
       (save_fraction).denominator <> 0
     )
   )
-
 );
 
 COMMENT ON COLUMN "setups"."setup_id" IS '10 hexdigits';
@@ -89,9 +103,9 @@ COMMENT ON COLUMN "setups"."mirror" IS '10 hexdigits and references an id for mi
 
 COMMENT ON COLUMN "setups"."credit" IS 'Credit for founder of setup';
 
-COMMENT ON COLUMN "setup_variants"."variant_id" IS 'Variant number 1 indexed';
-
 COMMENT ON COLUMN "setup_variants"."setup_id" IS '10 hexdigits';
+
+COMMENT ON COLUMN "setup_variants"."variant_id" IS 'Variant number 1 indexed';
 
 COMMENT ON COLUMN "setup_variants"."build" IS 'Pieces used in setup. Only TILJSZO allowed';
 
