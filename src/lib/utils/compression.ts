@@ -11,11 +11,11 @@ const PIECESTONUM: Record<string, number> = {
   J: 3,
   S: 4,
   Z: 5,
-  O: 6,
+  O: 6
 };
 
 function queueKey(queue: string): number {
-  return Number([...queue].map(p => PIECESTONUM[p]).join(''));
+  return Number([...queue].map((p) => PIECESTONUM[p]).join(''));
 }
 
 function mapSaves(saves: string): number {
@@ -26,11 +26,14 @@ function mapSaves(saves: string): number {
   return val;
 }
 
-export function compress(filename: string, pieces: string) {
+/**
+ * Compress path file
+ */
+export function compressPath(filename: string, pieces: string) {
   const inputCsv = fs.readFileSync(filename, 'utf-8');
   const records: Record<string, string>[] = parse(inputCsv, {
     columns: true,
-    skip_empty_lines: true,
+    skip_empty_lines: true
   });
 
   records.sort((a, b) => queueKey(a['ツモ']) - queueKey(b['ツモ']));
@@ -62,18 +65,27 @@ export function compress(filename: string, pieces: string) {
     '',
     stringify(records, {
       header: true,
-      columns: Object.keys(records[0]),
-    }).trim(),
+      columns: Object.keys(records[0])
+    }).trim()
   ];
 
-  let compressed;
-  lzma.compress(Buffer.from(outputLines.join('\n')), { preset: 6 }, (result: Buffer) => {
-    compressed = result;
-  });
+  const compressed = lzma.compress(
+    Buffer.from(outputLines.join('\n')),
+    9,
+    (result: Buffer, err) => {
+      if (err) {
+      }
+
+      return compressed;
+    }
+  );
   return compressed;
 }
 
-export function decompress(data: Buffer) {
+/**
+ * Decompress path file
+ * Not streamed as files are small and additional work afterwards
+ */
+export function decompressPath(data: Buffer) {
+  const decompressed = lzma.decompress(data, 9, (result: Buffer) => result);
 }
-
-console.log(extendPieces('L,*p7'))

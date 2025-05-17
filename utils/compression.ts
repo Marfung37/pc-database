@@ -12,11 +12,11 @@ const PIECESTONUM: Record<string, number> = {
   J: 3,
   S: 4,
   Z: 5,
-  O: 6,
+  O: 6
 };
 
 function queueKey(queue: string): number {
-  return Number([...queue].map(p => PIECESTONUM[p]).join(''));
+  return Number([...queue].map((p) => PIECESTONUM[p]).join(''));
 }
 
 function mapSaves(saves: string): number {
@@ -34,13 +34,13 @@ async function main() {
       alias: 'i',
       type: 'string',
       demandOption: true,
-      describe: 'Input CSV file path',
+      describe: 'Input CSV file path'
     })
     .option('output', {
       alias: 'o',
       type: 'string',
       demandOption: true,
-      describe: 'Output file name (with .csvd extension)',
+      describe: 'Output file name (with .csvd extension)'
     })
     .option('pieces', {
       alias: 'p',
@@ -55,7 +55,7 @@ async function main() {
   const inputCsv = fs.readFileSync(argv.input, 'utf-8');
   const records: Record<string, string>[] = parse(inputCsv, {
     columns: true,
-    skip_empty_lines: true,
+    skip_empty_lines: true
   });
 
   records.sort((a, b) => queueKey(a['ツモ']) - queueKey(b['ツモ']));
@@ -87,8 +87,8 @@ async function main() {
     '',
     stringify(records, {
       header: true,
-      columns: Object.keys(records[0]),
-    }).trim(),
+      columns: Object.keys(records[0])
+    }).trim()
   ];
 
   lzma.compress(Buffer.from(outputLines.join('\n')), { preset: 6 }, (compressed: Buffer) => {
