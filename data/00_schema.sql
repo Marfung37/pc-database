@@ -3,9 +3,9 @@ CREATE TYPE fraction AS (
   "denominator" integer
 );
 
-CREATE DOMAIN setupid AS varchar(10)
+CREATE DOMAIN setupid AS varchar(12)
   CHECK (
-    VALUE ~ '^[0-9a-f]{10}$'
+    VALUE ~ '^[1-9][0-9a-f]{11}$'
   );
 
 CREATE TABLE "setups" (
@@ -14,21 +14,16 @@ CREATE TABLE "setups" (
   "build" varchar(10) NOT NULL CHECK (build ~ '[TILJSZO]+'), -- enforce tetris pieces
   "cover_dependence" varchar(255) NOT NULL, -- difficult to constrain
   "cover_data" bytea, -- NULL is cover dependence is exactly what the setup covered by
-  "oqb_path" varchar(109) CHECK (oqb_path IS NULL OR oqb_path ~ '^[0-9a-f]{10}(\.[0-9a-f]{10})*$'), -- enforce max depth 9
-  "oqb_depth" int GENERATED ALWAYS AS (
-    CASE 
-      WHEN oqb_path IS NULL THEN NULL
-      ELSE array_length(string_to_array(oqb_path, '.'), 1)
-    END
-  ) STORED,
-  "fumen" varchar(1000) NOT NULL CHECK (fumen ~ '^v115@[A-Za-z0-9+/]+'), -- enforce fumen structure with version 115
+  "oqb_path" varchar(131) CHECK (oqb_path IS NULL OR oqb_path ~ '^[1-9][0-9a-f]{11}(\.[1-9][0-9a-f]{11})*$'), -- enforce max depth 10 with max string length
+  "oqb_depth" int GENERATED ALWAYS AS (length(oqb_path) - length(replace(oqb_path, '.', ''))) STORED, -- implicit NULL if oqb_path is NULL
+  "fumen" varchar(1000) NOT NULL CHECK (fumen ~ '^v115@[A-Za-z0-9+/?]+'), -- enforce fumen structure with version 115
   "pieces" varchar(100), -- difficult to constrain
   "solve_percent" decimal(5,2) CHECK (solve_percent IS NULL OR solve_percent <= 100),
   "solve_fraction" fraction,
   "mirror" setupid,
-  "minimal_solves" varchar(1000) CHECK (minimal_solves IS NULL OR minimal_solves ~ '^v115@[A-Za-z0-9+/]+'),
-  "path_file" varchar(18) CHECK (path_file IS NULL OR path_file ~ '^[0-9a-f]{10}\.csvd\.xz$'), -- enforce the file has xz file extension
-  "credit" varchar(255)
+  "minimal_solves" varchar(1000) CHECK (minimal_solves IS NULL OR minimal_solves ~ '^v115@[A-Za-z0-9+/?]+'),
+  "path_file" varchar(18) CHECK (path_file IS NULL OR path_file ~ '^[1-9][0-9a-f]{11}\.csvd\.xz$'), -- enforce the file has xz file extension
+  "credit" varchar(255),
 
   CHECK (
     solve_fraction IS NULL OR (
@@ -36,7 +31,7 @@ CREATE TABLE "setups" (
       (solve_fraction).denominator IS NOT NULL AND
       (solve_fraction).denominator <> 0
     )
-  )
+  ),
 
   -- either all columns about solves are filled or is an oqb setup that doesn't solve
   CONSTRAINT no_solve_oqb_setup CHECK (
@@ -45,7 +40,17 @@ CREATE TABLE "setups" (
     ) OR (
       pieces IS NOT NULL AND solve_percent IS NOT NULL AND solve_fraction IS NOT NULL
     )
-  )
+  ),
+
+  FOREIGN KEY (mirror) REFERENCES setups(setup_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE setup_oqb_links (
+  child_id  setupid NOT NULL,
+  parent_id setupid NOT NULL,
+  PRIMARY KEY (child_id), -- only one parent
+  FOREIGN KEY (child_id) REFERENCES setups(setup_id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (parent_id) REFERENCES setups(setup_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE "setup_variants" (
@@ -54,9 +59,9 @@ CREATE TABLE "setup_variants" (
   "build" varchar(10) NOT NULL CHECK (build ~ '[TILJSZO]+'), -- enforce tetris pieces
   "cover_dependence" varchar(255) NOT NULL,
   "cover_data" bytea,
-  "fumen" varchar(1000) NOT NULL CHECK (fumen ~ '^v115@[A-Za-z0-9+/]+'), -- enforce fumen structure with version 115
+  "fumen" varchar(1000) NOT NULL CHECK (fumen ~ '^v115@[A-Za-z0-9+/?]+'), -- enforce fumen structure with version 115
   "pieces" varchar(100),
-  "minimal_solves" varchar(1000) CHECK (minimal_solves IS NULL OR minimal_solves ~ '^v115@[A-Za-z0-9+/]+'),
+  "minimal_solves" varchar(1000) CHECK (minimal_solves IS NULL OR minimal_solves ~ '^v115@[A-Za-z0-9+/?]+'),
   PRIMARY KEY (setup_id, variant_id)
 );
 
@@ -125,7 +130,12 @@ COMMENT ON COLUMN "saves"."save_percent" IS 'Save percent';
 
 COMMENT ON COLUMN "saves"."save_fraction" IS 'Percise save fraction';
 
-ALTER TABLE "setup_variants" ADD FOREIGN KEY ("setup_id") REFERENCES "setups" ("setup_id") ON DELETE CASCADE;
+ALTER TABLE "setup_variants" ADD FOREIGN KEY ("setup_id") REFERENCES "setups" ("setup_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE "saves" ADD FOREIGN KEY ("setup_id") REFERENCES "setups" ("setup_id") ON DELETE CASCADE;
+ALTER TABLE "saves" ADD FOREIGN KEY ("setup_id") REFERENCES "setups" ("setup_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+CREATE INDEX idx_setups_leftover            ON setups(leftover);
+CREATE INDEX idx_setups_oqb_path            ON setups(oqb_path); -- need to check if actually would use this
+CREATE INDEX idx_setups_oqb_links_parent_id ON setup_oqb_links(parent_id); 
+
+REVOKE INSERT(oqb_path, oqb_depth), UPDATE(oqb_path, oqb_depth) ON setups FROM PUBLIC; -- prevent directly affecting auto generated columns
