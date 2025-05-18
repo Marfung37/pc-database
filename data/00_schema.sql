@@ -27,7 +27,7 @@ CREATE TABLE "setups" (
   "solve_fraction" fraction,
   "mirror" setupid,
   "minimal_solves" varchar(1000) CHECK (minimal_solves IS NULL OR minimal_solves ~ '^v115@[A-Za-z0-9+/]+'),
-  "path_file" varchar(500) CHECK (path_file IS NULL OR path_file ~ '^[0-9a-f]{10}\.csv\.xz'), -- enforce the file has xz file extension
+  "path_file" varchar(18) CHECK (path_file IS NULL OR path_file ~ '^[0-9a-f]{10}\.csvd\.xz$'), -- enforce the file has xz file extension
   "credit" varchar(255)
 
   CHECK (
