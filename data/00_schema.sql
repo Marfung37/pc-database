@@ -15,7 +15,12 @@ CREATE TABLE "setups" (
   "cover_dependence" varchar(255) NOT NULL, -- difficult to constrain
   "cover_data" bytea, -- NULL is cover dependence is exactly what the setup covered by
   "oqb_path" varchar(131) CHECK (oqb_path IS NULL OR oqb_path ~ '^[1-9][0-9a-f]{11}(\.[1-9][0-9a-f]{11})*$'), -- enforce max depth 10 with max string length
-  "oqb_depth" int GENERATED ALWAYS AS (length(oqb_path) - length(replace(oqb_path, '.', ''))) STORED, -- implicit NULL if oqb_path is NULL
+  "oqb_depth" int GENERATED ALWAYS AS (
+    CASE
+      WHEN oqb_path IS NULL THEN NULL
+      ELSE length(oqb_path) - length(replace(oqb_path, '.', ''))
+    END
+  ) STORED,
   "fumen" varchar(1000) NOT NULL CHECK (fumen ~ '^v115@[A-Za-z0-9+/?]+'), -- enforce fumen structure with version 115
   "pieces" varchar(100), -- difficult to constrain
   "solve_percent" decimal(5,2) CHECK (solve_percent IS NULL OR solve_percent <= 100),
@@ -138,4 +143,5 @@ CREATE INDEX idx_setups_leftover            ON setups(leftover);
 CREATE INDEX idx_setups_oqb_path            ON setups(oqb_path); -- need to check if actually would use this
 CREATE INDEX idx_setups_oqb_links_parent_id ON setup_oqb_links(parent_id); 
 
-REVOKE INSERT(oqb_path, oqb_depth), UPDATE(oqb_path, oqb_depth) ON setups FROM PUBLIC; -- prevent directly affecting auto generated columns
+REVOKE INSERT(oqb_depth), UPDATE(oqb_path, oqb_depth) ON setups FROM PUBLIC; -- prevent directly affecting auto generated columns
+REVOKE INSERT(oqb_depth), UPDATE(oqb_path, oqb_depth) ON setups FROM authenticated; -- prevent directly affecting auto generated columns

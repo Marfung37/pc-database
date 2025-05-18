@@ -1,17 +1,3 @@
-DO $$
-BEGIN
-   IF NOT EXISTS (
-      SELECT FROM pg_roles WHERE rolname = 'path_updater'
-   ) THEN
-      CREATE ROLE path_updater NOINHERIT;
-   END IF;
-END
-$$;
-
-GRANT SELECT ON setups TO path_updater;
-GRANT SELECT ON setup_oqb_links TO path_updater;
-GRANT UPDATE(oqb_path) ON setups TO path_updater;
-
 -- Function to update path when links change
 CREATE OR REPLACE FUNCTION update_tree_paths()
 RETURNS TRIGGER
@@ -22,11 +8,7 @@ DECLARE
     is_valid BOOLEAN := TRUE;
 BEGIN
     BEGIN 
-        IF NEW.parent_id IS NULL THEN
-          SELECT 1 INTO parent_exists;
-        ELSE
-          SELECT EXISTS(SELECT 1 FROM setups WHERE setup_id = NEW.parent_id) INTO parent_exists;
-        END IF;
+        SELECT EXISTS(SELECT 1 FROM setups WHERE setup_id = NEW.parent_id) INTO parent_exists;
 
         -- Update the modified node's path
         IF NOT parent_exists THEN
@@ -51,8 +33,16 @@ BEGIN
             WHERE s.setup_id = NEW.child_id AND p.setup_id = NEW.parent_id;
         END IF;
         
-        -- Update all descendants (recursively)
-        PERFORM update_descendant_paths(NEW.child_id);
+        -- If UPDATE child_id then need to update children nodes to move them with it
+        IF TG_OP = 'UPDATE' AND OLD.child_id IS DISTINCT FROM NEW.child_id THEN
+          UPDATE setup_oqb_links
+          SET parent_id = NEW.child_id
+          WHERE parent_id = OLD.child_id;
+          -- the children will call this function and update their descendants
+        ELSE
+          -- Update all descendants (recursively)
+          PERFORM update_descendant_paths(NEW.child_id);
+        END IF;
     EXCEPTION WHEN OTHERS THEN
         RAISE NOTICE 'Tree path update aborted: %', SQLERRM;
         RETURN NULL; -- Cancels INSERT or UPDATE
@@ -99,9 +89,6 @@ BEGIN
     WHERE l.parent_id = parent_node;
 END;
 $$ LANGUAGE plpgsql;
-
-ALTER FUNCTION update_tree_paths() OWNER TO path_updater; 
-ALTER FUNCTION update_descendant_paths(TEXT) OWNER TO path_updater;
 
 -- Trigger to handle path updates
 CREATE TRIGGER tree_path_trigger
