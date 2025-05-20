@@ -1,0 +1,7 @@
+\i '/home/mar/Documents/PerfectClear/pc-database/data/clear_database.sql'
+\i '/home/mar/Documents/PerfectClear/pc-database/data/00_schema.sql'
+\i '/home/mar/Documents/PerfectClear/pc-database/data/01_oqb_tree_updates.sql'
+\i '/home/mar/Documents/PerfectClear/pc-database/data/01_row_level_security.sql'
+\i '/home/mar/Documents/PerfectClear/pc-database/data/01_statistic_solve_check.sql'
+\i '/home/mar/Documents/PerfectClear/pc-database/data/01_variant_number_update.sql'
+\i '/home/mar/Documents/PerfectClear/pc-database/data/01_variant_pieces_check.sql'

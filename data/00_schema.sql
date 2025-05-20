@@ -280,5 +280,5 @@ INSERT INTO
 VALUES
   (
     '1.0.0',
-    'PC Database for 4L 10-wide setups with tetraminos with several kicktables. This supports oqb setups and storing save statistics.'
+    'PC Database for 4L 10-wide setups with tetraminos with several kicktables. This supports oqb setups and storing save statistics. Schema may be flawed if a kicktable can cause shifts of a setup to give different stats as difficult to check.'
   );
