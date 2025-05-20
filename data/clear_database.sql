@@ -54,4 +54,3 @@ BEGIN
     EXECUTE format('DROP DOMAIN IF EXISTS public.%I CASCADE', r.domain_name);
   END LOOP;
 END $$;
-

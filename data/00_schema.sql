@@ -13,7 +13,11 @@ CREATE TYPE fraction AS ("numerator" integer, "denominator" integer);
 
 CREATE DOMAIN setupid AS varchar(12) CHECK (VALUE ~ '^[1-9][0-9a-f]{11}$');
 
-CREATE FUNCTION is_valid_fraction_array (arr fraction[]) RETURNS BOOLEAN LANGUAGE SQL IMMUTABLE AS $$
+CREATE OR REPLACE FUNCTION all_decimals_lte_100 (arr DECIMAL[]) RETURNS BOOLEAN LANGUAGE SQL IMMUTABLE AS $$
+  SELECT bool_and(p <= 100) FROM unnest(arr) AS p
+$$;
+
+CREATE OR REPLACE FUNCTION is_valid_fraction_array (arr fraction[]) RETURNS BOOLEAN LANGUAGE SQL IMMUTABLE AS $$
   SELECT bool_and(
     f.numerator IS NOT NULL
     AND f.denominator IS NOT NULL
@@ -104,7 +108,7 @@ CREATE TABLE "statistics" (
       AND (solve_fraction).denominator IS NOT NULL
       AND (solve_fraction).denominator <> 0
     )
-  ),
+  )
 );
 
 CREATE TABLE "saves" (
@@ -127,7 +131,7 @@ CREATE TABLE "saves" (
     minimal_solves IS NULL
     OR minimal_solves ~ '^v115@[A-Za-z0-9+/?]+$'
   ),
-  UNIQUE (setup_id, save),
+  UNIQUE ("stat_id", "save"),
   CHECK (
     save_fraction IS NULL
     OR (
@@ -138,15 +142,7 @@ CREATE TABLE "saves" (
   ),
   CHECK (
     priority_save_percent IS NULL
-    OR array_position(priority_save_percent, NULL) IS NULL
-    AND NOT EXISTS (
-      SELECT
-        1
-      FROM
-        unnest(priority_save_percent) AS p
-      WHERE
-        p > 100
-    )
+    OR all_decimals_lte_100 (priority_save_percent)
   ),
   CHECK (
     priority_save_fraction IS NULL
@@ -251,7 +247,7 @@ CREATE INDEX idx_setups_oqb_links_parent_id ON setup_oqb_links (parent_id);
 
 CREATE INDEX idx_variants_setup_id ON setup_variants (setup_id);
 
-CREATE INDEX idx_saves_setup_id ON saves (setup_id);
+CREATE INDEX idx_saves_setup_id ON saves (stat_id);
 
 -- prevent directly affecting auto generated columns
 REVOKE INSERT (oqb_depth),
