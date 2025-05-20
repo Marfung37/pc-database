@@ -9,6 +9,12 @@ enum kicktable {
   none // no kick table
 }
 
+table schema_metadata {
+  version           text          [primary key]
+  description       text          [not null]
+  updated_at        timestamptz   [default: `now()`]
+}
+
 table setups {
   setup_id          setupid       [primary key, note: '12 hexdigits']
   pc                smallint      [not null, note: 'PC Number for 1-9']
@@ -17,7 +23,8 @@ table setups {
   cover_dependence  varchar(255)  [not null, note: 'Extended pieces notation for when setup is covered. Need not be perfect']
   oqb_path          varchar(131)  [note: 'Materialized path of ids to this setup. NULL if not oqb and set to setup_id if oqb initially and populated from setup_oqb_links']
   oqb_depth         smallint      [note: 'Setup oqb tree depth']
-  fumen             varchar(1000) [not null, note: 'Fumen of the setup']
+  oqb_description   varchar(255)  [note: 'Description for when to use this setup']
+  fumen             text          [not null, note: 'Fumen of the setup']
   pieces            varchar(100)  [note: 'Pieces used for solving. NULL if internal node in oqb']
   mirror            setupid       [note: 'References a setup_id for mirror setup']
   credit            varchar(255)  [note: 'Credit for founder of setup']
@@ -29,10 +36,10 @@ table setup_oqb_links {
 }
 
 table setup_variants {
-  variant_id        int           [not null, note: 'Variant number 1 indexed. Variant 0 is the entry in setups']
+  variant_number    int           [not null, note: 'Variant number 1 indexed. Variant 0 is the entry in setups']
   setup_id          setupid       [not null, note: '12 hexdigits']
   build             varchar(10)   [not null, note: 'Pieces used in setup. Only TILJSZO allowed']
-  fumen             varchar(1000) [not null]
+  fumen             text          [not null, note: 'Fumen of the setup']
   pieces            varchar(100)  [note: 'Extended pieces notation used for solving. NULL if internal node in oqb']
 
   Note: 'Setups where other pieces can be placed without affecting statistics'
@@ -45,7 +52,8 @@ table statistics {
   cover_data        bytea         [note: 'Bit string of what queues are covered from cover dependence. NULL if all covered']
   solve_percent     decimal(5, 2) [note: 'Solve percent. NULL if internal node in oqb']
   solve_fraction    fraction      [note: 'Precise solve fraction. NULL if internal node in oqb']
-  minimal_solves    varchar(1000) [note: 'Minimal set of solves. NULL if not created']
+  all_solves        text          [note: 'All solves for the setup']
+  minimal_solves    text          [note: 'Minimal set of solves. NULL if not created']
   path_file         bool          [note: 'Whether path file exist. Follows [setup-id]-[kicktable].csvd.xz format']
 
   indexes {
@@ -62,7 +70,8 @@ table saves {
   save_fraction     fraction      [note: 'Precise save fraction. NULL if multiple saves']
   priority_save_percent   decimal(5, 2) [note: 'Array of percents for giving priority for saves. NULL if one save']
   priority_save_fraction  fraction      [note: 'Array of fraction for giving priority for saves. NULL if one save']
-  minimal_solves    varchar(1000) [note: 'Minimal set of solves']
+  all_solves        text          [note: 'All solves for save']
+  minimal_solves    text          [note: 'Minimal set of solves for save']
 }
 
 Ref: statistics.setup_id > setups.setup_id        [delete: cascade, update: cascade]
