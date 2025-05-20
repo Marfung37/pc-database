@@ -1,15 +1,22 @@
 -- 1. Setup test environment with DEFERRED constraints
 BEGIN;
 
-CREATE TEMP TABLE test_setups (LIKE setups INCLUDING ALL) ON COMMIT DROP;
-CREATE TEMP TABLE test_setup_oqb_links (LIKE setup_oqb_links INCLUDING ALL) ON COMMIT DROP;
+CREATE TEMP TABLE test_setups (LIKE setups INCLUDING ALL) ON
+COMMIT
+DROP;
 
-ALTER TABLE "test_setup_oqb_links" ADD FOREIGN KEY (child_id) REFERENCES test_setups(setup_id) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "test_setup_oqb_links" ADD FOREIGN KEY (parent_id) REFERENCES test_setups(setup_id) ON DELETE CASCADE ON UPDATE CASCADE;
+CREATE TEMP TABLE test_setup_oqb_links (LIKE setup_oqb_links INCLUDING ALL) ON
+COMMIT
+DROP;
+
+ALTER TABLE "test_setup_oqb_links"
+ADD FOREIGN KEY (child_id) REFERENCES test_setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "test_setup_oqb_links"
+ADD FOREIGN KEY (parent_id) REFERENCES test_setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- 2. Create test versions of your EXACT functions (unchanged except table names)
-CREATE OR REPLACE FUNCTION test_update_tree_paths()
-RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION test_update_tree_paths () RETURNS TRIGGER AS $$
 DECLARE
     parent_exists BOOLEAN;
     is_valid BOOLEAN := TRUE;
@@ -58,8 +65,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION test_update_descendant_paths(parent_node TEXT)
-RETURNS VOID AS $$
+CREATE OR REPLACE FUNCTION test_update_descendant_paths (parent_node TEXT) RETURNS VOID AS $$
 DECLARE
     parent_path TEXT;
     circular_child_id TEXT;
@@ -93,8 +99,10 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER test_tree_path_trigger
-AFTER INSERT OR UPDATE ON test_setup_oqb_links
-FOR EACH ROW EXECUTE FUNCTION test_update_tree_paths();
+AFTER INSERT
+OR
+UPDATE ON test_setup_oqb_links FOR EACH ROW
+EXECUTE FUNCTION test_update_tree_paths ();
 
 -- 4. Test Cases with Unusual Insertion Orders
 DO $$

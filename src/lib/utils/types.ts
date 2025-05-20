@@ -1,3 +1,1 @@
-export type Result<T> = Promise<
-  | {data: T, error: null}
-  | {data: null, error: Error}>
+export type Result<T> = Promise<{ data: T; error: null } | { data: null; error: Error }>;

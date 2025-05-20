@@ -1,152 +1,239 @@
-CREATE TYPE fraction AS (
-  "numerator"   integer,
-  "denominator" integer
+CREATE TYPE "kicktable" AS ENUM (
+  'srs',
+  'srs_plus',
+  'srsx',
+  'srs180',
+  'tetrax',
+  'asc',
+  'ars',
+  'none'
 );
 
-CREATE DOMAIN setupid AS varchar(12)
-  CHECK (
-    VALUE ~ '^[1-9][0-9a-f]{11}$'
-  );
+CREATE TYPE fraction AS ("numerator" integer, "denominator" integer);
+
+CREATE DOMAIN setupid AS varchar(12) CHECK (VALUE ~ '^[1-9][0-9a-f]{11}$');
+
+CREATE FUNCTION is_valid_fraction_array(arr fraction[])
+RETURNS BOOLEAN
+LANGUAGE SQL
+IMMUTABLE
+AS $$
+  SELECT bool_and(
+    f.numerator IS NOT NULL
+    AND f.denominator IS NOT NULL
+    AND f.denominator <> 0
+  )
+  FROM unnest(arr) AS f
+$$;
 
 CREATE TABLE "setups" (
   "setup_id" setupid PRIMARY KEY,
-  "leftover" varchar(7) NOT NULL CHECK (leftover ~ '[TILJSZO]+'), -- enforce tetris pieces
-  "build" varchar(10) NOT NULL CHECK (build ~ '[TILJSZO]+'), -- enforce tetris pieces
+  "pc" smallint NOT NULL CHECK (pc BETWEEN 1 AND 9),
+  "leftover" varchar(7) NOT NULL CHECK (leftover ~ '^[TILJSZO]+$'), -- enforce tetris pieces
+  "build" varchar(10) NOT NULL CHECK (build ~ '^[TILJSZO]+$'), -- enforce tetris pieces
   "cover_dependence" varchar(255) NOT NULL, -- difficult to constrain
-  "cover_data" bytea, -- NULL is cover dependence is exactly what the setup covered by
-  "oqb_path" varchar(131) CHECK (oqb_path IS NULL OR oqb_path ~ '^[1-9][0-9a-f]{11}(\.[1-9][0-9a-f]{11})*$'), -- enforce max depth 10 with max string length
+  "oqb_path" varchar(131) CHECK (
+    oqb_path IS NULL
+    OR oqb_path ~ '^[1-9][0-9a-f]{11}(\.[1-9][0-9a-f]{11})*$'
+  ), -- enforce max depth 10 with max string length
   "oqb_depth" int GENERATED ALWAYS AS (
     CASE
       WHEN oqb_path IS NULL THEN NULL
       ELSE length(oqb_path) - length(replace(oqb_path, '.', ''))
     END
   ) STORED,
-  "fumen" varchar(1000) NOT NULL CHECK (fumen ~ '^v115@[A-Za-z0-9+/?]+'), -- enforce fumen structure with version 115
+  "fumen" varchar(1000) NOT NULL CHECK (fumen ~ '^v115@[A-Za-z0-9+/?]+$'), -- enforce fumen structure with version 115
   "pieces" varchar(100), -- difficult to constrain
-  "solve_percent" decimal(5,2) CHECK (solve_percent IS NULL OR solve_percent <= 100),
-  "solve_fraction" fraction,
   "mirror" setupid,
-  "minimal_solves" varchar(1000) CHECK (minimal_solves IS NULL OR minimal_solves ~ '^v115@[A-Za-z0-9+/?]+'),
-  "path_file" varchar(20) CHECK (path_file IS NULL OR path_file ~ '^[1-9][0-9a-f]{11}\.csvd\.xz$'), -- enforce the file has xz file extension
   "credit" varchar(255),
-
-  CHECK (
-    solve_fraction IS NULL OR (
-      (solve_fraction).numerator IS NOT NULL AND
-      (solve_fraction).denominator IS NOT NULL AND
-      (solve_fraction).denominator <> 0
-    )
-  ),
-
   -- either all columns about solves are filled or is an oqb setup that doesn't solve
   CONSTRAINT no_solve_oqb_setup CHECK (
     (
-      pieces IS NULL AND solve_percent IS NULL AND solve_fraction IS NULL AND oqb_path IS NOT NULL
-    ) OR (
-      pieces IS NOT NULL AND solve_percent IS NOT NULL AND solve_fraction IS NOT NULL
+      pieces IS NULL
+      AND oqb_path IS NOT NULL
+    )
+    OR (
+      pieces IS NOT NULL
     )
   ),
-
-  FOREIGN KEY (mirror) REFERENCES setups(setup_id) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (mirror) REFERENCES setups (setup_id) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 CREATE TABLE setup_oqb_links (
-  child_id  setupid PRIMARY KEY,
+  child_id setupid PRIMARY KEY,
   parent_id setupid NOT NULL,
-  FOREIGN KEY (child_id) REFERENCES setups(setup_id) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (parent_id) REFERENCES setups(setup_id) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (child_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (parent_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE "setup_variants" (
   "setup_id" setupid NOT NULL,
   "variant_id" int NOT NULL CHECK (variant_id > 0), -- 1 index with intent 0 is the entry in setups
-  "build" varchar(10) NOT NULL CHECK (build ~ '[TILJSZO]+'), -- enforce tetris pieces
-  "fumen" varchar(1000) NOT NULL CHECK (fumen ~ '^v115@[A-Za-z0-9+/?]+'), -- enforce fumen structure with version 115
+  "build" varchar(10) NOT NULL CHECK (build ~ '^[TILJSZO]+$'), -- enforce tetris pieces
+  "fumen" varchar(1000) NOT NULL CHECK (fumen ~ '^v115@[A-Za-z0-9+/?]+$'), -- enforce fumen structure with version 115
   "pieces" varchar(100),
   PRIMARY KEY (setup_id, variant_id),
-  FOREIGN KEY (setup_id) REFERENCES setups(setup_id) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (setup_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE "statistics" (
+  "stat_id" uuid PRIMARY KEY DEFAULT (gen_random_uuid()),
+  "setup_id" setupid NOT NULL,
+  "kicktable" kicktable NOT NULL,
+  "cover_data" bytea, -- NULL is cover dependence is exactly what the setup covered by
+  "solve_percent" decimal(5, 2) CHECK (
+    solve_percent IS NULL
+    OR solve_percent <= 100
+  ),
+  "solve_fraction" fraction,
+  "minimal_solves" varchar(1000) CHECK (
+    minimal_solves IS NULL
+    OR minimal_solves ~ '^v115@[A-Za-z0-9+/?]+$'
+  ),
+  "path_file" bool,
+
+  UNIQUE ("setup_id", "kicktable"),
+  CHECK (
+    solve_fraction IS NULL
+    OR (
+      (solve_fraction).numerator IS NOT NULL
+      AND (solve_fraction).denominator IS NOT NULL
+      AND (solve_fraction).denominator <> 0
+    )
+  ),
+
 );
 
 CREATE TABLE "saves" (
   "save_id" uuid PRIMARY KEY DEFAULT (gen_random_uuid()),
-  "setup_id" setupid NOT NULL,
+  "stat_id" uuid NOT NULL,
   "save" varchar(255) NOT NULL,
   "description" varchar(255),
-  "save_percent" decimal(5,2) NOT NULL CHECK (save_percent IS NULL OR save_percent <= 100),
-  "save_fraction" fraction NOT NULL,
-  "minimal_solves" varchar(1000) CHECK (minimal_solves IS NULL OR minimal_solves ~ '^v115@[A-Za-z0-9+/?]+'),
-
+  "save_percent" decimal(5,2) CHECK (
+    save_percent IS NULL
+    OR save_percent <= 100
+  ),
+  "save_fraction" fraction,
+  "priority_save_percent" decimal(5,2)[],
+  "priority_save_fraction" fraction[],
+  "minimal_solves" varchar(1000) CHECK (
+    minimal_solves IS NULL
+    OR minimal_solves ~ '^v115@[A-Za-z0-9+/?]+$'
+  ),
   UNIQUE (setup_id, save),
-  FOREIGN KEY (setup_id) REFERENCES setups(setup_id) ON DELETE CASCADE ON UPDATE CASCADE,
-
   CHECK (
-    save_fraction IS NULL OR (
-      (save_fraction).numerator IS NOT NULL AND
-      (save_fraction).denominator IS NOT NULL AND
-      (save_fraction).denominator <> 0
+    save_fraction IS NULL
+    OR (
+      (save_fraction).numerator IS NOT NULL
+      AND (save_fraction).denominator IS NOT NULL
+      AND (save_fraction).denominator <> 0
     )
   ),
+  CHECK (
+    priority_save_percent IS NULL
+    OR array_position(priority_save_percent, NULL) IS NULL
+       AND NOT EXISTS (
+         SELECT 1 FROM unnest(priority_save_percent) AS p
+         WHERE p > 100
+       )
+  ),
+  CHECK (
+    priority_save_fraction IS NULL
+    OR is_valid_fraction_array(priority_save_fraction)
+  ),
+  CHECK (
+    (
+      save_percent IS NOT NULL AND save_fraction IS NOT NULL AND priority_save_percent IS NULL AND priority_save_fraction IS NULL
+    ) OR (
+      save_percent IS NULL AND save_fraction IS NULL AND priority_save_percent IS NOT NULL AND priority_save_fraction IS NOT NULL
+    )
+  )
 );
 
 COMMENT ON COLUMN "setups"."setup_id" IS '12 hexdigits';
+
+COMMENT ON COLUMN "setups"."pc" IS 'PC Number for 1-9';
 
 COMMENT ON COLUMN "setups"."leftover" IS 'Pieces left from bag. Only TILJSZO allowed';
 
 COMMENT ON COLUMN "setups"."build" IS 'Pieces used in setup. Only TILJSZO allowed';
 
-COMMENT ON COLUMN "setups"."cover_dependence" IS 'Description of when setup is covered';
+COMMENT ON COLUMN "setups"."cover_dependence" IS 'Extended pieces notation for when setup is covered. Need not be perfect';
 
-COMMENT ON COLUMN "setups"."cover_data" IS 'Bit string of what queues are covered from cover dependence. 1 if all covered';
-
-COMMENT ON COLUMN "setups"."oqb_path" IS 'Materialized path of ids to this setup. NULL if not oqb';
+COMMENT ON COLUMN "setups"."oqb_path" IS 'Materialized path of ids to this setup. NULL if not oqb and set to setup_id if oqb initially and populated from setup_oqb_links';
 
 COMMENT ON COLUMN "setups"."oqb_depth" IS 'Setup oqb tree depth';
 
 COMMENT ON COLUMN "setups"."fumen" IS 'Fumen of the setup';
 
-COMMENT ON COLUMN "setups"."pieces" IS 'Pieces used for solving. NULL if intended as step to full setup';
+COMMENT ON COLUMN "setups"."pieces" IS 'Pieces used for solving. NULL if internal node in oqb';
 
-COMMENT ON COLUMN "setups"."solve_percent" IS 'Solve percent. NULL if intended as step to full setup';
-
-COMMENT ON COLUMN "setups"."solve_fraction" IS 'Percise solve fraction';
-
-COMMENT ON COLUMN "setups"."mirror" IS '12 hexdigits and references an id for mirror setup';
+COMMENT ON COLUMN "setups"."mirror" IS 'References a setup_id for mirror setup';
 
 COMMENT ON COLUMN "setups"."credit" IS 'Credit for founder of setup';
 
 COMMENT ON TABLE "setup_variants" IS 'Setups where other pieces can be placed without affecting statistics';
 
-COMMENT ON COLUMN "setup_variants"."setup_id" IS '12 hexdigits';
+COMMENT ON COLUMN "setup_variants"."variant_id" IS 'Variant number 1 indexed. Variant 0 is the entry in setups';
 
-COMMENT ON COLUMN "setup_variants"."variant_id" IS 'Variant number 1 indexed';
+COMMENT ON COLUMN "setup_variants"."setup_id" IS '12 hexdigits';
 
 COMMENT ON COLUMN "setup_variants"."build" IS 'Pieces used in setup. Only TILJSZO allowed';
 
-COMMENT ON COLUMN "setup_variants"."cover_dependence" IS 'Description of when setup is covered';
+COMMENT ON COLUMN "setup_variants"."pieces" IS 'Extended pieces notation used for solving. NULL if internal node in oqb';
 
-COMMENT ON COLUMN "setup_variants"."cover_data" IS 'Bit string of what queues are covered from cover dependence. 1 if all covered';
+COMMENT ON COLUMN "statistics"."setup_id" IS '12 hexdigits';
 
-COMMENT ON COLUMN "setup_variants"."pieces" IS 'Pieces used for solving. NULL if intended as step to full setup';
+COMMENT ON COLUMN "statistics"."cover_data" IS 'Bit string of what queues are covered from cover dependence. NULL if all covered';
 
-COMMENT ON COLUMN "saves"."setup_id" IS '12 hexdigits';
+COMMENT ON COLUMN "statistics"."solve_percent" IS 'Solve percent. NULL if internal node in oqb';
 
-COMMENT ON COLUMN "saves"."save" IS 'Pieces saved for next PC in extends pieces notation';
+COMMENT ON COLUMN "statistics"."solve_fraction" IS 'Precise solve fraction. NULL if internal node in oqb';
+
+COMMENT ON COLUMN "statistics"."minimal_solves" IS 'Minimal set of solves. NULL if not created';
+
+COMMENT ON COLUMN "statistics"."path_file" IS 'Whether path file exist. Follows [setup-id]-[kicktable].csvd.xz format';
+
+COMMENT ON COLUMN "saves"."save" IS 'Pieces saved for next PC for sfinder-saves';
 
 COMMENT ON COLUMN "saves"."description" IS 'Description of the save. Ex: One T or Two LJ';
 
-COMMENT ON COLUMN "saves"."save_percent" IS 'Save percent';
+COMMENT ON COLUMN "saves"."save_percent" IS 'Save percent. NULL if multiple saves';
 
-COMMENT ON COLUMN "saves"."save_fraction" IS 'Percise save fraction';
+COMMENT ON COLUMN "saves"."save_fraction" IS 'Precise save fraction. NULL if multiple saves';
+
+COMMENT ON COLUMN "saves"."priority_save_percent" IS 'Array of percents for giving priority for saves. NULL if one save';
+
+COMMENT ON COLUMN "saves"."priority_save_fraction" IS 'Array of fraction for giving priority for saves. NULL if one save';
+
+COMMENT ON COLUMN "saves"."minimal_solves" IS 'Minimal set of solves';
+
+ALTER TABLE "statistics" ADD FOREIGN KEY ("setup_id") REFERENCES "setups" ("setup_id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "saves" ADD FOREIGN KEY ("stat_id") REFERENCES "statistics" ("stat_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE "setup_variants" ADD FOREIGN KEY ("setup_id") REFERENCES "setups" ("setup_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE "saves" ADD FOREIGN KEY ("setup_id") REFERENCES "setups" ("setup_id") ON DELETE CASCADE ON UPDATE CASCADE;
+CREATE INDEX idx_setups_leftover ON setups (leftover);
 
-CREATE INDEX idx_setups_leftover            ON setups(leftover);
-CREATE INDEX idx_setups_oqb_path            ON setups(oqb_path); -- need to check if actually would use this
-CREATE INDEX idx_setups_oqb_links_parent_id ON setup_oqb_links(parent_id); 
-CREATE INDEX idx_variants_setup_id          ON setup_variants(setup_id); 
-CREATE INDEX idx_saves_setup_id             ON saves(setup_id); 
+CREATE INDEX idx_setups_oqb_path ON setups (oqb_path);
 
-REVOKE INSERT(oqb_depth), UPDATE(oqb_path, oqb_depth) ON setups FROM PUBLIC; -- prevent directly affecting auto generated columns
-REVOKE INSERT(oqb_depth), UPDATE(oqb_path, oqb_depth) ON setups FROM authenticated; -- prevent directly affecting auto generated columns
+CREATE INDEX idx_setups_oqb_links_parent_id ON setup_oqb_links (parent_id);
+
+CREATE INDEX idx_variants_setup_id ON setup_variants (setup_id);
+
+CREATE INDEX idx_saves_setup_id ON saves (setup_id);
+
+-- prevent directly affecting auto generated columns
+REVOKE INSERT (oqb_depth),
+UPDATE (oqb_path, oqb_depth) ON setups
+FROM
+  PUBLIC;
+
+REVOKE INSERT (oqb_depth),
+UPDATE (oqb_path, oqb_depth) ON setups
+FROM
+  authenticated;
+
+REVOKE INSERT (variant_id), UPDATE (variant_id) ON setup_variants FROM PUBLIC;
+REVOKE INSERT (variant_id), UPDATE (variant_id) ON setup_variants FROM authenticated;

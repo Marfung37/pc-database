@@ -15,14 +15,14 @@ const PIECESTONUM: Record<string, number> = {
   O: 6
 };
 
-const NUMTOPIECES: string = "TILJSZO";
+const NUMTOPIECES: string = 'TILJSZO';
 
 const COLUMN_ORDER = [
-  'ツモ',          // Queue
-  '対応地形数',    // Fumen count
-  '使用ミノ',      // Used pieces
-  '未使用ミノ',    // Unused pieces
-  'テト譜',        // Fumens
+  'ツモ', // Queue
+  '対応地形数', // Fumen count
+  '使用ミノ', // Used pieces
+  '未使用ミノ', // Unused pieces
+  'テト譜' // Fumens
 ];
 
 function queueKey(queue: string): number {
@@ -39,8 +39,9 @@ function unmapSaves(mask: number): string {
     .join(';');
 }
 
-function strictParseInt(str: string): number { // only nonnegative integers
-  if (!/^\d+$/.test(str)) throw new Error("Invalid integer");
+function strictParseInt(str: string): number {
+  // only nonnegative integers
+  if (!/^\d+$/.test(str)) throw new Error('Invalid integer');
   return parseInt(str, 10);
 }
 
@@ -93,16 +94,16 @@ export async function compressPath(filename: string, pieces: string): Result<Buf
 
     // Validate output (though lzma-native should always return Buffer)
     if (!Buffer.isBuffer(compressed)) {
-      return {data: null, error: new Error('Compression returned invalid data')};
+      return { data: null, error: new Error('Compression returned invalid data') };
     }
 
-    return {data: compressed, error: null};
+    return { data: compressed, error: null };
   } catch (err) {
     // Convert to proper Error instance
     const error = err instanceof Error ? err : new Error(String(err));
     error.message = `Compression failed: ${error.message}`;
 
-    return {data: null, error};
+    return { data: null, error };
   }
 }
 
@@ -117,7 +118,7 @@ export async function compressPath(filename: string, pieces: string): Result<Buf
  *   - `3`: Adds back fumens and number of fumens
  *   - `4`: Adds back pieces used
  *   - Any higher number: Processes all levels
- * 
+ *
  * @returns csv file as a string except for level 0
  */
 export async function decompressPath(data: Buffer, level: number = 4): Result<string> {
@@ -127,17 +128,17 @@ export async function decompressPath(data: Buffer, level: number = 4): Result<st
 
     // Validate output (though lzma-native should always return Buffer)
     if (!Buffer.isBuffer(decompressed)) {
-      return {data: null, error: new Error('Decompression returned invalid data')};
+      return { data: null, error: new Error('Decompression returned invalid data') };
     }
   } catch (err) {
     // Convert to proper Error instance
     const error = err instanceof Error ? err : new Error(String(err));
     error.message = `Decompression failed: ${error.message}`;
 
-    return {data: null, error};
+    return { data: null, error };
   }
 
-  if (level <= 0) return {data: decompressed.toString(), error: null};
+  if (level <= 0) return { data: decompressed.toString(), error: null };
 
   // get data for each section
   const [pieces, ...rest] = decompressed.toString().split('\n\n');
@@ -160,21 +161,34 @@ export async function decompressPath(data: Buffer, level: number = 4): Result<st
       try {
         row['未使用ミノ'] = unmapSaves(strictParseInt(row['未使用ミノ'])); // saves
       } catch (err) {
-        return {data: null, error: new Error(`Invalid saves in row ${i} (${row['未使用ミノ']}): ${(err as Error).message}`)};
+        return {
+          data: null,
+          error: new Error(
+            `Invalid saves in row ${i} (${row['未使用ミノ']}): ${(err as Error).message}`
+          )
+        };
       }
     }
     if (level >= 3) {
-      const rowKeyFumens = row['テト譜'].split(';')
+      const rowKeyFumens = row['テト譜'].split(';');
       try {
-        row['テト譜'] = rowKeyFumens.map(key => fumens[strictParseInt(key)]).join(';'); // fumens
+        row['テト譜'] = rowKeyFumens.map((key) => fumens[strictParseInt(key)]).join(';'); // fumens
       } catch (err) {
-        return {data: null, error: new Error(`Invalid fumen key in row ${i} (${row['テト譜']}): ${(err as Error).message}`)};
+        return {
+          data: null,
+          error: new Error(
+            `Invalid fumen key in row ${i} (${row['テト譜']}): ${(err as Error).message}`
+          )
+        };
       }
       row['対応地形数'] = rowKeyFumens.length.toString(); // number of fumens
     }
     if (level >= 4) {
       const sortedQueue = [...row['ツモ']].sort((a, b) => PIECESTONUM[a] - PIECESTONUM[b]).join('');
-      row['使用ミノ'] = row['未使用ミノ'].split(';').map((save) => sortedQueue.replace(new RegExp(save), '')).join(';'); // pieces used
+      row['使用ミノ'] = row['未使用ミノ']
+        .split(';')
+        .map((save) => sortedQueue.replace(new RegExp(save), ''))
+        .join(';'); // pieces used
     }
   }
 

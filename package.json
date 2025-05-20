@@ -1,5 +1,5 @@
 {
-  "name": "pc-quiz",
+  "name": "pc-database",
   "private": true,
   "version": "0.0.1",
   "type": "module",
@@ -53,7 +53,8 @@
     "@inlang/paraglide-js": "^2.0.0",
     "csv-parse": "^5.6.0",
     "csv-stringify": "^6.5.2",
-    "lzma-native": "^8.0.6"
+    "lzma-native": "^8.0.6",
+    "prettier-plugin-sql": "^0.19.1"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

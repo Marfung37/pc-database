@@ -1,7 +1,5 @@
 -- Making sure the pieces is set if not oqb
-CREATE OR REPLACE FUNCTION check_variant_pieces()
-RETURNS TRIGGER
-AS $$
+CREATE OR REPLACE FUNCTION check_variant_pieces () RETURNS TRIGGER AS $$
 BEGIN
   IF NEW.pieces IS NULL AND EXISTS (
       SELECT 1 FROM setups s
@@ -13,7 +11,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_check_variant_pieces
-BEFORE INSERT OR UPDATE ON setup_variants
-FOR EACH ROW
-EXECUTE FUNCTION check_variant_pieces();
+CREATE TRIGGER trg_check_variant_pieces BEFORE INSERT
+OR
+UPDATE ON setup_variants FOR EACH ROW
+EXECUTE FUNCTION check_variant_pieces ();

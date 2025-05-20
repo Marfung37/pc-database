@@ -2,12 +2,16 @@
 BEGIN;
 
 -- Create temporary tables with all constraints
-CREATE TEMP TABLE test_setups (LIKE setups INCLUDING ALL) ON COMMIT DROP;
-CREATE TEMP TABLE test_setup_oqb_links (LIKE setup_oqb_links INCLUDING ALL) ON COMMIT DROP;
+CREATE TEMP TABLE test_setups (LIKE setups INCLUDING ALL) ON
+COMMIT
+DROP;
+
+CREATE TEMP TABLE test_setup_oqb_links (LIKE setup_oqb_links INCLUDING ALL) ON
+COMMIT
+DROP;
 
 -- 2. Create test versions of your EXACT functions (unchanged except table names)
-CREATE OR REPLACE FUNCTION test_update_tree_paths()
-RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION test_update_tree_paths () RETURNS TRIGGER AS $$
 DECLARE
     parent_exists BOOLEAN;
     is_valid BOOLEAN := TRUE;
@@ -56,8 +60,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION test_update_descendant_paths(parent_node TEXT)
-RETURNS VOID AS $$
+CREATE OR REPLACE FUNCTION test_update_descendant_paths (parent_node TEXT) RETURNS VOID AS $$
 DECLARE
     parent_path TEXT;
     circular_child_id TEXT;
@@ -91,20 +94,113 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER test_tree_path_trigger
-AFTER INSERT OR UPDATE ON test_setup_oqb_links
-FOR EACH ROW EXECUTE FUNCTION test_update_tree_paths();
+AFTER INSERT
+OR
+UPDATE ON test_setup_oqb_links FOR EACH ROW
+EXECUTE FUNCTION test_update_tree_paths ();
 
 -- 3. Insert test data (valid 12-character hex IDs)
-INSERT INTO test_setups (setup_id, leftover, build, cover_dependence, fumen, pieces, solve_percent, solve_fraction, oqb_path)
-VALUES 
-  ('100000000001', 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'TILJSZO', 100.00, (1,1)::fraction, '100000000001'),
-  ('200000000002', 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'TILJSZO', 100.00, (1,1)::fraction, '200000000002'),
-  ('300000000003', 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'TILJSZO', 95.50, (191,200)::fraction, NULL),
-  ('400000000004', 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'TILJSZO', 97.25, (389,400)::fraction, NULL),
-  ('500000000005', 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'TILJSZO', 92.75, (371,400)::fraction, NULL),
-  ('600000000006', 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'TILJSZO', 85.25, (341,400)::fraction, NULL),
-  ('700000000007', 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'TILJSZO', 88.50, (177,200)::fraction, NULL),
-  ('800000000008', 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'TILJSZO', 90.00, (9,10)::fraction, NULL);
+INSERT INTO
+  test_setups (
+    setup_id,
+    leftover,
+    build,
+    cover_dependence,
+    fumen,
+    pieces,
+    solve_percent,
+    solve_fraction,
+    oqb_path
+  )
+VALUES
+  (
+    '100000000001',
+    'TILJSZO',
+    'TILJSZO',
+    'test',
+    'v115@test',
+    'TILJSZO',
+    100.00,
+    (1, 1)::fraction,
+    '100000000001'
+  ),
+  (
+    '200000000002',
+    'TILJSZO',
+    'TILJSZO',
+    'test',
+    'v115@test',
+    'TILJSZO',
+    100.00,
+    (1, 1)::fraction,
+    '200000000002'
+  ),
+  (
+    '300000000003',
+    'TILJSZO',
+    'TILJSZO',
+    'test',
+    'v115@test',
+    'TILJSZO',
+    95.50,
+    (191, 200)::fraction,
+    NULL
+  ),
+  (
+    '400000000004',
+    'TILJSZO',
+    'TILJSZO',
+    'test',
+    'v115@test',
+    'TILJSZO',
+    97.25,
+    (389, 400)::fraction,
+    NULL
+  ),
+  (
+    '500000000005',
+    'TILJSZO',
+    'TILJSZO',
+    'test',
+    'v115@test',
+    'TILJSZO',
+    92.75,
+    (371, 400)::fraction,
+    NULL
+  ),
+  (
+    '600000000006',
+    'TILJSZO',
+    'TILJSZO',
+    'test',
+    'v115@test',
+    'TILJSZO',
+    85.25,
+    (341, 400)::fraction,
+    NULL
+  ),
+  (
+    '700000000007',
+    'TILJSZO',
+    'TILJSZO',
+    'test',
+    'v115@test',
+    'TILJSZO',
+    88.50,
+    (177, 200)::fraction,
+    NULL
+  ),
+  (
+    '800000000008',
+    'TILJSZO',
+    'TILJSZO',
+    'test',
+    'v115@test',
+    'TILJSZO',
+    90.00,
+    (9, 10)::fraction,
+    NULL
+  );
 
 -- 4. Test Cases
 DO $$

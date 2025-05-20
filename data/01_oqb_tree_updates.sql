@@ -1,7 +1,5 @@
 -- Function to update path when links change
-CREATE OR REPLACE FUNCTION update_tree_paths()
-RETURNS TRIGGER
-SECURITY DEFINER  -- Runs with owner's privileges
+CREATE OR REPLACE FUNCTION update_tree_paths () RETURNS TRIGGER SECURITY DEFINER -- Runs with owner's privileges
 AS $$
 DECLARE
     parent_exists BOOLEAN;
@@ -53,9 +51,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Helper function to update descendant paths
-CREATE OR REPLACE FUNCTION update_descendant_paths(parent_node TEXT)
-RETURNS VOID
-SECURITY DEFINER  -- Runs with owner's privileges
+CREATE OR REPLACE FUNCTION update_descendant_paths (parent_node TEXT) RETURNS VOID SECURITY DEFINER -- Runs with owner's privileges
 AS $$
 DECLARE
     parent_path TEXT;
@@ -92,5 +88,8 @@ $$ LANGUAGE plpgsql;
 
 -- Trigger to handle path updates
 CREATE TRIGGER tree_path_trigger
-AFTER INSERT OR UPDATE OF parent_id, child_id ON setup_oqb_links
-FOR EACH ROW EXECUTE FUNCTION update_tree_paths();
+AFTER INSERT
+OR
+UPDATE OF parent_id,
+child_id ON setup_oqb_links FOR EACH ROW
+EXECUTE FUNCTION update_tree_paths ();

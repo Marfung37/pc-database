@@ -6,7 +6,7 @@ interface LZMAOptions {
 
 type LZMACallback = (result: Buffer | null, error: Error | null) => void;
 
-declare module "lzma-native" {
+declare module 'lzma-native' {
   export function compress(
     input: string | Buffer | Uint8Array | number[],
     options?: LZMAOptions | LZMACallback,

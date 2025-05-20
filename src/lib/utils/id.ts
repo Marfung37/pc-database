@@ -8,4 +8,3 @@ function hashFumen(fumen: string, bits: number = 4): number {
 
   return xor & ((1 << bits) - 1);
 }
-

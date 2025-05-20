@@ -1,5 +1,3 @@
-// if supporting different kicktables, need to support for different cover data also.
-
 enum kicktable {
   srs
   srs_plus
@@ -12,16 +10,16 @@ enum kicktable {
 }
 
 table setups {
-  setup_id          setupid       [primary key, note: '5 bytes']
+  setup_id          setupid       [primary key, note: '12 hexdigits']
+  pc                smallint      [not null, note: 'PC Number for 1-9']
   leftover          varchar(7)    [not null, note: 'Pieces left from bag. Only TILJSZO allowed']
   build             varchar(10)   [not null, note: 'Pieces used in setup. Only TILJSZO allowed']
-  cover_dependence  varchar(255)  [not null, note: 'Description of when setup is covered']
-  cover_data        bytea         [note: 'Bit string of what queues are covered from cover dependence. 1 if all covered']
-  oqb_path          varchar(131)  [note: 'Materialized path of ids to this setup. NULL if not oqb']
-  oqb_depth         int           [note: 'Setup oqb tree depth']
+  cover_dependence  varchar(255)  [not null, note: 'Extended pieces notation for when setup is covered. Need not be perfect']
+  oqb_path          varchar(131)  [note: 'Materialized path of ids to this setup. NULL if not oqb and set to setup_id if oqb initially and populated from setup_oqb_links']
+  oqb_depth         smallint      [note: 'Setup oqb tree depth']
   fumen             varchar(1000) [not null, note: 'Fumen of the setup']
-  pieces            varchar(100)  [note: 'Pieces used for solving. NULL if intended as step to full setup']
-  mirror            setupid       [note: '5 bytes and references an id for mirror setup']
+  pieces            varchar(100)  [note: 'Pieces used for solving. NULL if internal node in oqb']
+  mirror            setupid       [note: 'References a setup_id for mirror setup']
   credit            varchar(255)  [note: 'Credit for founder of setup']
 }
 
@@ -31,25 +29,24 @@ table setup_oqb_links {
 }
 
 table setup_variants {
-  variant_id        int           [not null, note: 'Variant number 1 indexed']
-  setup_id          setupid       [not null, note: '5 bytes']
+  variant_id        int           [not null, note: 'Variant number 1 indexed. Variant 0 is the entry in setups']
+  setup_id          setupid       [not null, note: '12 hexdigits']
   build             varchar(10)   [not null, note: 'Pieces used in setup. Only TILJSZO allowed']
-  cover_dependence  varchar(255)  [not null, note: 'Description of when setup is covered']
-  cover_data        bytea         [note: 'Bit string of what queues are covered from cover dependence. 1 if all covered']
   fumen             varchar(1000) [not null]
-  pieces            varchar(100)  [note: 'Pieces used for solving. NULL if intended as step to full setup']
+  pieces            varchar(100)  [note: 'Extended pieces notation used for solving. NULL if internal node in oqb']
 
   Note: 'Setups where other pieces can be placed without affecting statistics'
 }
 
 table statistics {
   stat_id           uuid          [primary key, default: `gen_random_uuid()`]
-  setup_id          setupid       [not null]
+  setup_id          setupid       [not null, note: '12 hexdigits']
   kicktable         kicktable     [not null]
-  solve_percent     decimal(5, 2) [note: 'Solve percent. NULL if intended as step to full setup']
-  solve_fraction    fraction      [note: 'Percise solve fraction']
-  minimal_solves    varchar(1000) [note: 'Minimal set of solves']
-  path_file         varchar(20)  [note: 'Blob location of path.csv file']
+  cover_data        bytea         [note: 'Bit string of what queues are covered from cover dependence. NULL if all covered']
+  solve_percent     decimal(5, 2) [note: 'Solve percent. NULL if internal node in oqb']
+  solve_fraction    fraction      [note: 'Precise solve fraction. NULL if internal node in oqb']
+  minimal_solves    varchar(1000) [note: 'Minimal set of solves. NULL if not created']
+  path_file         bool          [note: 'Whether path file exist. Follows [setup-id]-[kicktable].csvd.xz format']
 
   indexes {
     (setup_id, kicktable) [unique]
@@ -59,16 +56,19 @@ table statistics {
 table saves {
   save_id           uuid          [primary key, default: `gen_random_uuid()`]
   stat_id           uuid          [not null]
-  save              varchar(255)  [not null, note: 'Pieces saved for next PC in extends pieces notation']
+  save              varchar(255)  [not null, note: 'Pieces saved for next PC for sfinder-saves']
   description       varchar(255)  [note: 'Description of the save. Ex: One T or Two LJ']
-  save_percent      decimal(5, 2) [not null, note: 'Save percent']
-  save_fraction     fraction      [not null, note: 'Percise save fraction']
-  minimal_solves    varchar(1000) [note: 'Minimal set of 1solves']
+  save_percent      decimal(5, 2) [note: 'Save percent. NULL if multiple saves']
+  save_fraction     fraction      [note: 'Precise save fraction. NULL if multiple saves']
+  priority_save_percent   decimal(5, 2) [note: 'Array of percents for giving priority for saves. NULL if one save']
+  priority_save_fraction  fraction      [note: 'Array of fraction for giving priority for saves. NULL if one save']
+  minimal_solves    varchar(1000) [note: 'Minimal set of solves']
 }
 
 Ref: statistics.setup_id > setups.setup_id        [delete: cascade, update: cascade]
 Ref: saves.stat_id > statistics.stat_id           [delete: cascade, update: cascade]
+
 Ref: setup_variants.setup_id > setups.setup_id    [delete: cascade, update: cascade]
 Ref: setup_oqb_links.child_id > setups.setup_id   [delete: cascade, update: cascade]
 Ref: setup_oqb_links.parent_id > setups.setup_id  [delete: cascade, update: cascade]
-Ref: setups.mirror - setups.setup_id 
+Ref: setups.mirror - setups.setup_id              [delete: set null, update: cascade]
