@@ -28,6 +28,7 @@ table setups {
   pieces            varchar(100)  [note: 'Pieces used for solving. NULL if internal node in oqb']
   mirror            setupid       [note: 'References a setup_id for mirror setup']
   credit            varchar(255)  [note: 'Credit for founder of setup']
+  
 }
 
 table setup_oqb_links {
@@ -72,6 +73,25 @@ table saves {
   priority_save_fraction  fraction      [note: 'Array of fraction for giving priority for saves. NULL if one save']
   all_solves        text          [note: 'All solves for save']
   minimal_solves    text          [note: 'Minimal set of solves for save']
+}
+
+table users {
+  user_id          uuid         [primary key, default: `gen_random_uuid()`]
+  auth_id          uuid         [unique]
+  username         varchar(255) [unique, not null] // maybe should have credit reference this
+  email            varchar(255) [unique, not null]
+  editor           bool         [not null, default: false]
+  admin            bool         [not null, default: false]
+  active           bool         [not null, default: false]
+
+  indexes {
+    auth_id [name: "user_auth_id_idex", unique]
+  }
+}
+
+table auth.users {
+  id                uuid [primary key, ref: - users.auth_id]
+  email             text [not null, unique]
 }
 
 Ref: statistics.setup_id > setups.setup_id        [delete: cascade, update: cascade]
