@@ -93,3 +93,5 @@ OR
 UPDATE OF parent_id,
 child_id ON setup_oqb_links FOR EACH ROW
 EXECUTE FUNCTION update_tree_paths ();
+
+-- TODO: handle when deleting from the links

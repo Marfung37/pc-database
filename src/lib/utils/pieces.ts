@@ -105,12 +105,12 @@ function parseInput(inputPattern: string, bsortQueues: boolean = true): Iterable
       }
     } else if (piecesFormat.startsWith('[') && piecesFormat.endsWith(']')) {
       actualPieces = piecesFormat.slice(1, -1);
-    // }
-    // Is a file
-    // else if (piecesFormat.startsWith('<') && piecesFormat.endsWith('>')) {
-    //   const filename = piecesFormat.slice(1, -1);
-    //   // In browser environment, file reading would need to be handled differently
-    //   throw new Error('File reading not implemented in browser environment');
+      // }
+      // Is a file
+      // else if (piecesFormat.startsWith('<') && piecesFormat.endsWith('>')) {
+      //   const filename = piecesFormat.slice(1, -1);
+      //   // In browser environment, file reading would need to be handled differently
+      //   throw new Error('File reading not implemented in browser environment');
     } else {
       // Invalid pieces format
       throw new Error(`The pieces ${piecesFormat} could not be parsed!`);

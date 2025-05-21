@@ -11,10 +11,7 @@ CREATE TABLE "users" (
 CREATE UNIQUE INDEX "user_auth_id_idex" ON "users" ("auth_id");
 
 -- Link auth user to profile
-CREATE OR REPLACE FUNCTION
-    public.link_auth_login_to_app_user()
-    RETURNS TRIGGER AS
-$$
+CREATE OR REPLACE FUNCTION public.link_auth_login_to_app_user () RETURNS TRIGGER AS $$
 BEGIN
     -- check if profile already exists by email; otherwise error out
     IF EXISTS (SELECT 1 FROM public.users WHERE email = NEW.email) THEN
@@ -26,11 +23,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-CREATE TRIGGER
-    ensure_app_user_exists
-    AFTER INSERT
-    ON auth.users
-    FOR EACH ROW
-EXECUTE PROCEDURE
-    public.link_auth_login_to_app_user();
-
+CREATE TRIGGER ensure_app_user_exists
+AFTER INSERT ON auth.users FOR EACH ROW
+EXECUTE PROCEDURE public.link_auth_login_to_app_user ();
