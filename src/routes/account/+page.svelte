@@ -29,6 +29,8 @@
   };
 </script>
 
+<h1>Your Profile</h1>
+
 <div class="form-widget">
   <form
     class="form-widget"

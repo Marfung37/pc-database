@@ -29,7 +29,7 @@ export const actions: Actions = {
       return fail(400, {
         success: false,
         email,
-        message: `There was an issue, Please contact support.`
+        message: `Failed to login. Invalid email or password.`
       });
     }
 
