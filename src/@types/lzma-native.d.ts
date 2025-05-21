@@ -1,7 +1,6 @@
 interface LZMAOptions {
   preset?: number;
   memlimit?: number;
-  [key: string]: any;
 }
 
 type LZMACallback = (result: Buffer | null, error: Error | null) => void;

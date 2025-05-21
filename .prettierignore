@@ -14,4 +14,4 @@ yarn.lock
 
 # Database
 data/init_db.sql
-data/backup.sql
+data/backup/*
