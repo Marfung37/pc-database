@@ -1,4 +1,6 @@
-CREATE OR REPLACE FUNCTION prevent_protected_users_field_changes () RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION prevent_protected_users_field_changes () RETURNS TRIGGER
+SET
+  search_path = public AS $$
 DECLARE
   current_auth_id uuid;
 BEGIN

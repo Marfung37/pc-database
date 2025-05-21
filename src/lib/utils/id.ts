@@ -3,7 +3,7 @@ function hashFumen(fumen: string, bits: number = 4): number {
   let xor = randomSection.length;
 
   for (let i = 0; i < randomSection.length; i++) {
-    xor = ((xor << 3) | (xor >> 4)) & 0x7F 
+    xor = ((xor << 3) | (xor >> 4)) & 0x7f;
     xor ^= randomSection.charCodeAt(i);
   }
 

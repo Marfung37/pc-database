@@ -1,6 +1,7 @@
 -- Function to update path when links change
 CREATE OR REPLACE FUNCTION update_tree_paths () RETURNS TRIGGER SECURITY DEFINER -- Runs with owner's privileges
-AS $$
+SET
+  search_path = public AS $$
 DECLARE
     parent_exists BOOLEAN;
 BEGIN
@@ -59,7 +60,8 @@ $$ LANGUAGE plpgsql;
 
 -- Function to update path when links delete
 CREATE OR REPLACE FUNCTION update_tree_paths_on_delete () RETURNS TRIGGER SECURITY DEFINER -- Runs with owner's privileges
-AS $$
+SET
+  search_path = public AS $$
 BEGIN
     BEGIN 
         -- set the path to setup_id as no longer part of a tree and keeps that it is oqb. User can explicitly update to be not oqb
@@ -85,7 +87,8 @@ $$ LANGUAGE plpgsql;
 
 -- Helper function to update descendant paths
 CREATE OR REPLACE FUNCTION update_descendant_paths (parent_node TEXT) RETURNS VOID SECURITY DEFINER -- Runs with owner's privileges
-AS $$
+SET
+  search_path = public AS $$
 DECLARE
     parent_path TEXT;
     circular_child_id TEXT;

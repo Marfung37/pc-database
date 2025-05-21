@@ -1,5 +1,6 @@
 CREATE OR REPLACE FUNCTION update_variant_number () RETURNS TRIGGER SECURITY DEFINER -- Runs with owner's privileges
-AS $$
+SET
+  search_path = public AS $$
 DECLARE
     count INT;
 BEGIN
