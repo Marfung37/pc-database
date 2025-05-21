@@ -26,12 +26,12 @@ const handleSupabase: Handle = async ({ event, resolve }) => {
    * validating the JWT, this function also calls `getUser()` to validate the
    * JWT before returning the session.
    */
-  event.locals.safeGetSession = async () => {
+  event.locals.getSafeSession = async () => {
     const {
       data: { session }
     } = await event.locals.supabase.auth.getSession();
     if (!session) {
-      return { session: null, user: null };
+      return { session: null, user: null, user_id: null };
     }
 
     const {
@@ -40,10 +40,15 @@ const handleSupabase: Handle = async ({ event, resolve }) => {
     } = await event.locals.supabase.auth.getUser();
     if (error) {
       // JWT validation has failed
-      return { session: null, user: null };
+      return { session: null, user: null, user_id: null };
     }
 
-    return { session, user };
+    /**
+     * Set the current user app user id
+     */
+    const user_id = user?.app_metadata.user_info.user_id;
+
+    return { session, user, user_id };
   };
 
   return resolve(event, {
