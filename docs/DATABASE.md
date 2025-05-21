@@ -1,6 +1,6 @@
-| 4b     | 3b              | 7b              | 1b  | 4b        | 1b          | 14b                    | 4b         | 10b       |
-| ------ | --------------- | --------------- | --- | --------- | ----------- | ---------------------- | ---------- | --------- |
-| PC Num | Duplicate Piece | Leftover Pieces | OQB | Build Len | 4 Duplicate | Piece Counts (TILJSZO) | Fumen Hash | Unique ID |
+| 4b     | 3b              | 7b              | 1b  | 4b        | 1b          | 14b                    | 4b         | 2b                    | 10b       |
+| ------ | --------------- | --------------- | --- | --------- | ----------- | ---------------------- | ---------- | --------------------- | --------- |
+| PC Num | Duplicate Piece | Leftover Pieces | OQB | Build Len | 4 Duplicate | Piece Counts (TILJSZO) | Fumen Hash | Cover Dependence Hash | Unique ID |
 
 Duplicate Piece map so that 7 -> O, 1 -> T, and 0 is no duplicate piece.
 
