@@ -249,6 +249,17 @@ CREATE INDEX idx_variants_setup_id ON setup_variants (setup_id);
 
 CREATE INDEX idx_saves_setup_id ON saves (stat_id);
 
+-- Create authenticated role if not exist. Mostly for testing as supabase has already
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT FROM pg_roles WHERE rolname = 'authenticated'
+  ) THEN
+    CREATE ROLE authenticated;
+  END IF;
+END
+$$;
+
 -- prevent directly affecting auto generated columns
 REVOKE INSERT (oqb_depth),
 UPDATE (oqb_path, oqb_depth) ON setups

@@ -8,6 +8,15 @@ CREATE TABLE "users" (
   "active" bool NOT NULL DEFAULT true
 );
 
+-- Auth schema and table just for reference. Actual implementation is provided by Supabase
+CREATE SCHEMA if not exists "auth";
+
+CREATE TABLE if not exists "auth"."users" (
+  "id" uuid PRIMARY KEY,
+  "email" text NOT NULL UNIQUE,
+  "raw_app_meta_data" jsonb
+);
+
 CREATE UNIQUE INDEX "user_auth_id_idex" ON "users" ("auth_id");
 
 -- Link auth user to profile

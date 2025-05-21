@@ -21,6 +21,11 @@ DECLARE
     parent_exists BOOLEAN;
     is_valid BOOLEAN := TRUE;
 BEGIN
+    -- bypass trigger if set variable
+    IF current_setting('app.bypass_triggers', true) = 'true' THEN
+      RETURN NEW;
+    END IF;
+
     BEGIN 
         SELECT EXISTS(SELECT 1 FROM test_setups WHERE setup_id = NEW.parent_id) INTO parent_exists;
 
@@ -49,13 +54,15 @@ BEGIN
         
         -- If UPDATE child_id then need to update children nodes to move them with it
         IF TG_OP = 'UPDATE' AND OLD.child_id IS DISTINCT FROM NEW.child_id THEN
+          PERFORM set_config('app.bypass_triggers', 'true', true);
           UPDATE test_setup_oqb_links
           SET parent_id = NEW.child_id
           WHERE parent_id = OLD.child_id;
-        ELSE
-          -- Update all descendants (recursively)
-          PERFORM test_update_descendant_paths(NEW.child_id);
+          PERFORM set_config('app.bypass_triggers', 'false', true);
         END IF;
+
+        -- Update all descendants (recursively)
+        PERFORM test_update_descendant_paths(NEW.child_id);
     EXCEPTION WHEN OTHERS THEN
         RAISE NOTICE 'Tree path update aborted: %', SQLERRM;
         RETURN NULL;
@@ -126,9 +133,9 @@ BEGIN
         DELETE FROM test_setups WHERE setup_id IN (root2_id, child2_id, grandchild2_id);
         
         -- Insert some nodes
-        INSERT INTO test_setups (setup_id, leftover, build, cover_dependence, fumen, oqb_path) VALUES
-            (root2_id, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', root2_id),
-            (grandchild2_id, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', grandchild2_id);
+        INSERT INTO test_setups (setup_id, pc, leftover, build, cover_dependence, fumen, oqb_path) VALUES
+            (root2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', root2_id),
+            (grandchild2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', grandchild2_id);
 
         -- Try to insert link to non-existent parent (should fail)
         BEGIN
@@ -142,8 +149,8 @@ BEGIN
         END;
         
         -- Complete the tree properly
-        INSERT INTO test_setups (setup_id, leftover, build, cover_dependence, fumen, oqb_path) VALUES
-            (child2_id, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', child2_id);
+        INSERT INTO test_setups (setup_id, pc, leftover, build, cover_dependence, fumen, oqb_path) VALUES
+            (child2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', child2_id);
         
         INSERT INTO test_setup_oqb_links (child_id, parent_id) VALUES
             (child2_id, root2_id),
@@ -161,20 +168,20 @@ BEGIN
             leaf_node setupid := '9' || substring(md5('leaf_node') FROM 1 FOR 11);
         BEGIN
             -- Insert leaf node first
-            INSERT INTO test_setups (setup_id, leftover, build, cover_dependence, fumen, oqb_path) VALUES
-                (leaf_node, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', leaf_node);
+            INSERT INTO test_setups (setup_id, pc, leftover, build, cover_dependence, fumen, oqb_path) VALUES
+                (leaf_node, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', leaf_node);
             
             -- Insert middle node
-            INSERT INTO test_setups (setup_id, leftover, build, cover_dependence, fumen, oqb_path) VALUES
-                (mid_node, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', mid_node);
+            INSERT INTO test_setups (setup_id, pc, leftover, build, cover_dependence, fumen, oqb_path) VALUES
+                (mid_node, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', mid_node);
             
             -- Create link between them
             INSERT INTO test_setup_oqb_links (child_id, parent_id) VALUES
                 (leaf_node, mid_node);
             
             -- Insert root last
-            INSERT INTO test_setups (setup_id, leftover, build, cover_dependence, fumen, oqb_path) VALUES
-                (new_root, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', new_root);
+            INSERT INTO test_setups (setup_id, pc, leftover, build, cover_dependence, fumen, oqb_path) VALUES
+                (new_root, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', new_root);
             
             -- Complete the chain
             INSERT INTO test_setup_oqb_links (child_id, parent_id) VALUES
@@ -195,25 +202,6 @@ BEGIN
     
     -- Final results
     RAISE NOTICE '=== TEST RESULTS: %/% tests passed ===', passed_count, test_count;
-    
-    -- Display tree structure
-    RAISE NOTICE '=== Final Tree Structure ===';
-    PERFORM (
-        WITH RECURSIVE tree AS (
-            SELECT s.setup_id, s.oqb_path, 0 AS level
-            FROM test_setups s
-            WHERE NOT EXISTS (
-                SELECT 1 FROM test_setup_oqb_links WHERE child_id = s.setup_id
-            )
-            UNION ALL
-            SELECT s.setup_id, s.oqb_path, t.level + 1
-            FROM test_setups s
-            JOIN test_setup_oqb_links l ON s.setup_id = l.child_id
-            JOIN tree t ON l.parent_id = t.setup_id
-        )
-        SELECT string_agg(repeat('    ', level) || setup_id || ' (' || COALESCE(oqb_path, 'root') || ')', E'\n')
-        FROM tree
-    );
 END $$;
 
 -- 5. Clean up

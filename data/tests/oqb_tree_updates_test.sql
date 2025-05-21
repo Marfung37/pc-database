@@ -14,8 +14,12 @@ DROP;
 CREATE OR REPLACE FUNCTION test_update_tree_paths () RETURNS TRIGGER AS $$
 DECLARE
     parent_exists BOOLEAN;
-    is_valid BOOLEAN := TRUE;
 BEGIN
+    -- bypass trigger if set variable
+    IF current_setting('app.bypass_triggers', true) = 'true' THEN
+      RETURN NEW;
+    END IF;
+
     BEGIN 
         SELECT EXISTS(SELECT 1 FROM test_setups WHERE setup_id = NEW.parent_id) INTO parent_exists;
 
@@ -44,19 +48,48 @@ BEGIN
         
         -- If UPDATE child_id then need to update children nodes to move them with it
         IF TG_OP = 'UPDATE' AND OLD.child_id IS DISTINCT FROM NEW.child_id THEN
+          PERFORM set_config('app.bypass_triggers', 'true', true);
           UPDATE test_setup_oqb_links
           SET parent_id = NEW.child_id
           WHERE parent_id = OLD.child_id;
-        ELSE
-          -- Update all descendants (recursively)
-          PERFORM test_update_descendant_paths(NEW.child_id);
+          PERFORM set_config('app.bypass_triggers', 'false', true);
         END IF;
+
+        -- Update all descendants (recursively)
+        PERFORM test_update_descendant_paths(NEW.child_id);
     EXCEPTION WHEN OTHERS THEN
         RAISE NOTICE 'Tree path update aborted: %', SQLERRM;
         RETURN NULL;
     END;
       
     RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to update path when links delete
+CREATE OR REPLACE FUNCTION test_update_tree_paths_on_delete () RETURNS TRIGGER SECURITY DEFINER -- Runs with owner's privileges
+AS $$
+BEGIN
+    BEGIN 
+        -- set the path to setup_id as no longer part of a tree and keeps that it is oqb. User can explicitly update to be not oqb
+        UPDATE test_setups
+        SET oqb_path = setup_id
+        WHERE setup_id = OLD.child_id;
+
+        -- link the children to their grandparent
+        PERFORM set_config('app.bypass_triggers', 'true', true);
+        UPDATE test_setup_oqb_links
+        SET parent_id = OLD.parent_id
+        WHERE parent_id = OLD.child_id;
+        PERFORM set_config('app.bypass_triggers', 'false', true);
+
+        PERFORM test_update_descendant_paths(OLD.parent_id);
+    EXCEPTION WHEN OTHERS THEN
+        RAISE NOTICE 'Tree path update aborted: %', SQLERRM;
+        RETURN NULL; -- Cancels DELETE
+    END;
+
+    RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -99,106 +132,102 @@ OR
 UPDATE ON test_setup_oqb_links FOR EACH ROW
 EXECUTE FUNCTION test_update_tree_paths ();
 
+-- Trigger to handle path updates on delete
+CREATE TRIGGER test_trigger_update_tree_path_on_delete
+AFTER DELETE ON test_setup_oqb_links FOR EACH ROW
+EXECUTE FUNCTION test_update_tree_paths_on_delete ();
+
 -- 3. Insert test data (valid 12-character hex IDs)
 INSERT INTO
   test_setups (
     setup_id,
+    pc,
     leftover,
     build,
     cover_dependence,
     fumen,
     pieces,
-    solve_percent,
-    solve_fraction,
     oqb_path
   )
 VALUES
   (
     '100000000001',
+    1,
     'TILJSZO',
     'TILJSZO',
     'test',
     'v115@test',
     'TILJSZO',
-    100.00,
-    (1, 1)::fraction,
     '100000000001'
   ),
   (
     '200000000002',
+    2,
     'TILJSZO',
     'TILJSZO',
     'test',
     'v115@test',
     'TILJSZO',
-    100.00,
-    (1, 1)::fraction,
     '200000000002'
   ),
   (
     '300000000003',
+    3,
     'TILJSZO',
     'TILJSZO',
     'test',
     'v115@test',
     'TILJSZO',
-    95.50,
-    (191, 200)::fraction,
     NULL
   ),
   (
     '400000000004',
+    4,
     'TILJSZO',
     'TILJSZO',
     'test',
     'v115@test',
     'TILJSZO',
-    97.25,
-    (389, 400)::fraction,
     NULL
   ),
   (
     '500000000005',
+    5,
     'TILJSZO',
     'TILJSZO',
     'test',
     'v115@test',
     'TILJSZO',
-    92.75,
-    (371, 400)::fraction,
     NULL
   ),
   (
     '600000000006',
+    6,
     'TILJSZO',
     'TILJSZO',
     'test',
     'v115@test',
     'TILJSZO',
-    85.25,
-    (341, 400)::fraction,
     NULL
   ),
   (
     '700000000007',
+    7,
     'TILJSZO',
     'TILJSZO',
     'test',
     'v115@test',
     'TILJSZO',
-    88.50,
-    (177, 200)::fraction,
     NULL
   ),
   (
     '800000000008',
+    8,
     'TILJSZO',
     'TILJSZO',
     'test',
     'v115@test',
     'TILJSZO',
-    90.00,
-    (9, 10)::fraction,
     NULL
   );
 
@@ -370,31 +399,63 @@ BEGIN
       RAISE NOTICE 'Test % failed with unexpected error: %', test_count, SQLERRM;
     END IF;
   END;
-  
+
+  -- Test 5: Delete node in middle
+  BEGIN
+    test_count := test_count + 1;
+    
+    -- First reset the test data
+    DELETE FROM test_setup_oqb_links;
+    INSERT INTO test_setup_oqb_links (child_id, parent_id) VALUES
+      ('300000000003', '100000000001'),
+      ('400000000004', '100000000001'),
+      ('500000000005', '300000000003'),
+      ('600000000006', '300000000003'),
+      ('700000000007', '600000000006');
+    
+    DELETE FROM test_setup_oqb_links WHERE child_id = '300000000003';
+
+    -- Verify the old link is no longer in the tree
+    PERFORM 1 FROM test_setup_oqb_links WHERE child_id = '300000000003';
+    IF FOUND THEN
+      RAISE EXCEPTION 'Test % failed: Old child_id still exists in links', test_count;
+    END IF;
+
+    -- Verify deleted link node has correct path
+    expected_path := '300000000003';
+    SELECT oqb_path INTO current_path FROM test_setups WHERE setup_id = '300000000003';
+
+    IF current_path <> expected_path THEN
+      RAISE EXCEPTION 'Test % failed: Deleted link node path incorrect. Expected "%", got "%"', 
+        test_count, expected_path, current_path;
+    END IF;
+
+    -- Verify child node has correct path
+    expected_path := '100000000001.600000000006';
+    SELECT oqb_path INTO current_path FROM test_setups WHERE setup_id = '600000000006';
+    
+    IF current_path <> expected_path THEN
+      RAISE EXCEPTION 'Test % failed: Child node path incorrect. Expected "%", got "%"', 
+        test_count, expected_path, current_path;
+    END IF;
+    
+    -- Verify descendant paths updated
+    expected_path := '100000000001.600000000006.700000000007';
+    SELECT oqb_path INTO current_path FROM test_setups WHERE setup_id = '700000000007';
+    
+    IF current_path <> expected_path THEN
+      RAISE EXCEPTION 'Test % failed: Descendant path not updated. Expected "%", got "%"', 
+        test_count, expected_path, current_path;
+    END IF;
+    
+    RAISE NOTICE 'Test % passed: Deletion of a link', test_count;
+    passed_count := passed_count + 1;
+  EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'Test % failed: %', test_count, SQLERRM;
+  END;
+
   -- Final results
   RAISE NOTICE '=== TEST RESULTS: %/% tests passed ===', passed_count, test_count;
-  
-  -- Display final tree structure
-  RAISE NOTICE '=== Final Tree Structure ===';
-  PERFORM (
-    WITH RECURSIVE tree AS (
-      SELECT s.setup_id, s.oqb_path, l.parent_id, 0 AS level
-      FROM test_setups s
-      JOIN test_setup_oqb_links l ON s.setup_id = l.child_id
-      WHERE NOT EXISTS (
-        SELECT 1 FROM test_setup_oqb_links WHERE child_id = l.parent_id
-      )
-      
-      UNION ALL
-      
-      SELECT s.setup_id, s.oqb_path, l.parent_id, t.level + 1
-      FROM test_setups s
-      JOIN test_setup_oqb_links l ON s.setup_id = l.child_id
-      JOIN tree t ON l.parent_id = t.setup_id
-    )
-    SELECT string_agg(repeat('    ', level) || setup_id || ' (' || oqb_path || ')', E'\n' ORDER BY oqb_path)
-    FROM tree
-  );
 END $$;
 
 -- 5. Clean up

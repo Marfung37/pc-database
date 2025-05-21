@@ -14,6 +14,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER block_protected_users_field_updates BEFORE
+CREATE TRIGGER trigger_protected_users_field_updates BEFORE
 UPDATE ON users FOR EACH ROW
 EXECUTE FUNCTION prevent_protected_users_field_changes ();

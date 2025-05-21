@@ -11,7 +11,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_check_variant_pieces BEFORE INSERT
+CREATE TRIGGER trigger_check_variant_pieces BEFORE INSERT
 OR
 UPDATE ON setup_variants FOR EACH ROW
 EXECUTE FUNCTION check_variant_pieces ();

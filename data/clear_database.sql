@@ -54,3 +54,29 @@ BEGIN
     EXECUTE format('DROP DOMAIN IF EXISTS public.%I CASCADE', r.domain_name);
   END LOOP;
 END $$;
+
+-- Drop triggers
+DO $$ DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN (
+        SELECT event_object_table AS table_name, trigger_name
+        FROM information_schema.triggers
+        WHERE trigger_schema = 'public'
+    ) LOOP
+        EXECUTE format('DROP TRIGGER IF EXISTS %I ON public.%I CASCADE', r.trigger_name, r.table_name);
+    END LOOP;
+END $$;
+
+-- Drop functions
+DO $$ DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN (
+        SELECT routine_name, specific_name, data_type
+        FROM information_schema.routines
+        WHERE routine_schema = 'public' AND routine_type = 'FUNCTION'
+    ) LOOP
+        EXECUTE format('DROP FUNCTION IF EXISTS public.%I CASCADE', r.routine_name);
+    END LOOP;
+END $$;

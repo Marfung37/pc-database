@@ -11,7 +11,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_check_statistic_solve BEFORE INSERT
+CREATE TRIGGER trigger_check_statistic_solve BEFORE INSERT
 OR
 UPDATE ON statistics FOR EACH ROW
 EXECUTE FUNCTION check_statistic_solve ();

@@ -3,8 +3,12 @@ CREATE OR REPLACE FUNCTION update_tree_paths () RETURNS TRIGGER SECURITY DEFINER
 AS $$
 DECLARE
     parent_exists BOOLEAN;
-    is_valid BOOLEAN := TRUE;
 BEGIN
+    -- bypass trigger if set variable
+    IF current_setting('app.bypass_triggers', true) = 'true' THEN
+      RETURN NEW;
+    END IF;
+
     BEGIN 
         SELECT EXISTS(SELECT 1 FROM setups WHERE setup_id = NEW.parent_id) INTO parent_exists;
 
@@ -32,21 +36,50 @@ BEGIN
         END IF;
         
         -- If UPDATE child_id then need to update children nodes to move them with it
+
         IF TG_OP = 'UPDATE' AND OLD.child_id IS DISTINCT FROM NEW.child_id THEN
+          PERFORM set_config('app.bypass_triggers', 'true', true);
           UPDATE setup_oqb_links
           SET parent_id = NEW.child_id
           WHERE parent_id = OLD.child_id;
+          PERFORM set_config('app.bypass_triggers', 'false', true);
           -- the children will call this function and update their descendants
-        ELSE
-          -- Update all descendants (recursively)
-          PERFORM update_descendant_paths(NEW.child_id);
         END IF;
+
+        -- Update all descendants (recursively)
+        PERFORM update_descendant_paths(NEW.child_id);
     EXCEPTION WHEN OTHERS THEN
         RAISE NOTICE 'Tree path update aborted: %', SQLERRM;
         RETURN NULL; -- Cancels INSERT or UPDATE
     END;
       
     RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to update path when links delete
+CREATE OR REPLACE FUNCTION update_tree_paths_on_delete () RETURNS TRIGGER SECURITY DEFINER -- Runs with owner's privileges
+AS $$
+BEGIN
+    BEGIN 
+        -- set the path to setup_id as no longer part of a tree and keeps that it is oqb. User can explicitly update to be not oqb
+        UPDATE setups
+        SET oqb_path = setup_id
+        WHERE setup_id = OLD.child_id;
+
+        -- link the children to their grandparent
+        PERFORM set_config('app.bypass_triggers', 'true', true);
+        UPDATE setup_oqb_links
+        SET parent_id = OLD.parent_id
+        WHERE parent_id = OLD.child_id;
+        PERFORM set_config('app.bypass_triggers', 'false', true);
+
+        PERFORM update_descendant_paths(OLD.child_id);
+    EXCEPTION WHEN OTHERS THEN
+        RAISE NOTICE 'Tree path update aborted: %', SQLERRM;
+        RETURN NULL; -- Cancels DELETE
+    END;
+    RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -87,11 +120,14 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Trigger to handle path updates
-CREATE TRIGGER tree_path_trigger
+CREATE TRIGGER trigger_update_tree_path
 AFTER INSERT
 OR
 UPDATE OF parent_id,
 child_id ON setup_oqb_links FOR EACH ROW
 EXECUTE FUNCTION update_tree_paths ();
 
--- TODO: handle when deleting from the links
+-- Trigger to handle path updates on delete
+CREATE TRIGGER trigger_update_tree_path_on_delete
+AFTER DELETE ON setup_oqb_links FOR EACH ROW
+EXECUTE FUNCTION update_tree_paths_on_delete ();
