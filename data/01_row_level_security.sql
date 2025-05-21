@@ -69,9 +69,7 @@ DROP POLICY IF EXISTS update_users ON users;
 
 CREATE POLICY update_users ON users
 FOR UPDATE
-  TO authenticated
-WITH
-  CHECK (
+  TO authenticated USING (
     -- self
     auth_id = (
       SELECT
@@ -119,9 +117,7 @@ DROP POLICY IF EXISTS update_setups ON setups;
 
 CREATE POLICY update_setups ON setups
 FOR UPDATE
-  TO authenticated
-WITH
-  CHECK (has_edit_permission ());
+  TO authenticated USING (has_edit_permission ());
 
 DROP POLICY IF EXISTS delete_setups ON setups;
 
@@ -150,9 +146,7 @@ DROP POLICY IF EXISTS update_setup_variants ON setup_variants;
 
 CREATE POLICY update_setup_variants ON setup_variants
 FOR UPDATE
-  TO authenticated
-WITH
-  CHECK (has_edit_permission ());
+  TO authenticated USING (has_edit_permission ());
 
 DROP POLICY IF EXISTS delete_setup_variants ON setup_variants;
 
@@ -181,9 +175,7 @@ DROP POLICY IF EXISTS update_setup_oqb_links ON setup_oqb_links;
 
 CREATE POLICY update_setup_oqb_links ON setup_oqb_links
 FOR UPDATE
-  TO authenticated
-WITH
-  CHECK (has_edit_permission ());
+  TO authenticated USING (has_edit_permission ());
 
 DROP POLICY IF EXISTS delete_setup_oqb_links ON setup_oqb_links;
 
@@ -212,9 +204,7 @@ DROP POLICY IF EXISTS update_statistics ON statistics;
 
 CREATE POLICY update_statistics ON statistics
 FOR UPDATE
-  TO authenticated
-WITH
-  CHECK (has_edit_permission ());
+  TO authenticated USING (has_edit_permission ());
 
 DROP POLICY IF EXISTS delete_statistics ON statistics;
 
@@ -243,9 +233,7 @@ DROP POLICY IF EXISTS update_saves ON saves;
 
 CREATE POLICY update_saves ON saves
 FOR UPDATE
-  TO authenticated
-WITH
-  CHECK (has_edit_permission ());
+  TO authenticated USING (has_edit_permission ());
 
 DROP POLICY IF EXISTS delete_saves ON saves;
 

@@ -1,5 +1,7 @@
 -- Add profile info to JWT auth claims under "app_metadata"
-CREATE OR REPLACE FUNCTION auth_hook_add_user_info (event jsonb) returns jsonb security definer language plpgsql AS $$
+CREATE OR REPLACE FUNCTION auth_hook_add_user_info (event jsonb) RETURNS jsonb SECURITY DEFINER LANGUAGE PLPGSQL
+SET
+  search_path = '' AS $$
 DECLARE
     claims   jsonb;
     _user_id uuid;
