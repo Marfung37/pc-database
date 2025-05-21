@@ -1,5 +1,7 @@
 -- Making sure the solve percent and fraction is set if not oqb
-CREATE OR REPLACE FUNCTION check_statistic_solve () RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION check_statistic_solve () RETURNS TRIGGER
+SET
+  search_path = public AS $$
 BEGIN
   IF (NEW.solve_percent IS NULL OR NEW.solve_fraction IS NULL) AND EXISTS (
       SELECT 1 FROM setups s

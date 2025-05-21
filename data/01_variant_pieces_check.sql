@@ -1,5 +1,7 @@
 -- Making sure the pieces is set if not oqb
-CREATE OR REPLACE FUNCTION check_variant_pieces () RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION check_variant_pieces () RETURNS TRIGGER
+SET
+  search_path = public AS $$
 BEGIN
   IF NEW.pieces IS NULL AND EXISTS (
       SELECT 1 FROM setups s

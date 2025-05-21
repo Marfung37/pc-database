@@ -1,15 +1,19 @@
-CREATE OR REPLACE FUNCTION has_edit_permission () RETURNS boolean LANGUAGE SQL AS $$
+CREATE OR REPLACE FUNCTION has_edit_permission () RETURNS boolean LANGUAGE SQL
+SET
+  search_path = public AS $$
   SELECT EXISTS (
     SELECT 1 FROM users
-    WHERE users.auth_id = auth.uid()
+    WHERE users.auth_id = (SELECT auth.uid())
       AND (users.editor = true OR users.admin = true)
   )
 $$;
 
-CREATE OR REPLACE FUNCTION has_admin_permission () RETURNS boolean LANGUAGE SQL AS $$
+CREATE OR REPLACE FUNCTION has_admin_permission () RETURNS boolean LANGUAGE SQL
+SET
+  search_path = public AS $$
   SELECT EXISTS (
     SELECT 1 FROM users
-    WHERE users.auth_id = auth.uid()
+    WHERE users.auth_id = (SELECT auth.uid())
       AND users.admin = true
   )
 $$;
@@ -40,17 +44,20 @@ WITH
 -- DELETE admin only
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS view_all_users ON users;
+DROP POLICY IF EXISTS view_users ON users;
 
-CREATE POLICY view_all_users ON users FOR
+CREATE POLICY view_users ON users FOR
 SELECT
-  TO authenticated USING (has_admin_permission ());
-
-DROP POLICY IF EXISTS view_self_user ON users;
-
-CREATE POLICY view_self_user ON users FOR
-SELECT
-  TO authenticated USING (auth_id = auth.uid ());
+  TO authenticated USING (
+    -- self
+    auth_id = (
+      SELECT
+        auth.uid ()
+    )
+    OR
+    -- has admin permission
+    has_admin_permission ()
+  );
 
 DROP POLICY IF EXISTS insert_users ON users;
 
@@ -58,21 +65,22 @@ CREATE POLICY insert_users ON users FOR INSERT TO authenticated
 WITH
   CHECK (has_admin_permission ());
 
-DROP POLICY IF EXISTS update_all_users ON users;
+DROP POLICY IF EXISTS update_users ON users;
 
-CREATE POLICY update_all_users ON users
+CREATE POLICY update_users ON users
 FOR UPDATE
   TO authenticated
 WITH
-  CHECK (has_admin_permission ());
-
-DROP POLICY IF EXISTS update_self_user ON users;
-
-CREATE POLICY update_self_user ON users
-FOR UPDATE
-  TO authenticated
-WITH
-  CHECK (auth_id = auth.uid ());
+  CHECK (
+    -- self
+    auth_id = (
+      SELECT
+        auth.uid ()
+    )
+    OR
+    -- has admin permission
+    has_admin_permission ()
+  );
 
 DROP POLICY IF EXISTS delete_users ON users;
 

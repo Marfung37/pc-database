@@ -13,11 +13,15 @@ CREATE TYPE fraction AS ("numerator" integer, "denominator" integer);
 
 CREATE DOMAIN setupid AS varchar(12) CHECK (VALUE ~ '^[1-9][0-9a-f]{11}$');
 
-CREATE OR REPLACE FUNCTION all_decimals_lte_100 (arr DECIMAL[]) RETURNS BOOLEAN LANGUAGE SQL IMMUTABLE AS $$
+CREATE OR REPLACE FUNCTION all_decimals_lte_100 (arr DECIMAL[]) RETURNS BOOLEAN LANGUAGE SQL IMMUTABLE
+SET
+  search_path = public AS $$
   SELECT bool_and(p <= 100) FROM unnest(arr) AS p
 $$;
 
-CREATE OR REPLACE FUNCTION is_valid_fraction_array (arr fraction[]) RETURNS BOOLEAN LANGUAGE SQL IMMUTABLE AS $$
+CREATE OR REPLACE FUNCTION is_valid_fraction_array (arr fraction[]) RETURNS BOOLEAN LANGUAGE SQL IMMUTABLE
+SET
+  search_path = public AS $$
   SELECT bool_and(
     f.numerator IS NOT NULL
     AND f.denominator IS NOT NULL
