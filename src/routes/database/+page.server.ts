@@ -98,7 +98,9 @@ export const actions: Actions = {
               statistics (solve_percent)`
       )
       .eq('pc', pc)
-      .eq('statistics.kicktable', 'srs180');
+      .eq('statistics.kicktable', 'srs180')
+      .order('setup_id', {ascending: true})
+      ;
 
     if (error) {
       console.error('Failed to get data:', error.message);
