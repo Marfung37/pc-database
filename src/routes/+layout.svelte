@@ -22,6 +22,11 @@
   });
 </script>
 
+<svelte:head>
+  <title>{m.website_name()}</title>
+  <meta name="description" content={m.website_description()} />
+</svelte:head>
+
 <div class="navbar bg-base-100 container mx-auto">
   <div class="flex-1 flex items-center">
     <a class="btn btn-ghost normal-case text-xl" href="/">{m.website_name()}</a>

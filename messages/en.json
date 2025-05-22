@@ -1,6 +1,8 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "website_name": "PC Mise",
+  "website_description": "PC Database",
+  "nav_home": "Home",
   "nav_database": "Database",
   "nav_about": "About",
   "nav_login": "Login",
