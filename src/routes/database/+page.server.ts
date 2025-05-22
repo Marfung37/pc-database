@@ -5,7 +5,7 @@ export const load: PageServerLoad = async () => {
   const columns = [
     {
       id: 'setup_id',
-      width: 150,
+      width: 120,
       header: 'Setup ID',
       footer: 'Setup ID'
     },
@@ -25,7 +25,6 @@ export const load: PageServerLoad = async () => {
       id: 'cover_dependence',
       header: 'Cover Dependence',
       footer: 'Cover_Dependence',
-      width: 150,
       resize: true,
       editor: 'text'
     },
@@ -48,13 +47,12 @@ export const load: PageServerLoad = async () => {
       id: 'mirror',
       header: 'Mirror',
       footer: 'Mirror',
-      width: 150
+      width: 120
     },
     {
       id: 'oqb_path',
       header: 'OQB Path',
       footer: 'OQB Path',
-      width: 100,
       resize: true,
       editor: 'text'
     },
@@ -100,6 +98,7 @@ export const actions: Actions = {
       .eq('pc', pc)
       .eq('statistics.kicktable', 'srs180')
       .order('setup_id', { ascending: true });
+
     if (error) {
       console.error('Failed to get data:', error.message);
       return fail(500, {

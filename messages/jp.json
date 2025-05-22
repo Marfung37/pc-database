@@ -8,6 +8,7 @@
   "nav_login": "ログイン",
   "nav_logout": "ログアウト",
   "btn_save": "保存",
+  "btn_submit": "送信",
   "loading": "処理中...",
   "email_address": "メールアドレス",
   "password": "パスワード",

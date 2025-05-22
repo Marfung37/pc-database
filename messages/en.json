@@ -8,6 +8,7 @@
   "nav_login": "Login",
   "nav_logout": "Logout",
   "btn_save": "Save",
+  "btn_submit": "Submit",
   "loading": "Loading...",
   "email_address": "Email Address",
   "password": "Password",
