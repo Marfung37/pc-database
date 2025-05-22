@@ -1,5 +1,5 @@
 -- Add profile info to JWT auth claims under "app_metadata"
-CREATE OR REPLACE FUNCTION auth_hook_add_user_info (event jsonb) RETURNS jsonb SECURITY DEFINER LANGUAGE PLPGSQL
+CREATE OR REPLACE FUNCTION public.auth_hook_add_user_info (event jsonb) RETURNS jsonb SECURITY DEFINER LANGUAGE PLPGSQL
 SET
   search_path = '' AS $$
 DECLARE
@@ -42,10 +42,3 @@ $$;
 
 GRANT
 EXECUTE ON FUNCTION public.auth_hook_add_user_info TO supabase_auth_admin;
-
-REVOKE
-EXECUTE ON FUNCTION public.auth_hook_add_user_info
-FROM
-  authenticated,
-  anon,
-  PUBLIC;

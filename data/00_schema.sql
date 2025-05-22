@@ -268,22 +268,12 @@ $$;
 REVOKE INSERT (oqb_depth),
 UPDATE (oqb_path, oqb_depth) ON setups
 FROM
-  PUBLIC;
-
-REVOKE INSERT (oqb_depth),
-UPDATE (oqb_path, oqb_depth) ON setups
-FROM
-  authenticated;
+  PUBLIC, authenticated, anon;
 
 REVOKE INSERT (variant_number),
 UPDATE (variant_number) ON setup_variants
 FROM
-  PUBLIC;
-
-REVOKE INSERT (variant_number),
-UPDATE (variant_number) ON setup_variants
-FROM
-  authenticated;
+  PUBLIC, authenticated, anon;
 
 -- set the metadata
 INSERT INTO

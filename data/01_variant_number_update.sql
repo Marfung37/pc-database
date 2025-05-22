@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION update_variant_number () RETURNS TRIGGER SECURITY DEFINER -- Runs with owner's privileges
+CREATE OR REPLACE FUNCTION private.update_variant_number () RETURNS TRIGGER SECURITY DEFINER -- Runs with owner's privileges
 SET
   search_path = public AS $$
 DECLARE
@@ -14,4 +14,4 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_update_variant_number BEFORE INSERT ON setup_variants FOR EACH ROW
-EXECUTE FUNCTION update_variant_number ();
+EXECUTE FUNCTION private.update_variant_number ();

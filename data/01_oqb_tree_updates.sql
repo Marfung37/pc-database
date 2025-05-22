@@ -1,5 +1,5 @@
 -- Function to update path when links change
-CREATE OR REPLACE FUNCTION update_tree_paths () RETURNS TRIGGER SECURITY DEFINER -- Runs with owner's privileges
+CREATE OR REPLACE FUNCTION private.update_tree_paths () RETURNS TRIGGER SECURITY DEFINER -- Runs with owner's privileges
 SET
   search_path = public AS $$
 DECLARE
@@ -48,7 +48,7 @@ BEGIN
         END IF;
 
         -- Update all descendants (recursively)
-        PERFORM update_descendant_paths(NEW.child_id);
+        PERFORM private.update_descendant_paths(NEW.child_id);
     EXCEPTION WHEN OTHERS THEN
         RAISE NOTICE 'Tree path update aborted: %', SQLERRM;
         RETURN NULL; -- Cancels INSERT or UPDATE
@@ -59,7 +59,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Function to update path when links delete
-CREATE OR REPLACE FUNCTION update_tree_paths_on_delete () RETURNS TRIGGER SECURITY DEFINER -- Runs with owner's privileges
+CREATE OR REPLACE FUNCTION private.update_tree_paths_on_delete () RETURNS TRIGGER SECURITY DEFINER -- Runs with owner's privileges
 SET
   search_path = public AS $$
 BEGIN
@@ -76,7 +76,7 @@ BEGIN
         WHERE parent_id = OLD.child_id;
         PERFORM set_config('app.bypass_triggers', 'false', true);
 
-        PERFORM update_descendant_paths(OLD.child_id);
+        PERFORM private.update_descendant_paths(OLD.child_id);
     EXCEPTION WHEN OTHERS THEN
         RAISE NOTICE 'Tree path update aborted: %', SQLERRM;
         RETURN NULL; -- Cancels DELETE
@@ -86,7 +86,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Helper function to update descendant paths
-CREATE OR REPLACE FUNCTION update_descendant_paths (parent_node TEXT) RETURNS VOID SECURITY DEFINER -- Runs with owner's privileges
+CREATE OR REPLACE FUNCTION private.update_descendant_paths (parent_node TEXT) RETURNS VOID SECURITY DEFINER -- Runs with owner's privileges
 SET
   search_path = public AS $$
 DECLARE
@@ -115,7 +115,7 @@ BEGIN
     AND d.setup_id = l.child_id;
    
     -- Recursively update children of updated nodes
-    PERFORM update_descendant_paths(l.child_id)
+    PERFORM private.update_descendant_paths(l.child_id)
     FROM setups d
     JOIN setup_oqb_links l ON d.setup_id = l.child_id
     WHERE l.parent_id = parent_node;
@@ -128,9 +128,9 @@ AFTER INSERT
 OR
 UPDATE OF parent_id,
 child_id ON setup_oqb_links FOR EACH ROW
-EXECUTE FUNCTION update_tree_paths ();
+EXECUTE FUNCTION private.update_tree_paths ();
 
 -- Trigger to handle path updates on delete
 CREATE TRIGGER trigger_update_tree_path_on_delete
 AFTER DELETE ON setup_oqb_links FOR EACH ROW
-EXECUTE FUNCTION update_tree_paths_on_delete ();
+EXECUTE FUNCTION private.update_tree_paths_on_delete ();

@@ -1,5 +1,5 @@
 -- Making sure the pieces is set if not oqb
-CREATE OR REPLACE FUNCTION check_variant_pieces () RETURNS TRIGGER
+CREATE OR REPLACE FUNCTION private.check_variant_pieces () RETURNS TRIGGER
 SET
   search_path = public AS $$
 BEGIN
@@ -16,4 +16,4 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trigger_check_variant_pieces BEFORE INSERT
 OR
 UPDATE ON setup_variants FOR EACH ROW
-EXECUTE FUNCTION check_variant_pieces ();
+EXECUTE FUNCTION private.check_variant_pieces ();

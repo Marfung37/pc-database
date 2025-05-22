@@ -1,5 +1,5 @@
 -- Making sure the solve percent and fraction is set if not oqb
-CREATE OR REPLACE FUNCTION check_statistic_solve () RETURNS TRIGGER
+CREATE OR REPLACE FUNCTION private.check_statistic_solve () RETURNS TRIGGER
 SET
   search_path = public AS $$
 BEGIN
@@ -16,4 +16,4 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trigger_check_statistic_solve BEFORE INSERT
 OR
 UPDATE ON statistics FOR EACH ROW
-EXECUTE FUNCTION check_statistic_solve ();
+EXECUTE FUNCTION private.check_statistic_solve ();
