@@ -33,7 +33,7 @@
 
 <div class="hero min-h-[60vh]">
   <div class="hero-content py-12 text-center">
-    <div class="flex w-full flex-col gap-2">
+    <div class="flex container flex-col gap-2">
       <div
         class="from-primary to-accent mb-3 bg-linear-to-r bg-clip-text pb-1 text-xl font-bold text-transparent md:mb-7 md:text-3xl"
       >
@@ -81,7 +81,7 @@
       </form>
 
       <Willow>
-        <Grid data={form?.gridData ?? []} {columns} />
+        <Grid tree={true} footer={true} data={form?.gridData ?? []} {columns} />
       </Willow>
     </div>
   </div>
