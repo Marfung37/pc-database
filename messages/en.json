@@ -4,5 +4,10 @@
   "nav_database": "Database",
   "nav_about": "About",
   "nav_login": "Login",
-  "nav_logout": "Logout"
+  "nav_logout": "Logout",
+  "btn_save": "Save",
+  "loading": "Loading...",
+  "email_address": "Email Address",
+  "password": "Password",
+  "username": "Username"
 }

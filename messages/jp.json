@@ -4,5 +4,10 @@
   "nav_database": "データベース",
   "nav_about": "について",
   "nav_login": "ログイン",
-  "nav_logout": "ログアウト"
+  "nav_logout": "ログアウト",
+  "btn_save": "保存",
+  "loading": "処理中...",
+  "email_address": "メールアドレス",
+  "password": "パスワード",
+  "username": "ユーザー名"
 }
