@@ -33,6 +33,7 @@
     "@testing-library/svelte": "^5.2.4",
     "@types/lzma-native": "^4.0.4",
     "@types/yargs": "^17.0.33",
+    "daisyui": "^5.0.35",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-svelte": "^3.0.0",
