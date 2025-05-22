@@ -23,12 +23,15 @@ importers:
       csv-stringify:
         specifier: ^6.5.2
         version: 6.5.2
+      lucide-svelte:
+        specifier: ^0.511.0
+        version: 0.511.0(svelte@5.30.1)
       lzma-native:
         specifier: ^8.0.6
         version: 8.0.6
-      prettier-plugin-sql:
-        specifier: ^0.19.1
-        version: 0.19.1(prettier@3.5.3)
+      wx-svelte-grid:
+        specifier: ^2.1.5
+        version: 2.1.5
     devDependencies:
       '@eslint/compat':
         specifier: ^1.2.5
@@ -93,6 +96,9 @@ importers:
       prettier:
         specifier: ^3.4.2
         version: 3.5.3
+      prettier-plugin-sql:
+        specifier: ^0.19.1
+        version: 0.19.1(prettier@3.5.3)
       prettier-plugin-svelte:
         specifier: ^3.3.3
         version: 3.4.0(prettier@3.5.3)(svelte@5.30.1)
@@ -1562,6 +1568,11 @@ packages:
   lru-cache@10.4.3:
     resolution: {integrity: sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==}
 
+  lucide-svelte@0.511.0:
+    resolution: {integrity: sha512-cSBj1UPKt1EXnj3VBUidBqwHyFQ83pLYiTaQ/67Q5thnaP9IPohL2UXjqEzgSXXklYPYQKaAv+kmVdliDWFjWQ==}
+    peerDependencies:
+      svelte: ^3 || ^4 || ^5.0.0-next.42
+
   lz-string@1.5.0:
     resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
     hasBin: true
@@ -2268,6 +2279,39 @@ packages:
         optional: true
       utf-8-validate:
         optional: true
+
+  wx-core-locales@2.1.1:
+    resolution: {integrity: sha512-BaRT677XHobYVYfEl/xKXKVeGTwNp9j+Xj25C/xnX6rS3Io2REJeU4qTTzaqBdd7i7BCPP2mAx9DnNYfpKmtyQ==}
+
+  wx-grid-data-provider@2.1.5:
+    resolution: {integrity: sha512-n+kdqabXT99mIs0gozb2X6MRrCT1gfK4Q7RMaHNKYsf0Tk9yla7yMvIapRBdmJyVMkMwCJ1rJdpueV9RdfPm2g==}
+
+  wx-grid-locales@2.1.5:
+    resolution: {integrity: sha512-jjjTEeP9OaF1avdxRgfC1fOjmkQNbtYVUAgnELUtnkS3BHGyPLvFl1g5qv+VnXic4dL4H8DtmBnhi9eOfJ0Ynw==}
+
+  wx-grid-store@2.1.5:
+    resolution: {integrity: sha512-RM3L7lByVt74bjXh0fX6PDy6/3wSPDDwAxM1tT4t7ijog28wx6Q1A5Ny8lV9v/eh1b5qfnEOWsfcIxCg8F1YUA==}
+
+  wx-lib-data-provider@1.5.1:
+    resolution: {integrity: sha512-ebKYlnmXOuwgQ/812Ux06Uz7tIG3P8euUHB0/hwhL0+Buged+00uFII3bkXQ7jh5DbsTugFqPlzlKTJFQ2l0TA==}
+
+  wx-lib-dom@0.8.0:
+    resolution: {integrity: sha512-1jQFsoX8EiA/7D6IT8k8I52PlPFs850etY+k7jqww9CM5L3JEELprKuy422sUfXjnnpMoaVvUrmndWZVOldsAA==}
+
+  wx-lib-state@1.9.0:
+    resolution: {integrity: sha512-h2BeV/km+PH00pcHyUhyYJdY50vTBVtPzlA+b6idtoBiglUrP+ahmt9I6QvdKVoIPbIGh6EzqavDXuORucEy4g==}
+
+  wx-lib-svelte@0.5.1:
+    resolution: {integrity: sha512-zYfkAv5r0zQ3KFyCPPusC8EkMXUC3I0L1QsK+An0rNlRkY/iocPTOcaouyycg48BdmsBK8fSL0vK0B4oZuujrQ==}
+
+  wx-svelte-core@2.1.1:
+    resolution: {integrity: sha512-Qxjd2S+77Nl99sNfxH1uQVtviAWoTCT2hXnQRj4jwcLFnUInh1QMDO8M/LJko5zIHXR8PQeTcyFtLet2mkzb+A==}
+
+  wx-svelte-grid@2.1.5:
+    resolution: {integrity: sha512-X72+kGQCK4piNGeQm3fmtsMdoKNt99/QiSv1qNhX/F1f+UNmd1FLPythjpAIZ9GWKwe+mpG+9BSrE+2ETyy04w==}
+
+  wx-svelte-menu@2.1.1:
+    resolution: {integrity: sha512-DI2q/fb2/2S5rpIW1+JJQStmFr+WvvEs7kxpMJzbhuPYhTEIE2AGrPn/Au3+AM23mo1FusIT6eCPF6D0iEh9Gw==}
 
   xml-name-validator@5.0.0:
     resolution: {integrity: sha512-EvGK8EJ3DhaHfbRlETOWAS5pO9MZITeauHKJyb8wyajUfQUenkIg2MvLDTZ4T/TgIcm3HU0TFBgWWboAZ30UHg==}
@@ -3669,6 +3713,10 @@ snapshots:
 
   lru-cache@10.4.3: {}
 
+  lucide-svelte@0.511.0(svelte@5.30.1):
+    dependencies:
+      svelte: 5.30.1
+
   lz-string@1.5.0: {}
 
   lzma-native@8.0.6:
@@ -4274,6 +4322,48 @@ snapshots:
       strip-ansi: 7.1.0
 
   ws@8.18.2: {}
+
+  wx-core-locales@2.1.1: {}
+
+  wx-grid-data-provider@2.1.5:
+    dependencies:
+      wx-lib-data-provider: 1.5.1
+
+  wx-grid-locales@2.1.5: {}
+
+  wx-grid-store@2.1.5:
+    dependencies:
+      wx-lib-state: 1.9.0
+
+  wx-lib-data-provider@1.5.1: {}
+
+  wx-lib-dom@0.8.0: {}
+
+  wx-lib-state@1.9.0: {}
+
+  wx-lib-svelte@0.5.1: {}
+
+  wx-svelte-core@2.1.1:
+    dependencies:
+      wx-core-locales: 2.1.1
+      wx-lib-dom: 0.8.0
+      wx-lib-svelte: 0.5.1
+
+  wx-svelte-grid@2.1.5:
+    dependencies:
+      wx-grid-data-provider: 2.1.5
+      wx-grid-locales: 2.1.5
+      wx-grid-store: 2.1.5
+      wx-lib-dom: 0.8.0
+      wx-lib-state: 1.9.0
+      wx-lib-svelte: 0.5.1
+      wx-svelte-core: 2.1.1
+      wx-svelte-menu: 2.1.1
+
+  wx-svelte-menu@2.1.1:
+    dependencies:
+      wx-lib-dom: 0.8.0
+      wx-svelte-core: 2.1.1
 
   xml-name-validator@5.0.0: {}
 

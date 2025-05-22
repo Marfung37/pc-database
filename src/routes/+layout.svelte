@@ -1,8 +1,9 @@
 <script lang="ts">
   import '../app.css';
-  import { WebsiteName } from "$lib/config"
+  import { m } from '$lib/paraglide/messages.js';
   import { invalidate } from '$app/navigation';
   import { onMount } from 'svelte';
+	import LocaleSwitcher from '$lib/components/LocaleSwitcher.svelte';
 
   export let data;
 
@@ -22,12 +23,13 @@
 
 <div class="navbar bg-base-100 container mx-auto">
   <div class="flex-1">
-    <a class="btn btn-ghost normal-case text-xl" href="/">{WebsiteName}</a>
+    <a class="btn btn-ghost normal-case text-xl" href="/">{m.website_name()}</a>
   </div>
   <div class="flex-none">
-    <ul class="menu menu-horizontal px-1 hidden sm:flex font-bold text-lg">
+    <ul class="menu menu-horizontal px-1 hidden sm:flex md:flex md:items-center font-bold text-lg">
       <li class="md:mx-2"><a href="/database">Database</a></li>
       <li class="md:mx-2"><a href="/account">Account</a></li>
+      <li class="md:mx-2"><LocaleSwitcher /></li>
     </ul>
     <div class="dropdown dropdown-end sm:hidden">
       <!-- svelte-ignore a11y_label_has_associated_control -->
