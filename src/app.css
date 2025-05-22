@@ -8,7 +8,7 @@
 }
 
 @plugin "daisyui/theme" {
-  name: "saasstartertheme";
+  name: 'saasstartertheme';
   default: true; /* set as default */
   prefersdark: false; /* set as default dark mode (prefers-color-scheme:dark) */
   color-scheme: light; /* color of browser-provided UI */
@@ -84,7 +84,6 @@ button[disabled].authBtn {
 }
 button[disabled].authBtn::before {
   font-size: 14px;
-  content: "Loading...";
+  content: 'Loading...';
   color: oklch(var(--pc));
 }
-

@@ -80,8 +80,6 @@ BEGIN
     END LOOP;
 END $$;
 
-
-
 -- Drop functions
 DO $$ DECLARE
     r RECORD;

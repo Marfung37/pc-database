@@ -2,7 +2,9 @@
 REVOKE INSERT (user_id, auth_id),
 UPDATE (user_id, auth_id) ON users
 FROM
-  PUBLIC, authenticated, anon;
+  PUBLIC,
+  authenticated,
+  anon;
 
 CREATE OR REPLACE FUNCTION private.prevent_protected_users_field_changes () RETURNS TRIGGER
 SET

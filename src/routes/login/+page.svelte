@@ -17,11 +17,13 @@
 </script>
 
 <div class="hero min-h-[60vh]">
-  <div class="hero-content text-center py-12">
+  <div class="hero-content py-12 text-center">
     <div class="max-w-xl">
       <div class="flex items-center justify-center sm:px-6 lg:px-8">
-        <div class="min-w-xs sm:min-w-md max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
-          <form class="space-y-6" method="POST" use:enhance>
+        <div
+          class="w-full max-w-md min-w-xs space-y-8 rounded-lg bg-white p-8 shadow-lg sm:min-w-md"
+        >
+          <form class="space-y-6" method="POST" use:enhance={handleSubmit}>
             <div class="text-center">
               <h2 class="mt-6 text-3xl font-extrabold">
                 {m.nav_login()}
@@ -30,7 +32,9 @@
 
             {#if form?.message}
               <div
-                class="p-3 text-sm rounded-md {form?.success ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}"
+                class="rounded-md p-3 text-sm {form?.success
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-red-100 text-red-700'}"
                 role="alert"
               >
                 {form?.message}
@@ -49,18 +53,17 @@
                     type="email"
                     autocomplete="email"
                     required
-                    class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:text-sm"
                     placeholder={m.email_address()}
                     value={form?.email ?? ''}
                   />
                 </div>
               </div>
               {#if form?.errors?.email}
-                <span class="text-red-600 text-sm">
+                <span class="text-sm text-red-600">
                   {form?.errors?.email}
                 </span>
               {/if}
-
 
               <div>
                 <label for="password" class="block text-sm font-medium">
@@ -73,14 +76,14 @@
                     type="password"
                     autocomplete="current-password"
                     required
-                    class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:text-sm"
                     placeholder={m.password()}
                     value={form?.password ?? ''}
                   />
                 </div>
               </div>
               {#if form?.errors?.password}
-                <span class="text-red-600 text-sm">
+                <span class="text-sm text-red-600">
                   {form?.errors?.password}
                 </span>
               {/if}
@@ -89,7 +92,7 @@
             <div>
               <button
                 type="submit"
-                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
+                class="flex w-full cursor-pointer justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
                 disabled={loading}
               >
                 {loading ? m.loading() : m.nav_login()}

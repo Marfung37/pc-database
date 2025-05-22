@@ -29,13 +29,18 @@ DROP POLICY IF EXISTS view_schema_metadata ON schema_metadata;
 
 CREATE POLICY view_schema_metadata ON schema_metadata FOR
 SELECT
-  TO authenticated;
+  TO authenticated USING (true);
 
 DROP POLICY IF EXISTS insert_schema_metadata ON schema_metadata;
 
 CREATE POLICY insert_schema_metadata ON schema_metadata FOR INSERT TO authenticated
 WITH
-  CHECK ((SELECT public.has_admin_permission ()));
+  CHECK (
+    (
+      SELECT
+        public.has_admin_permission ()
+    )
+  );
 
 -- users RLS
 -- SELECT only self for username, email, editor and admin all
@@ -56,14 +61,22 @@ SELECT
     )
     OR
     -- has admin permission
-    (SELECT public.has_admin_permission ())
+    (
+      SELECT
+        public.has_admin_permission ()
+    )
   );
 
 DROP POLICY IF EXISTS insert_users ON users;
 
 CREATE POLICY insert_users ON users FOR INSERT TO authenticated
 WITH
-  CHECK ((SELECT public.has_admin_permission ()));
+  CHECK (
+    (
+      SELECT
+        public.has_admin_permission ()
+    )
+  );
 
 DROP POLICY IF EXISTS update_users ON users;
 
@@ -77,12 +90,20 @@ FOR UPDATE
     )
     OR
     -- has admin permission
-    (SELECT public.has_admin_permission ())
+    (
+      SELECT
+        public.has_admin_permission ()
+    )
   );
 
 DROP POLICY IF EXISTS delete_users ON users;
 
-CREATE POLICY delete_users ON users FOR DELETE TO authenticated USING ((SELECT public.has_admin_permission ()));
+CREATE POLICY delete_users ON users FOR DELETE TO authenticated USING (
+  (
+    SELECT
+      public.has_admin_permission ()
+  )
+);
 
 -- setups RLS
 -- SELECT all setups
@@ -95,14 +116,18 @@ DROP POLICY IF EXISTS view_setups ON setups;
 
 CREATE POLICY view_setups ON setups FOR
 SELECT
-  TO authenticated, anon;
+  TO authenticated,
+  anon USING (true);
 
 DROP POLICY IF EXISTS edit_setups ON setups;
 
 CREATE POLICY edit_setups ON setups FOR INSERT TO authenticated
 WITH
   CHECK (
-    (SELECT public.has_edit_permission ())
+    (
+      SELECT
+        public.has_edit_permission ()
+    )
     -- only can set oqb_path to setup_id if want to disregard need to put pieces
     AND (
       (
@@ -117,11 +142,21 @@ DROP POLICY IF EXISTS update_setups ON setups;
 
 CREATE POLICY update_setups ON setups
 FOR UPDATE
-  TO authenticated USING ((SELECT public.has_edit_permission ()));
+  TO authenticated USING (
+    (
+      SELECT
+        public.has_edit_permission ()
+    )
+  );
 
 DROP POLICY IF EXISTS delete_setups ON setups;
 
-CREATE POLICY delete_setups ON setups FOR DELETE TO authenticated USING ((SELECT public.has_edit_permission ()));
+CREATE POLICY delete_setups ON setups FOR DELETE TO authenticated USING (
+  (
+    SELECT
+      public.has_edit_permission ()
+  )
+);
 
 -- setup variants RLS
 -- SELECT all setups variants
@@ -134,23 +169,39 @@ DROP POLICY IF EXISTS view_setup_variants ON setup_variants;
 
 CREATE POLICY view_setup_variants ON setup_variants FOR
 SELECT
-  TO authenticated, anon;
+  TO authenticated,
+  anon USING (true);
 
 DROP POLICY IF EXISTS edit_setup_variants ON setup_variants;
 
 CREATE POLICY edit_setup_variants ON setup_variants FOR INSERT TO authenticated
 WITH
-  CHECK ((SELECT public.has_edit_permission ()));
+  CHECK (
+    (
+      SELECT
+        public.has_edit_permission ()
+    )
+  );
 
 DROP POLICY IF EXISTS update_setup_variants ON setup_variants;
 
 CREATE POLICY update_setup_variants ON setup_variants
 FOR UPDATE
-  TO authenticated USING ((SELECT public.has_edit_permission ()));
+  TO authenticated USING (
+    (
+      SELECT
+        public.has_edit_permission ()
+    )
+  );
 
 DROP POLICY IF EXISTS delete_setup_variants ON setup_variants;
 
-CREATE POLICY delete_setup_variants ON setup_variants FOR DELETE TO authenticated USING ((SELECT public.has_edit_permission ()));
+CREATE POLICY delete_setup_variants ON setup_variants FOR DELETE TO authenticated USING (
+  (
+    SELECT
+      public.has_edit_permission ()
+  )
+);
 
 -- setup links RLS
 -- SELECT all setup links
@@ -163,23 +214,39 @@ DROP POLICY IF EXISTS view_setup_oqb_links ON setup_oqb_links;
 
 CREATE POLICY view_setup_oqb_links ON setup_oqb_links FOR
 SELECT
-  TO authenticated, anon;
+  TO authenticated,
+  anon USING (true);
 
 DROP POLICY IF EXISTS edit_setup_oqb_links ON setup_oqb_links;
 
 CREATE POLICY edit_setup_oqb_links ON setup_oqb_links FOR INSERT TO authenticated
 WITH
-  CHECK ((SELECT public.has_edit_permission ()));
+  CHECK (
+    (
+      SELECT
+        public.has_edit_permission ()
+    )
+  );
 
 DROP POLICY IF EXISTS update_setup_oqb_links ON setup_oqb_links;
 
 CREATE POLICY update_setup_oqb_links ON setup_oqb_links
 FOR UPDATE
-  TO authenticated USING ((SELECT public.has_edit_permission ()));
+  TO authenticated USING (
+    (
+      SELECT
+        public.has_edit_permission ()
+    )
+  );
 
 DROP POLICY IF EXISTS delete_setup_oqb_links ON setup_oqb_links;
 
-CREATE POLICY delete_setup_oqb_links ON setup_oqb_links FOR DELETE TO authenticated USING ((SELECT public.has_edit_permission ()));
+CREATE POLICY delete_setup_oqb_links ON setup_oqb_links FOR DELETE TO authenticated USING (
+  (
+    SELECT
+      public.has_edit_permission ()
+  )
+);
 
 -- statistics RLS
 -- SELECT all statistics
@@ -192,23 +259,39 @@ DROP POLICY IF EXISTS view_statistics ON statistics;
 
 CREATE POLICY view_statistics ON statistics FOR
 SELECT
-  TO authenticated, anon;
+  TO authenticated,
+  anon USING (true);
 
 DROP POLICY IF EXISTS edit_statistics ON statistics;
 
 CREATE POLICY edit_statistics ON statistics FOR INSERT TO authenticated
 WITH
-  CHECK ((SELECT public.has_edit_permission ()));
+  CHECK (
+    (
+      SELECT
+        public.has_edit_permission ()
+    )
+  );
 
 DROP POLICY IF EXISTS update_statistics ON statistics;
 
 CREATE POLICY update_statistics ON statistics
 FOR UPDATE
-  TO authenticated USING ((SELECT public.has_edit_permission ()));
+  TO authenticated USING (
+    (
+      SELECT
+        public.has_edit_permission ()
+    )
+  );
 
 DROP POLICY IF EXISTS delete_statistics ON statistics;
 
-CREATE POLICY delete_statistics ON statistics FOR DELETE TO authenticated USING ((SELECT public.has_edit_permission ()));
+CREATE POLICY delete_statistics ON statistics FOR DELETE TO authenticated USING (
+  (
+    SELECT
+      public.has_edit_permission ()
+  )
+);
 
 -- saves RLS
 -- SELECT all saves
@@ -221,20 +304,36 @@ DROP POLICY IF EXISTS view_saves ON saves;
 
 CREATE POLICY view_saves ON saves FOR
 SELECT
-  TO authenticated, anon;
+  TO authenticated,
+  anon USING (true);
 
 DROP POLICY IF EXISTS edit_saves ON saves;
 
 CREATE POLICY edit_saves ON saves FOR INSERT TO authenticated
 WITH
-  CHECK ((SELECT public.has_edit_permission ()));
+  CHECK (
+    (
+      SELECT
+        public.has_edit_permission ()
+    )
+  );
 
 DROP POLICY IF EXISTS update_saves ON saves;
 
 CREATE POLICY update_saves ON saves
 FOR UPDATE
-  TO authenticated USING ((SELECT public.has_edit_permission ()));
+  TO authenticated USING (
+    (
+      SELECT
+        public.has_edit_permission ()
+    )
+  );
 
 DROP POLICY IF EXISTS delete_saves ON saves;
 
-CREATE POLICY delete_saves ON saves FOR DELETE TO authenticated USING ((SELECT public.has_edit_permission ()));
+CREATE POLICY delete_saves ON saves FOR DELETE TO authenticated USING (
+  (
+    SELECT
+      public.has_edit_permission ()
+  )
+);

@@ -3,12 +3,12 @@
 </script>
 
 <div class="hero min-h-[60vh]">
-  <div class="hero-content text-center py-12">
+  <div class="hero-content py-12 text-center">
     <div class="max-w-xl">
       <div
-        class="text-xl md:text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-primary to-accent mb-3 md:mb-7 pb-1"
+        class="from-primary to-accent mb-3 bg-linear-to-r bg-clip-text pb-1 text-xl font-bold text-transparent md:mb-7 md:text-3xl"
       >
-        WIP: Home
+        WIP: {m.nav_home()}
       </div>
     </div>
   </div>
