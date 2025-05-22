@@ -99,9 +99,7 @@ export const actions: Actions = {
       )
       .eq('pc', pc)
       .eq('statistics.kicktable', 'srs180')
-      .order('setup_id', {ascending: true})
-      ;
-
+      .order('setup_id', { ascending: true });
     if (error) {
       console.error('Failed to get data:', error.message);
       return fail(500, {
