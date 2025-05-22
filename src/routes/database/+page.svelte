@@ -8,20 +8,19 @@
   export let form;
 
   const { columns } = data;
-  let gridData = [];
   let loading = false;
 
   const pcs = [
-    {id: 1, pc: '1st'},
-    {id: 2, pc: '2nd'},
-    {id: 3, pc: '3rd'},
-    {id: 4, pc: '4th'},
-    {id: 5, pc: '5th'},
-    {id: 6, pc: '6th'},
-    {id: 7, pc: '7th'},
-    {id: 8, pc: '8th'},
-    {id: 9, pc: '9th'},
-  ]
+    { id: 1, pc: '1st' },
+    { id: 2, pc: '2nd' },
+    { id: 3, pc: '3rd' },
+    { id: 4, pc: '4th' },
+    { id: 5, pc: '5th' },
+    { id: 6, pc: '6th' },
+    { id: 7, pc: '7th' },
+    { id: 8, pc: '8th' },
+    { id: 9, pc: '9th' }
+  ];
 
   const handleSubmit: SubmitFunction = () => {
     loading = true;
@@ -34,23 +33,21 @@
 
 <div class="hero min-h-[60vh]">
   <div class="hero-content py-12 text-center">
-    <div class="w-full flex flex-col gap-2">
+    <div class="flex w-full flex-col gap-2">
       <div
         class="from-primary to-accent mb-3 bg-linear-to-r bg-clip-text pb-1 text-xl font-bold text-transparent md:mb-7 md:text-3xl"
       >
         WIP: {m.nav_database()}
       </div>
 
-      <form 
-        class="w-md flex whitespace-nowrap"
+      <form
+        class="flex w-md whitespace-nowrap"
         method="POST"
         action="?/pcnum"
         use:enhance={handleSubmit}
       >
         <div class="flex items-center gap-2">
-          <label for="pc-select" class="block text-lg font-medium">
-            PC Number
-          </label>
+          <label for="pc-select" class="block text-lg font-medium"> {m.pc_number()} </label>
           <select
             id="pc-select"
             name="pc"
@@ -60,26 +57,27 @@
               <option value={pc.id}>{pc.pc}</option>
             {/each}
           </select>
-        <div>
+          <div>
+            <button
+              type="submit"
+              class="flex w-full cursor-pointer justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+              disabled={loading}
+            >
+              {loading ? m.loading() : m.btn_save()}
+            </button>
 
-        <button
-          type="submit"
-          class="flex w-full cursor-pointer justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
-          disabled={loading}
-        >
-          {loading ? m.loading() : m.btn_save()}
-        </button>
-
-        {#if form?.message}
-          <div
-            class="rounded-md p-3 text-sm {form?.success
-              ? 'bg-green-100 text-green-700'
-              : 'bg-red-100 text-red-700'}"
-            role="alert"
-          >
-            {form?.message}
+            {#if form?.message}
+              <div
+                class="rounded-md p-3 text-sm {form?.success
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-red-100 text-red-700'}"
+                role="alert"
+              >
+                {form?.message}
+              </div>
+            {/if}
           </div>
-        {/if}
+        </div>
       </form>
 
       <Willow>

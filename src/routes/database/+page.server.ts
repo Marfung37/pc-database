@@ -1,7 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals: { supabase } }) => {
+export const load: PageServerLoad = async () => {
   const columns = [
     {
       id: 'setup_id',
@@ -27,14 +27,14 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
       footer: 'Cover_Dependence',
       width: 150,
       resize: true,
-      editor: "text"
+      editor: 'text'
     },
     {
       id: 'fumen',
       header: 'Fumen',
       footer: 'Fumen',
       resize: true,
-      editor: "text"
+      editor: 'text'
     },
     {
       id: 'pieces',
@@ -42,7 +42,7 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
       footer: 'Pieces',
       width: 100,
       resize: true,
-      editor: "text"
+      editor: 'text'
     },
     {
       id: 'mirror',
@@ -54,7 +54,9 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
       id: 'oqb_path',
       header: 'OQB Path',
       footer: 'OQB Path',
-      width: 100
+      width: 100,
+      resize: true,
+      editor: 'text'
     },
     {
       id: 'solve_percent',
@@ -73,7 +75,7 @@ export const actions: Actions = {
     const pcStr = formData.get('pc') as string;
 
     // checking if valid pc number
-    if (! pcStr.match(/^[1-9]$/)) {
+    if (!pcStr.match(/^[1-9]$/)) {
       return fail(400, {
         success: false,
         message: `Invalid pc number.`

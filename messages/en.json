@@ -11,5 +11,6 @@
   "loading": "Loading...",
   "email_address": "Email Address",
   "password": "Password",
-  "username": "Username"
+  "username": "Username",
+  "pc_number": "PC Number"
 }

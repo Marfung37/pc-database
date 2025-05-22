@@ -11,5 +11,6 @@
   "loading": "処理中...",
   "email_address": "メールアドレス",
   "password": "パスワード",
-  "username": "ユーザー名"
+  "username": "ユーザー名",
+  "pc_number": "PC番号"
 }
