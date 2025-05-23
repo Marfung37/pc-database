@@ -132,7 +132,7 @@ WITH
     AND (
       (
         oqb_path IS NULL
-        OR oqb_path = setup_id
+        OR oqb_path::text = setup_id
       )
       AND oqb_depth IS NULL
     )

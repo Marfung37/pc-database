@@ -42,14 +42,14 @@ CREATE TABLE "setups" (
   "leftover" varchar(7) NOT NULL CHECK (leftover ~ '^[TILJSZO]+$'), -- enforce tetris pieces
   "build" varchar(10) NOT NULL CHECK (build ~ '^[TILJSZO]+$'), -- enforce tetris pieces
   "cover_pattern" varchar(255) NOT NULL, -- difficult to constrain
-  "oqb_path" varchar(131) CHECK (
+  "oqb_path" ltree CHECK (
     oqb_path IS NULL
-    OR oqb_path ~ '^[1-9][0-9a-f]{11}(\.[1-9][0-9a-f]{11})*$'
-  ), -- enforce max depth 10 with max string length
+    OR oqb_path::text ~ '^[1-9][0-9a-f]{11}(\.[1-9][0-9a-f]{11})*$'
+  ), 
   "oqb_depth" int GENERATED ALWAYS AS (
     CASE
       WHEN oqb_path IS NULL THEN NULL
-      ELSE length(oqb_path) - length(replace(oqb_path, '.', ''))
+      ELSE nlevel(oqb_path)
     END
   ) STORED,
   "oqb_description" varchar(255),
@@ -202,7 +202,7 @@ COMMENT ON COLUMN "setup_variants"."build" IS 'Pieces used in setup. Only TILJSZ
 
 COMMENT ON COLUMN "setup_variants"."fumen" IS 'Fumen of the setup';
 
-COMMENT ON COLUMN "setup_variants"."pieces" IS 'Extended pieces notation for solving. NULL if internal node in oqb';
+COMMENT ON COLUMN "setup_variants"."solve_pattern" IS 'Extended pieces notation for solving. NULL if internal node in oqb';
 
 COMMENT ON COLUMN "statistics"."setup_id" IS '12 hexdigits';
 
@@ -245,7 +245,7 @@ ADD FOREIGN KEY ("setup_id") REFERENCES "setups" ("setup_id") ON DELETE CASCADE 
 
 CREATE INDEX idx_setups_leftover ON setups (leftover);
 
-CREATE INDEX idx_setups_oqb_path ON setups (oqb_path);
+CREATE INDEX idx_gist_setups_oqb_path ON setups USING GIST (oqb_path);
 
 CREATE INDEX idx_setups_oqb_links_parent_id ON setup_oqb_links (parent_id);
 

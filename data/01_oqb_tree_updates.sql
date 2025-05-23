@@ -16,7 +16,7 @@ BEGIN
         -- Update the modified node's path
         IF NOT parent_exists THEN
             UPDATE setups
-            SET oqb_path = NEW.child_id::TEXT
+            SET oqb_path = NEW.child_id::ltree
             WHERE setup_id = NEW.child_id;
         ELSE
             -- Check for circular reference
@@ -24,14 +24,14 @@ BEGIN
                 SELECT 1
                 FROM setups p
                 WHERE p.setup_id = NEW.parent_id
-                  AND p.oqb_path LIKE '%' || NEW.child_id || '%'
+                  AND p.oqb_path ~ '*.' || NEW.child_id || '.*'
             ) THEN 
                 RAISE EXCEPTION 'Circular reference detected: Setup % cannot be child of %', 
                     NEW.child_id, NEW.parent_id;
             END IF;
 
             UPDATE setups s
-            SET oqb_path = p.oqb_path || '.' || NEW.child_id::TEXT
+            SET oqb_path = p.oqb_path || NEW.child_id:TEXT
             FROM setups p
             WHERE s.setup_id = NEW.child_id AND p.setup_id = NEW.parent_id;
         END IF;
@@ -66,7 +66,7 @@ BEGIN
     BEGIN 
         -- set the path to setup_id as no longer part of a tree and keeps that it is oqb. User can explicitly update to be not oqb
         UPDATE setups
-        SET oqb_path = setup_id
+        SET oqb_path = setup_id::ltree
         WHERE setup_id = OLD.child_id;
 
         -- link the children to their grandparent
@@ -100,7 +100,7 @@ BEGIN
     SELECT l.child_id INTO circular_child_id
     FROM setup_oqb_links l
     WHERE l.parent_id = parent_node
-    AND parent_path LIKE '%' || l.child_id || '%'
+    AND parent_path ~ '*.' || l.child_id || '.*'
     LIMIT 1;
     
     IF FOUND THEN
@@ -109,7 +109,7 @@ BEGIN
     END IF;
     
     UPDATE setups d
-    SET oqb_path = parent_path || '.' || l.child_id::TEXT
+    SET oqb_path = parent_path || l.child_id::TEXT
     FROM setup_oqb_links l
     WHERE l.parent_id = parent_node
     AND d.setup_id = l.child_id;

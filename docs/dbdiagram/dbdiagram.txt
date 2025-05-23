@@ -21,7 +21,7 @@ table setups {
   leftover          varchar(7)    [not null, note: 'Pieces left from bag. Only TILJSZO allowed']
   build             varchar(10)   [not null, note: 'Pieces used in setup. Only TILJSZO allowed']
   cover_pattern     varchar(255)  [not null, note: 'Extended pieces notation for when setup is covered. Need not be perfect']
-  oqb_path          varchar(131)  [note: 'Materialized path of ids to this setup. NULL if not oqb and set to setup_id if oqb initially and populated from setup_oqb_links']
+  oqb_path          ltree         [note: 'Materialized path of ids to this setup. NULL if not oqb and set to setup_id if oqb initially and populated from setup_oqb_links']
   oqb_depth         smallint      [note: 'Setup oqb tree depth']
   oqb_description   varchar(255)  [note: 'Description for when to use this setup']
   fumen             text          [not null, note: 'Fumen of the setup']
