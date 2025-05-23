@@ -76,6 +76,111 @@ export const load: PageServerLoad = async () => {
   return { columns };
 };
 
+// 1. Define Types
+// Extend the base Setup interface to include the nested 'data' for the tree structure
+interface BaseSetup {
+  setup_id: string;
+  leftover: string;
+  build: string;
+  cover_dependence: string;
+  fumen: string;
+  pieces: string;
+  mirror: boolean;
+  oqb_path: string | null;
+  oqb_depth: number | null; // Assuming this column exists and is used
+}
+
+// Define the shape of the statistics data when embedded
+interface StatisticsData {
+  solve_percent: number;
+}
+
+// Combined type for data coming directly from Supabase, before flattening statistics
+interface RawSetup extends BaseSetup {
+  statistics: StatisticsData[] | null; // Null if no related statistics due to UNIQUE constraint
+}
+
+// Type for data after processing (flattened statistics and nested 'data' for children)
+interface ProcessedSetup extends BaseSetup {
+  solve_percent: number | null; // Flattened solve_percent, can be null
+  data?: ProcessedSetup[]; // Children in the tree structure
+  open?: boolean; // For UI state if you plan to use it (e.g., in a tree view)
+}
+
+// Helper to safely extract and flatten solve_percent
+function processSetupData(rawSetups: RawSetup[] | null): ProcessedSetup[] {
+    if (!rawSetups) return [];
+    return rawSetups.map(s => ({
+        ...s,
+        solve_percent: s.statistics?.[0].solve_percent || null // Safely access and default to null
+    }));
+}
+
+/**
+ * Builds the OQB tree structure from a flat list of ProcessedSetup objects.
+ * Assumes the input `allSetups` are already filtered by `pc` and `kicktable`.
+ *
+ * @param allSetups A flat array of all relevant ProcessedSetup objects.
+ * @returns The root nodes of the OQB tree with their children populated.
+ */
+function buildOqbTree(allSetups: ProcessedSetup[]): ProcessedSetup[] {
+    const setupMap = new Map<string, ProcessedSetup>();
+    const rootNodes: ProcessedSetup[] = [];
+
+    // First pass: Populate map and add a 'children' array
+    // Also initialize 'open' state for UI if needed
+    for (const setup of allSetups) {
+        setup.data = []; // Initialize children array
+        setup.open = false; // Initialize UI state
+        setupMap.set(setup.setup_id, setup);
+    }
+
+    // Second pass: Assign children to their parents
+    for (const setup of allSetups) {
+        if (setup.oqb_depth == 0) {
+            rootNodes.push(setup);
+        } else if (setup.oqb_path !== null) {
+            // Extract parent setup_id from oqb_path
+            const pathParts = setup.oqb_path.split('.');
+            const parentId = pathParts[pathParts.length - 2]; // Last part is the parent setup_id
+
+            const parent = setupMap.get(parentId);
+            if (parent) {
+                // Ensure data is initialized before pushing
+                if (!parent.data) {
+                    parent.data = [];
+                }
+                parent.data.push(setup);
+            } else {
+                // This scenario means a child has an oqb_path pointing to a non-existent parent
+                // or a parent that wasn't fetched in the 'allSetups' list (e.g., beyond max depth).
+                // You might want to log a warning or handle this edge case.
+                console.warn(`Parent setup_id ${parentId} not found for child ${setup.setup_id}`);
+                // If a parent is not found, this setup might become a root node or be dropped.
+                // For now, let's assume all parents will be in the map if fetched.
+            }
+        }
+    }
+
+    // Sort children for consistent display
+    rootNodes.forEach(root => {
+        if (root.data && root.data.length > 0) {
+            sortChildren(root.data);
+        }
+    });
+
+    return rootNodes;
+}
+
+// Helper to sort children (recursive sort for consistency)
+function sortChildren(children: ProcessedSetup[]) {
+    children.sort((a, b) => a.setup_id.localeCompare(b.setup_id)); // Or sort by a more meaningful field
+    children.forEach(child => {
+        if (child.data && child.data.length > 0) {
+            sortChildren(child.data);
+        }
+    });
+}
 
 export const actions: Actions = {
   pcnum: async ({ request, locals: { supabase } }) => {
@@ -91,123 +196,51 @@ export const actions: Actions = {
     }
     const pc = parseInt(pcStr);
 
-    // get non oqb setups
-    const { data, error } = await supabase
+    // 1. Fetch ALL relevant setups in one query
+    // This query gets all setups with the given 'pc' and kicktable filter,
+    // and sorts them by oqb_path for easier processing.
+    const { data: allRelevantSetupsRaw, error: fetchError } = await supabase
       .from('setups')
       .select(
         `setup_id,
-              leftover, 
-              build, 
-              cover_dependence, 
-              fumen, 
-              pieces, 
-              mirror, 
-              oqb_path,
-              statistics (solve_percent)`
+        leftover,
+        build,
+        cover_dependence,
+        fumen,
+        pieces,
+        mirror,
+        oqb_path,
+        oqb_depth,
+        statistics (solve_percent)`
       )
       .eq('pc', pc)
-      .is('oqb_path', 'NULL')
-      .eq('statistics.kicktable', 'srs180')
-      .order('setup_id', { ascending: true });
+      .eq('statistics.kicktable', 'srs180') // Apply kicktable filter once
+      .order('oqb_depth', { ascending: true }) // Order by depth first
+      .order('oqb_path', { ascending: true }); // Then by path for consistent tree building
 
-    if (error) {
-      console.error('Failed to get data:', error.message);
+    if (fetchError) {
+      console.error('Failed to get all setups:', fetchError.message);
       return fail(500, {
         success: false,
-        message: `Failed to get data.`
+        message: `Failed to load setups: ${fetchError.message}`
       });
     }
 
-    let gridData = data.map((x) => {
-      return { ...x, solve_percent: x.statistics[0].solve_percent };
-    });
+    const allSetupsProcessed = processSetupData(allRelevantSetupsRaw);
 
-    // populate the oqb setups
-    const { data: oqbDataTmp, error: oqbErr } = await supabase
-        .from('setups')
-        .select(
-          `setup_id,
-                leftover, 
-                build, 
-                cover_dependence, 
-                fumen, 
-                pieces, 
-                mirror, 
-                oqb_path,
-                statistics (solve_percent)`
-        )
-        .eq('pc', pc)
-        .eq('oqb_depth', 0)
-        .eq('statistics.kicktable', 'srs180')
-        .order('setup_id', { ascending: true });
+    // 2. Separate non-OQB setups from OQB candidates
+    const nonOqbSetups = allSetupsProcessed.filter(s => s.oqb_path === null);
+    const oqbTreeCandidates = allSetupsProcessed.filter(s => s.oqb_path !== null);
 
-      if (oqbErr) {
-        console.error('Failed to get data:', oqbErr.message);
-        return fail(500, {
-          success: false,
-          message: `Failed to get data.`
-        });
-      }
+    // 3. Build the OQB tree in-memory
+    // Pass only the candidates that could be part of the OQB tree to the builder
+    const oqbTree = buildOqbTree(oqbTreeCandidates);
 
-    if (!oqbDataTmp) return { success: true, gridData }
-
-    let oqbData = oqbDataTmp.map((x) => {
-      return { ...x, solve_percent: x.statistics[0].solve_percent };
-    });
-
-    // @ts-expect-error TODO: set the type
-    async function populateOqbTree(data, depth: number = 1) {
-      for (let i = 0; i < data.length; i++) {
-        const { data: oqbDataTmp, error: oqbErr } = await supabase
-          .from('setups')
-          .select(
-            `setup_id,
-                  leftover, 
-                  build, 
-                  cover_dependence, 
-                  fumen, 
-                  pieces, 
-                  mirror, 
-                  oqb_path,
-                  statistics (solve_percent)`
-          )
-          .eq('pc', pc)
-          .like('oqb_path', data[i]['oqb_path'] + '.%')
-          .eq('oqb_depth', depth)
-          .eq('statistics.kicktable', 'srs180')
-          .order('setup_id', { ascending: true });
-
-
-        if (oqbData.length == 0) return;
-
-        if (oqbErr) {
-          throw oqbErr;
-        }
-
-        let cleanUpData = oqbDataTmp.map((x) => {
-          return { ...x, solve_percent: x.statistics[0].solve_percent };
-        })
-
-        await populateOqbTree(cleanUpData, depth + 1);
-
-        if (cleanUpData.length > 0) {
-          data[i].data = cleanUpData;
-          data[i].open = false;
-        }
-      }
-    };
-
-    try {
-      await populateOqbTree(oqbData);
-    } catch (oqbErr) {
-      console.error('Failed to get data:', (oqbErr as Error).message);
-      return fail(500, {
-        success: false,
-        message: `Failed to get data.`
-      });
-    }
-
-    gridData = [...gridData, ...oqbData];
+    // Combine all data for the grid
+    // The final gridData should be the non-OQB setups + the root nodes of the OQB tree
+    // The buildOqbTree function should return the actual root nodes it processed,
+    // and those would be the top-level items in your grid.
+    const gridData = [...nonOqbSetups, ...oqbTree];
 
     return {
       success: true,
