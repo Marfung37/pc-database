@@ -1,7 +1,7 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-  "website_name": "PC みせ",
-  "website_description": "PC データベース",
+  "website_name": "PCみせ",
+  "website_description": "PCデータベース",
   "nav_home": "ホーム",
   "nav_database": "データベース",
   "nav_about": "について",

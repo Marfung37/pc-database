@@ -1,6 +1,6 @@
 INSERT INTO setups (
-  setup_id, pc, leftover, build, cover_dependence, 
-  oqb_path, fumen, pieces, mirror, credit
+  setup_id, pc, leftover, build, cover_pattern, 
+  oqb_path, fumen, solve_pattern, mirror, credit
 ) VALUES 
   ('18000966b1ff',1,'TILJSZO','TIILLJSSZO','[JSZO]!{J<S||JS<Z},[TIL]!,[ILS]!{/^[^L]/}','18000966b1ff','v115@9gQ4hlwhwwzhglR4glwhxwQ4ilg0Q4glwhBtR4Rpi0?whwwBtQ4RpJeAgH','[TJZO]!','1800099991ff',NULL),
   ('1800099991ff',1,'TILJSZO','TIILJJSZZO','[LSZO]!{L<Z||LZ<S},[TIJ]!,[IJZ]!{/^[^J]/}','1800099991ff','v115@9gg0zhwwwhh0Ati0Atxwwhg0BtRpBtR4whg0AtglRp?AtR4wwwhilJeAgH','[TLSO]!','18000966b1ff',NULL),
@@ -4287,7 +4287,7 @@ INSERT INTO setups (
   ('8708dfee62ff',8,'TILJZOO','JZOO','O,[^S]p4{JZO=1}',NULL,'v115@9gRpHeRpBtFeRpg0BtEeRpi0OeAgH','[TIL]!,*p4','8704dfbb64fe',NULL),
   ('8708dfee6eff',8,'TILJZOO','JZOO','O,[^S]p4{JZO=1}',NULL,'v115@9gRpHeRpEei0RpEeBtg0RpFeBtJeAgH','[TIL]!,*p4','8704dfbb64ff',NULL);
 INSERT INTO setup_variants (
-  setup_id, build, fumen, pieces
+  setup_id, build, fumen, solve_pattern
 ) VALUES 
   ('2032a6fad7ff','TTIISZ','v115@9gwhHexhCeR4CexhAewwR4wwBtAexh1wBtwhJeAgH','[^TI]!'),
   ('2032a6fad7ff','TTILSZ','v115@EhhlwhDeR4BeglwhBewwR4wwBtglwhAe1wBtwhJeAg?H','[^TL]!'),

@@ -41,7 +41,7 @@ CREATE TABLE "setups" (
   "pc" smallint NOT NULL CHECK (pc BETWEEN 1 AND 9),
   "leftover" varchar(7) NOT NULL CHECK (leftover ~ '^[TILJSZO]+$'), -- enforce tetris pieces
   "build" varchar(10) NOT NULL CHECK (build ~ '^[TILJSZO]+$'), -- enforce tetris pieces
-  "cover_dependence" varchar(255) NOT NULL, -- difficult to constrain
+  "cover_pattern" varchar(255) NOT NULL, -- difficult to constrain
   "oqb_path" varchar(131) CHECK (
     oqb_path IS NULL
     OR oqb_path ~ '^[1-9][0-9a-f]{11}(\.[1-9][0-9a-f]{11})*$'
@@ -54,16 +54,16 @@ CREATE TABLE "setups" (
   ) STORED,
   "oqb_description" varchar(255),
   "fumen" text NOT NULL CHECK (fumen ~ '^v115@[A-Za-z0-9+/?]+$'), -- enforce fumen structure with version 115
-  "pieces" varchar(100), -- difficult to constrain
+  "solve_pattern" varchar(100), -- difficult to constrain
   "mirror" setupid,
   "credit" varchar(255),
   -- either all columns about solves are filled or is an oqb setup that doesn't solve
   CONSTRAINT no_solve_oqb_setup CHECK (
     (
-      pieces IS NULL
+      solve_pattern IS NULL
       AND oqb_path IS NOT NULL
     )
-    OR (pieces IS NOT NULL)
+    OR (solve_pattern IS NOT NULL)
   ),
   FOREIGN KEY (mirror) REFERENCES setups (setup_id) ON DELETE SET NULL ON UPDATE CASCADE
 );
@@ -80,7 +80,7 @@ CREATE TABLE "setup_variants" (
   "variant_number" int NOT NULL CHECK (variant_number > 0), -- 1 index with intent 0 is the entry in setups
   "build" varchar(10) NOT NULL CHECK (build ~ '^[TILJSZO]+$'), -- enforce tetris pieces
   "fumen" text NOT NULL CHECK (fumen ~ '^v115@[A-Za-z0-9+/?]+$'), -- enforce fumen structure with version 115
-  "pieces" varchar(100),
+  "solve_pattern" varchar(100),
   PRIMARY KEY (setup_id, variant_number),
   FOREIGN KEY (setup_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -176,7 +176,7 @@ COMMENT ON COLUMN "setups"."leftover" IS 'Pieces left from bag. Only TILJSZO all
 
 COMMENT ON COLUMN "setups"."build" IS 'Pieces used in setup. Only TILJSZO allowed';
 
-COMMENT ON COLUMN "setups"."cover_dependence" IS 'Extended pieces notation for when setup is covered. Need not be perfect';
+COMMENT ON COLUMN "setups"."cover_pattern" IS 'Extended pieces notation for when setup is covered. Need not be perfect';
 
 COMMENT ON COLUMN "setups"."oqb_path" IS 'Materialized path of ids to this setup. NULL if not oqb and set to setup_id if oqb initially and populated from setup_oqb_links';
 
@@ -186,7 +186,7 @@ COMMENT ON COLUMN "setups"."oqb_description" IS 'Description for when to use thi
 
 COMMENT ON COLUMN "setups"."fumen" IS 'Fumen of the setup';
 
-COMMENT ON COLUMN "setups"."pieces" IS 'Pieces used for solving. NULL if internal node in oqb';
+COMMENT ON COLUMN "setups"."solve_pattern" IS 'Extended pieces notation for solving. NULL if internal node in oqb';
 
 COMMENT ON COLUMN "setups"."mirror" IS 'References a setup_id for mirror setup';
 
@@ -202,7 +202,7 @@ COMMENT ON COLUMN "setup_variants"."build" IS 'Pieces used in setup. Only TILJSZ
 
 COMMENT ON COLUMN "setup_variants"."fumen" IS 'Fumen of the setup';
 
-COMMENT ON COLUMN "setup_variants"."pieces" IS 'Extended pieces notation used for solving. NULL if internal node in oqb';
+COMMENT ON COLUMN "setup_variants"."pieces" IS 'Extended pieces notation for solving. NULL if internal node in oqb';
 
 COMMENT ON COLUMN "statistics"."setup_id" IS '12 hexdigits';
 

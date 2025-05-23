@@ -24,9 +24,9 @@ export const load: PageServerLoad = async () => {
       width: 100
     },
     {
-      id: 'cover_dependence',
-      header: 'Cover Dependence',
-      footer: 'Cover_Dependence',
+      id: 'cover_pattern',
+      header: 'Cover Pattern',
+      footer: 'Cover Pattern',
       width: 150,
       flexgrow: 1,
       resize: true,
@@ -42,9 +42,9 @@ export const load: PageServerLoad = async () => {
       editor: 'text'
     },
     {
-      id: 'pieces',
-      header: 'Pieces',
-      footer: 'Pieces',
+      id: 'solve_pattern',
+      header: 'Solve Pattern',
+      footer: 'Solve Pattern',
       width: 100,
       flexgrow: 1,
       resize: true,
@@ -82,9 +82,9 @@ interface BaseSetup {
   setup_id: string;
   leftover: string;
   build: string;
-  cover_dependence: string;
+  cover_pattern: string;
   fumen: string;
-  pieces: string;
+  solve_pattern: string;
   mirror: boolean;
   oqb_path: string | null;
   oqb_depth: number | null; // Assuming this column exists and is used
@@ -205,9 +205,9 @@ export const actions: Actions = {
         `setup_id,
         leftover,
         build,
-        cover_dependence,
+        cover_pattern,
         fumen,
-        pieces,
+        solve_pattern,
         mirror,
         oqb_path,
         oqb_depth,
