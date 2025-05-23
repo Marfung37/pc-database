@@ -99,7 +99,6 @@ export async function compressPath(filename: string, pieces: string): Result<Buf
 
     return { data: compressed, error: null };
   } catch (err) {
-    // Convert to proper Error instance
     const error = err instanceof Error ? err : new Error(String(err));
     error.message = `Compression failed: ${error.message}`;
 

@@ -2,15 +2,16 @@
 
 ![Setup Database Diagram](dbdiagram/dbdiagram.png)
 
-## Terminology
+## Setups Table
+
+### Terminology
 
 - Leftover - pieces from the bag from the previous PC. Ex: used TSZ to solve PCO and have ILJO on 2nd.
 - Build - pieces within the setup.
 - Cover Pattern - [extended pieces](https://github.com/Marfung37/ExtendedSfinderPieces) stating the when to build the setup. Ex: OQB may need S < Z for next step.
 - Solve Pattern - [extended pieces](https://github.com/Marfung37/ExtendedSfinderPieces) stating what pieces used to solve. This may be related to cover pattern if depends on pieces not placed.
-- Priority Save Percent/Fraction - values in an array of the priority of that save. Ex: `T,I,O` on 2nd and wanted to know percent of getting `T` then remaining percent for `I` then `O`. This corresponds with the `--best-save` flag on [PC-Saves-Get](https://github.com/Marfung37/PC-Saves-Get)
 
-## Setup ID
+### Setup ID
 
 The ID has three goals: sorting by ID has a effective order, representative of the setup, and unique.
 
@@ -90,8 +91,6 @@ Example Setup ID: the following data
 
 Coverting to hex: `001000010011110011101010111111111001000111111111` -> `213ceaff91ff`
 
-## Setups Table
-
 ### OQB
 
 The `oqb_path` and `oqb_depth` help with handling OQB setups.
@@ -100,4 +99,105 @@ If a setup is not OQB, `oqb_path` and `oqb_depth` are `NULL`.
 
 On insert, the `oqb_path` may be set to the same value as `setup_id` to state setup is OQB. This is only necessary when `solve_pattern` to be `NULL` for the setup isn't intended to be solved from this point.
 
-The `oqb_path` is populated as a [materialized/label path](https://www.postgresql.org/docs/current/ltree.html)
+The `oqb_path` is populated as a [materialized/label path](https://www.postgresql.org/docs/current/ltree.html), which makes querying the tree more efficent, from the `setup_oqb_links` table that contain the parent for each setup.
+
+### Cover Pattern
+
+The cover pattern is in [extended pieces](https://github.com/Marfung37/ExtendedSfinderPieces) and used to restrict what queues that the setup covers. 
+
+The cover pattern does not need to be exactly the correct coverage. The `cover_data` in `statistics` is a bitstring for which queue the setup is covered.
+
+## Setup Variants Table
+
+Some setups, especially one-solve or QB setups, have effectively the same setup but some pieces may be placed before completing the base setup.
+
+The following image should give clarity,
+
+![v115@Bhh0DeglCeg0Beg0Beglywg0R4g0RphlwwAeR4h0Rp?JeAgHBhh0R4BeglDewhQ4g0CeywAeR4AeRpTeAgHBhh0BeR?pglDegHwDQaRpAeywDeRpTeAgHBhh0R4RpglDewhQ4g0Cey?wAeR4WeAgH](images/variable_setup.gif)
+
+The first page with the least pieces is the base and the other pages are the variants. These simply contains other pieces that can be place without affecting the setup in a way that would affect its statistics and increases the cover of the setup.
+
+## Statistics Table
+
+Since the values of a setup depends on the kicktable or have 180, this table separates the statistics for each kicktable.
+
+This stores the `cover_data`, solve percent/fraction, and solves. 
+
+### Path File
+
+The `path_file` is a flag whether the `path.csv` file is stored on the server. 
+
+The file is stored with the filename `<setup-id>-<kicktable>.csvd.xz`, which is a compressed version of the file.
+
+The basic idea on how to compress the file is to have the fumens keyed by a number then store the mapping at the beginning.
+In addition, remove columns that can be computed from the other columns, which the queues can be compressed into the extended pieces notation that generated it at the beginning of the file.
+Then apply `xz` or the underlying `lzma` for compression of the file. This converts the 1-3 MB file into 5-150 KB file.
+
+The following function is the actual implementation.
+```ts
+/**
+ * Compress path file
+ */
+export async function compressPath(filename: string, pieces: string): Result<Buffer> {
+  const inputCsv = fs.readFileSync(filename, 'utf-8');
+  const records: Record<string, string>[] = parse(inputCsv, {
+    columns: true,
+    skip_empty_lines: true
+  });
+
+  records.sort((a, b) => queueKey(a['ツモ']) - queueKey(b['ツモ']));
+
+  const fumens: Record<string, number> = {};
+
+  for (const row of records) {
+    const rowFumens = row['テト譜'].trim().split(';');
+    for (let i = 0; i < rowFumens.length; i++) {
+      const f = rowFumens[i];
+      if (!(f in fumens)) {
+        fumens[f] = Object.keys(fumens).length;
+      }
+      rowFumens[i] = fumens[f].toString();
+    }
+    row['テト譜'] = rowFumens.join(';');
+    row['未使用ミノ'] = mapSaves(row['未使用ミノ']).toString();
+
+    delete row['ツモ'];
+    delete row['対応地形数'];
+    delete row['使用ミノ'];
+  }
+
+  const fumensKeys = Object.keys(fumens);
+  const outputLines = [
+    pieces,
+    '',
+    ...fumensKeys,
+    '',
+    stringify(records, {
+      header: true,
+      columns: Object.keys(records[0])
+    }).trim()
+  ];
+
+  try {
+    const compressed = await lzma.compress(Buffer.from(outputLines.join('\n')), { preset: 9 });
+
+    // Validate output (though lzma-native should always return Buffer)
+    if (!Buffer.isBuffer(compressed)) {
+      return { data: null, error: new Error('Compression returned invalid data') };
+    }
+
+    return { data: compressed, error: null };
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    error.message = `Compression failed: ${error.message}`;
+
+    return { data: null, error };
+  }
+}
+```
+
+## Saves Table
+
+This table is to store save data following the notation used in [PC-Saves-Get](https://github.com/Marfung37/PC-Saves-Get) stored in `save` column.
+
+Priority save percent/fraction is values in an array of the priority of that save. Ex: `T,I,O` on 2nd and wanted to know percent of getting `T` then remaining percent for `I` then `O`. This corresponds with the `--best-save` flag on [PC-Saves-Get](https://github.com/Marfung37/PC-Saves-Get)
