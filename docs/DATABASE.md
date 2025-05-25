@@ -1,6 +1,6 @@
 # Database Documentation
 
-![Setup Database Diagram](dbdiagram/dbdiagram.png)
+![Setup Database Diagram](images/dbdiagram.png)
 
 ## Setups Table
 
@@ -13,7 +13,10 @@
 
 ### Setup ID
 
-The ID has three goals: sorting by ID has a effective order, representative of the setup, and unique.
+Goals:
+- Effective order
+- Representative of setup
+- Uniqueness
 
 The ID is a packed 48 bit hexstring, contents in the following table. The pieces are intended to be order by TILJSZO.
 

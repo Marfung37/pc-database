@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './lib/styles/prism-one-light.css';
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
 
@@ -10,7 +11,7 @@
 @plugin "daisyui/theme" {
   name: 'saasstartertheme';
   default: true; /* set as default */
-  prefersdark: false; /* set as default dark mode (prefers-color-scheme:dark) */
+  prefersdark: true; /* set as default dark mode (prefers-color-scheme:dark) */
   color-scheme: light; /* color of browser-provided UI */
 
   --color-primary: #180042;

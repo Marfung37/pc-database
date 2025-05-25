@@ -40,6 +40,14 @@
         WIP: {m.nav_database()}
       </div>
 
+
+      <div
+        class="flex flex-col gap-2 items-center mx-auto"
+      >
+        <p class="text-2xl md:text-4xl font-bold px-2">{m.database_description()}</p>
+        <a class="btn btn-outline btn-primary px-6 max-w-sm" href="/database/docs">{m.database_docs()}</a>
+      </div>
+
       <form
         class="flex w-md whitespace-nowrap"
         method="POST"

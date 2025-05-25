@@ -4,6 +4,7 @@
   "website_description": "PCデータベース",
   "nav_home": "ホーム",
   "nav_database": "データベース",
+  "nav_database_docs": "データベース文書",
   "nav_about": "について",
   "nav_login": "ログイン",
   "nav_logout": "ログアウト",
@@ -13,5 +14,7 @@
   "email_address": "メールアドレス",
   "password": "パスワード",
   "username": "ユーザー名",
-  "pc_number": "PC番号"
+  "pc_number": "PC番号",
+  "database_description": "4L PCセットアップ用データベース",
+  "database_docs": "ドキュメンテーション"
 }

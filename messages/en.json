@@ -1,9 +1,10 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-  "website_name": "PC Mise",
+  "website_name": "PC MISE",
   "website_description": "PC Database",
   "nav_home": "Home",
   "nav_database": "Database",
+  "nav_database_docs": "Database Docs",
   "nav_about": "About",
   "nav_login": "Login",
   "nav_logout": "Logout",
@@ -13,5 +14,7 @@
   "email_address": "Email Address",
   "password": "Password",
   "username": "Username",
-  "pc_number": "PC Number"
+  "pc_number": "PC Number",
+  "database_description": "Database for 4L PC Setups",
+  "database_docs": "Documentation"
 }

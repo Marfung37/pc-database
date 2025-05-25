@@ -1,0 +1,17 @@
+```python
+def fumen_hash(fumen: str) -> int:
+    fumen_encoded = fumen[5:-8].encode() # take reasonably random section
+    h = len(fumen_encoded) 
+    for byte in fumen_encoded:
+        h = ((h << 3) | (h >> 4)) & 0x7F # more mixing
+        h ^= byte
+    return h & 0b1111
+
+def cover_pattern_hash(cover_pattern: str) -> int:
+    cover_pattern_encoded = cover_pattern.encode() 
+    h = len(cover_pattern_encoded)
+    for byte in cover_pattern_encoded:
+        h ^= byte
+    return h & 0b11
+```
+
