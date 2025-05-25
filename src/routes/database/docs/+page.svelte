@@ -1,6 +1,7 @@
 <script lang="ts">
   import { m } from '$lib/paraglide/messages.js';
 	import Hash from './hash.svx';
+	import Path from './path.svx';
 </script>
 
 <div class="hero min-h-[10vh]">
@@ -18,6 +19,10 @@
 </div>
 
 <div class="text-left container mx-auto p-2">
+  <div class="flex place-content-center pb-2">
+    <img src="/database/dbdiagram.png" alt="Database Diagram"/>
+  </div>
+
   <h2 class="text-2xl pb-2">Terminology</h2> <hr>
 
   <table class="table">
@@ -235,4 +240,93 @@
   </table>
 
   <p>Convert to hex: <code>001000010011110011101010111111111001000111111111<sub>2</sub></code> -> <code>213ceaff91ff<sub>16</sub></code></p>
+
+  <h2 class="text-2xl py-2">OQB</h2> <hr>
+  <p>The <code>oqb_path</code> and <code>oqb_depth</code> help with handling OQB setups. If a setup is not OQB, <code>oqb_path</code> and <code>oqb_depth</code> are <code>NULL</code></p>
+  <p>On insert, the <code>oqb_path</code> may be set to the same value as <code>setup_id</code> to state setup is OQB. This is only necessary when setting <code>solve_pattern</code> to be <code>NULL</code> for setups that aren't intended to be solve but rather has a next setup.</p>
+
+  <p>The <code>oqb_path</code> is automatically populated as a <a class="text-blue-600 hover:text-blue-800" href="https://github.com/Marfung37/ExtendedSfinderPieces" target="_blank">materialized/label path</a> from the <code>setup_oqb_links</code> table that contain the parent/previous setup for each setup. Similarly, <code>oqb_depth</code> is automatically populated for depth of the setup, equivalently the number of ancestor setups/nodes.</p>
+
+  <h2 class="text-2xl py-2">Cover Pattern</h2> <hr>
+
+  <p>The cover pattern is in <a class="text-blue-600 hover:text-blue-800" href="https://github.com/Marfung37/ExtendedSfinderPieces" target="_blank">extended pieces</a> notation and used to restrict what queues that the setup covers.</p>
+  <p>The cover pattern does not need to be exactly the correct coverage. The <code>cover_data</code> in statistics is a bitstring for which queue the setup is covered.</p>
+
+  <h2 class="text-2xl py-2">Setup Variants</h2> <hr>
+
+  <p>Some setups, especially one-solve or QB setups, have effectively the same setup but some pieces may be placed before completing the base setup.</p>
+
+  <p>In the following image, the first page, page with least number of pieces, is the base setup. To increase the coverage of this setup, the S or O piece can be placed before finishing the base setup. These base setups with extraneous pieces are call variants of the setup.</p>
+
+  <div class="flex place-content-center pb-2">
+    <img src="/database/variable_setup.gif" alt="Setups with S and O being extraneous to the base setup"/>
+  </div>
+
+  <h2 class="text-2xl py-2">Statistics Table</h2> <hr>
+
+  <p>Since the values of a setup depends on the kicktable or have 180, this table separates the statistics for each kicktable.</p>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Kicktable</th>
+        <th>Definition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>srs</td>
+        <td>Super Rotation System from The Tetris Company</td>
+      </tr>
+      <tr>
+        <td>srs_plus</td>
+        <td>Tetrio's kicktable: srs with symmetric I spins and 180</td>
+      </tr>
+      <tr>
+        <td>srs180</td>
+        <td>srs with 180 spins</td>
+      </tr>
+      <tr>
+        <td>none</td>
+        <td>No kicks or 180 spins</td>
+      </tr>
+      <tr>
+        <td>srsx</td>
+        <td>Tetrio's kicktable: srs with more powerful 180 spins</td>
+      </tr>
+      <tr>
+        <td>ars</td>
+        <td>Arika Rotation System</td>
+      </tr>
+      <tr>
+        <td>arc</td>
+        <td>Kicktable made for <a class="text-blue-600 hover:text-blue-800" href="https://asc.winternebs.com/" target="_blank">Ascension</a> supported in Tetrio</td>
+      </tr>
+      <tr>
+        <td><a class="text-blue-600 hover:text-blue-800" href="https://github.com/tetrio/issues/issues/310" target="_blank">tetrax</a></td>
+        <td>Kicktable made for <a class="text-blue-600 hover:text-blue-800" href="https://tetralegends.app/" target="_blank">Tetris Legends</a> supported in Tetrio</td>
+      </tr>
+    </tbody>
+  </table>
+  
+  <h2 class="text-2xl py-2">Path File</h2> <hr>
+
+  <p>The <code>path_file</code> is a flag whether the <code>path.csv</code> file is stored on the server.</p>
+
+  <p>The file is stored with the filename <code>&lt;setup-id&gt;-&lt;kicktable&gt;.csvd.xz</code>, which is a compressed version of the file.</p>
+
+  <p>The basic idea on how to compress the file is to have the fumens keyed by a number then store the mapping at the beginning. In addition, remove columns that can be computed from the other columns, which the queues can be compressed into the extended pieces notation that generated it at the beginning of the file. Then apply <code>xz</code> or the underlying <code>lzma</code> for compression of the file. This converts the 1-3 MB file into 5-150 KB file.</p>
+
+  <p>The following function is the actual implementation.</p>
+
+  <Path />
+
+  <h2 class="text-2xl py-2">Saves Table</h2> <hr>
+
+  <p>This table is to store save data following the notation used in <a class="text-blue-600 hover:text-blue-800" href="https://github.com/Marfung37/PC-Saves-Get" target="_blank">PC-Saves-Get</a> stored in <code>save</code> column.</p>
+
+  <p>Priority save percent/fraction is values in an array of the priority of that save. Ex: <code>T,I,O</code> on 2nd and wanted to know percent of getting <code>T</code> then remaining percent for <code>I</code> then <code>O</code>. This corresponds with the <code>--best-save</code> flag on <a class="text-blue-600 hover:text-blue-800" href="https://github.com/Marfung37/PC-Saves-Get" target="_blank">PC-Saves-Get</a></p>
+
+  
+
 </div>

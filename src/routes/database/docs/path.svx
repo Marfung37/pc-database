@@ -1,0 +1,61 @@
+```ts
+/**
+ * Compress path file
+ */
+export async function compressPath(filename: string, pieces: string): Result<Buffer> {
+  const inputCsv = fs.readFileSync(filename, 'utf-8');
+  const records: Record<string, string>[] = parse(inputCsv, {
+    columns: true,
+    skip_empty_lines: true
+  });
+
+  records.sort((a, b) => queueKey(a['ツモ']) - queueKey(b['ツモ']));
+
+  const fumens: Record<string, number> = {};
+
+  for (const row of records) {
+    const rowFumens = row['テト譜'].trim().split(';');
+    for (let i = 0; i < rowFumens.length; i++) {
+      const f = rowFumens[i];
+      if (!(f in fumens)) {
+        fumens[f] = Object.keys(fumens).length;
+      }
+      rowFumens[i] = fumens[f].toString();
+    }
+    row['テト譜'] = rowFumens.join(';');
+    row['未使用ミノ'] = mapSaves(row['未使用ミノ']).toString();
+
+    delete row['ツモ'];
+    delete row['対応地形数'];
+    delete row['使用ミノ'];
+  }
+
+  const fumensKeys = Object.keys(fumens);
+  const outputLines = [
+    pieces,
+    '',
+    ...fumensKeys,
+    '',
+    stringify(records, {
+      header: true,
+      columns: Object.keys(records[0])
+    }).trim()
+  ];
+
+  try {
+    const compressed = await lzma.compress(Buffer.from(outputLines.join('\n')), { preset: 9 });
+
+    // Validate output (though lzma-native should always return Buffer)
+    if (!Buffer.isBuffer(compressed)) {
+      return { data: null, error: new Error('Compression returned invalid data') };
+    }
+
+    return { data: compressed, error: null };
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    error.message = `Compression failed: ${error.message}`;
+
+    return { data: null, error };
+  }
+}
+```
