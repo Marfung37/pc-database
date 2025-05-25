@@ -122,7 +122,7 @@
   <Hash />
 
   <p>These hash functions were based on <code class="inline">xor</code> of the characters in the strings. Modifications were made based on the <a class="text-blue-600 hover:text-blue-800" href="https://en.wikipedia.org/wiki/Diversity_index#Shannon_index" target="_blank">entropy</a> of the output leading to the above functions.</p>
-  <p>The cover hash is intended to distribute setups with same values except for use case such as QB setups, so entropy is calculated for some of these kinds of setups. However, there is likely bias as arbitary modifications were made to increase specifically the entropies of these sets of setups as few sets in original dataset. The entropies were normalized by dividing by the maximium value, which is same as number of bits in hash: 4 for fumen hash and 2 for cover hash.</p>
+  <p>The cover hash is intended to distribute setups with same values except cover pattern for use case such as QB setups, so entropy is calculated on sets of these kinds of setups. However, there is likely bias as arbitary modifications were made to increase specifically the entropies of these sets of setups as few sets in original dataset. The entropies were normalized by dividing by the maximium value, which is same as number of bits in hash: 4 for fumen hash and 2 for cover hash.</p>
 
   <table class="table">
     <thead>
@@ -139,7 +139,7 @@
         <td>0.9979379436338721</td>
       </tr>
       <tr>
-        <td>One Piece Fumens</td>
+        <td>All One Piece Fumens</td>
         <td>162</td>
         <td>0.9806935374824224</td>
       </tr>
@@ -235,7 +235,4 @@
   </table>
 
   <p>Convert to hex: <code>001000010011110011101010111111111001000111111111<sub>2</sub></code> -> <code>213ceaff91ff<sub>16</sub></code></p>
-
-
- 
 </div>
