@@ -3,7 +3,7 @@ import * as lzma from 'lzma-native';
 import { parse } from 'csv-parse/sync';
 import { stringify } from 'csv-stringify/sync';
 import { extendPieces } from './pieces';
-import type { Result } from './types';
+import type { Result } from '$lib/types';
 
 const PIECESTONUM: Record<string, number> = {
   T: 0,
