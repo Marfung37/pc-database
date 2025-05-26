@@ -46,7 +46,7 @@ CREATE TABLE "setups" (
     oqb_path IS NULL
     OR oqb_path::text ~ '^[1-9][0-9a-f]{11}(\.[1-9][0-9a-f]{11})*$'
   ), 
-  "oqb_depth" int GENERATED ALWAYS AS (
+  "oqb_depth" smallint GENERATED ALWAYS AS (
     CASE
       WHEN oqb_path IS NULL THEN NULL
       ELSE nlevel(oqb_path)
@@ -56,6 +56,8 @@ CREATE TABLE "setups" (
   "fumen" text NOT NULL CHECK (fumen ~ '^v115@[A-Za-z0-9+/?]+$'), -- enforce fumen structure with version 115
   "solve_pattern" varchar(100), -- difficult to constrain
   "mirror" setupid,
+  "see"    smallint NOT NULL DEFAULT 7 CHECK (see BETWEEN 1 AND 11), 
+  "hold"   smallint NOT NULL DEFAULT 1 CHECK (hold BETWEEN 0 AND 11),
   "credit" varchar(255),
   -- either all columns about solves are filled or is an oqb setup that doesn't solve
   CONSTRAINT no_solve_oqb_setup CHECK (
@@ -77,7 +79,7 @@ CREATE TABLE setup_oqb_links (
 
 CREATE TABLE "setup_variants" (
   "setup_id" setupid NOT NULL,
-  "variant_number" int NOT NULL CHECK (variant_number > 0), -- 1 index with intent 0 is the entry in setups
+  "variant_number" smallint NOT NULL CHECK (variant_number > 0), -- 1 index with intent 0 is the entry in setups
   "build" varchar(10) NOT NULL CHECK (build ~ '^[TILJSZO]+$'), -- enforce tetris pieces
   "fumen" text NOT NULL CHECK (fumen ~ '^v115@[A-Za-z0-9+/?]+$'), -- enforce fumen structure with version 115
   "solve_pattern" varchar(100),
@@ -284,6 +286,6 @@ INSERT INTO
   schema_metadata (version, description)
 VALUES
   (
-    '1.0.0',
-    'PC Database for 4L 10-wide setups with tetraminos with several kicktables. This supports oqb setups and storing save statistics. Schema may be flawed if a kicktable can cause shifts of a setup to give different stats as difficult to check.'
+    '1.1.0',
+    'Adds ability to set the see and hold of a setup.'
   );
