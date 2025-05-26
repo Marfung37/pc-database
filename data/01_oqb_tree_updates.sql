@@ -1,7 +1,7 @@
 -- Function to update path when links change
 CREATE OR REPLACE FUNCTION private.update_tree_paths () RETURNS TRIGGER SECURITY DEFINER -- Runs with owner's privileges
 SET
-  search_path = public AS $$
+  search_path = public, extensions AS $$
 DECLARE
     parent_exists BOOLEAN;
 BEGIN
@@ -24,14 +24,14 @@ BEGIN
                 SELECT 1
                 FROM setups p
                 WHERE p.setup_id = NEW.parent_id
-                  AND p.oqb_path ~ '*.' || NEW.child_id || '.*'
+                  AND p.oqb_path ~ ('*.' || NEW.child_id || '.*')::lquery
             ) THEN 
                 RAISE EXCEPTION 'Circular reference detected: Setup % cannot be child of %', 
                     NEW.child_id, NEW.parent_id;
             END IF;
 
             UPDATE setups s
-            SET oqb_path = p.oqb_path || NEW.child_id:TEXT
+            SET oqb_path = p.oqb_path || NEW.child_id::TEXT
             FROM setups p
             WHERE s.setup_id = NEW.child_id AND p.setup_id = NEW.parent_id;
         END IF;
@@ -61,7 +61,7 @@ $$ LANGUAGE plpgsql;
 -- Function to update path when links delete
 CREATE OR REPLACE FUNCTION private.update_tree_paths_on_delete () RETURNS TRIGGER SECURITY DEFINER -- Runs with owner's privileges
 SET
-  search_path = public AS $$
+  search_path = public, extensions AS $$
 BEGIN
     BEGIN 
         -- set the path to setup_id as no longer part of a tree and keeps that it is oqb. User can explicitly update to be not oqb
@@ -88,9 +88,9 @@ $$ LANGUAGE plpgsql;
 -- Helper function to update descendant paths
 CREATE OR REPLACE FUNCTION private.update_descendant_paths (parent_node TEXT) RETURNS VOID SECURITY DEFINER -- Runs with owner's privileges
 SET
-  search_path = public AS $$
+  search_path = public, extensions AS $$
 DECLARE
-    parent_path TEXT;
+    parent_path ltree;
     circular_child_id TEXT;
 BEGIN
     SELECT oqb_path INTO parent_path
@@ -100,7 +100,7 @@ BEGIN
     SELECT l.child_id INTO circular_child_id
     FROM setup_oqb_links l
     WHERE l.parent_id = parent_node
-    AND parent_path ~ '*.' || l.child_id || '.*'
+    AND parent_path ~ ('*.' || l.child_id || '.*')::lquery
     LIMIT 1;
     
     IF FOUND THEN
