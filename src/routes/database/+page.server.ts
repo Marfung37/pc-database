@@ -137,7 +137,7 @@ function buildOqbTree(allSetups: ProcessedSetup[]): ProcessedSetup[] {
 
     // Second pass: Assign children to their parents
     for (const setup of allSetups) {
-        if (setup.oqb_depth == 0) {
+        if (setup.oqb_depth == 1) {
             rootNodes.push(setup);
         } else if (setup.oqb_path !== null) {
             // Extract parent setup_id from oqb_path
