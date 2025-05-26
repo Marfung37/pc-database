@@ -9,6 +9,12 @@ CREATE TYPE "kicktable" AS ENUM(
   'none'
 );
 
+CREATE TYPE "hold_type" AS ENUM(
+  'any',
+  'cyclic',
+  'none'
+);
+
 CREATE TYPE fraction AS ("numerator" integer, "denominator" integer);
 
 CREATE DOMAIN setupid AS varchar(12) CHECK (VALUE ~ '^[1-9][0-9a-f]{11}$');
@@ -91,6 +97,7 @@ CREATE TABLE "statistics" (
   "stat_id" uuid PRIMARY KEY DEFAULT (gen_random_uuid ()),
   "setup_id" setupid NOT NULL,
   "kicktable" kicktable NOT NULL,
+  "hold_type" hold_type NOT NULL DEFAULT 'any',
   "cover_data" bytea, -- NULL is cover dependence is exactly what the setup covered by
   "solve_percent" decimal(5, 2) CHECK (
     solve_percent IS NULL
@@ -192,6 +199,10 @@ COMMENT ON COLUMN "setups"."solve_pattern" IS 'Extended pieces notation for solv
 
 COMMENT ON COLUMN "setups"."mirror" IS 'References a setup_id for mirror setup';
 
+COMMENT ON COLUMN "setups"."see" IS 'Number of pieces that can be seen';
+
+COMMENT ON COLUMN "setups"."hold" IS 'Number of pieces that can be held';
+
 COMMENT ON COLUMN "setups"."credit" IS 'Credit for founder of setup';
 
 COMMENT ON TABLE "setup_variants" IS 'Setups where other pieces can be placed without affecting statistics';
@@ -207,6 +218,8 @@ COMMENT ON COLUMN "setup_variants"."fumen" IS 'Fumen of the setup';
 COMMENT ON COLUMN "setup_variants"."solve_pattern" IS 'Extended pieces notation for solving. NULL if internal node in oqb';
 
 COMMENT ON COLUMN "statistics"."setup_id" IS '12 hexdigits';
+
+COMMENT ON COLUMN "statistics"."hold_type" IS 'Structure how hold works';
 
 COMMENT ON COLUMN "statistics"."cover_data" IS 'Bit string of what queues are covered from cover dependence. NULL if all covered';
 
@@ -286,6 +299,6 @@ INSERT INTO
   schema_metadata (version, description)
 VALUES
   (
-    '1.1.0',
-    'Adds ability to set the see and hold of a setup.'
+    '1.2.0',
+    'Adds hold type to name types of hold. For multihold, it can either be swap with any piece or you cycle through them locking once through all of the hold. Also adds some comments for hold and see.'
   );

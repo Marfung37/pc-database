@@ -9,6 +9,12 @@ enum kicktable {
   none // no kick table
 }
 
+enum hold_type {
+  any    // swap with any
+  cyclic // swap in cycle and stop after going through all once
+  none
+}
+
 table schema_metadata {
   version           text          [primary key]
   description       text          [not null]
@@ -27,8 +33,9 @@ table setups {
   fumen             text          [not null, note: 'Fumen of the setup']
   solve_pattern     varchar(100)  [note: 'Extended pieces notation used for solving. NULL if internal node in oqb']
   mirror            setupid       [note: 'References a setup_id for mirror setup']
+  see               smallint      [not null, default: 7, note: 'Number of pieces that can be seen']
+  hold              smallint      [not null, default: 1, note: 'Number of pieces that can be held']
   credit            varchar(255)  [note: 'Credit for founder of setup']
-  
 }
 
 table setup_oqb_links {
@@ -50,6 +57,7 @@ table statistics {
   stat_id           uuid          [primary key, default: `gen_random_uuid()`]
   setup_id          setupid       [not null, note: '12 hexdigits']
   kicktable         kicktable     [not null]
+  hold_type         hold_type     [not null, default: 'any', note: 'Structure how hold works']
   cover_data        bytea         [note: 'Bit string of what queues are covered from cover dependence. NULL if all covered']
   solve_percent     decimal(5, 2) [note: 'Solve percent. NULL if internal node in oqb']
   solve_fraction    fraction      [note: 'Precise solve fraction. NULL if internal node in oqb']
