@@ -926,7 +926,6 @@ function extendPieces(customInput: string | string[] = process.argv.slice(2)): s
   // Sort the queues
   const result = sortQueues([...new Set(queues.flatMap((q) => [...q]))]);
 
-  // Return the queues generator obj
   return result;
 }
 

@@ -8,6 +8,7 @@ export type Statistic = Tables<'statistics'>;
 export type Save = Tables<'saves'>;
 
 export type Kicktable = Enums<'kicktable'>;
+export type HoldType = Enums<'hold_type'>;
 
 export type Result<T> = Promise<{ data: T; error: null } | { data: null; error: Error }>;
 
