@@ -12,11 +12,12 @@ DECLARE
   r RECORD;
 BEGIN
   FOR r IN (
-    SELECT n.nspname as schema, t.typname as name
+    SELECT n.nspname AS schema, t.typname as name
     FROM pg_type t
     JOIN pg_namespace n ON n.oid = t.typnamespace
     WHERE n.nspname = 'public'
-      AND t.typtype = 'c' -- composite types
+      AND (t.typcategory = 'C' OR t.typcategory = 'E')
+      AND (t.typname <> 'schema_metadata')
   )
   LOOP
     EXECUTE format('DROP TYPE IF EXISTS public.%I CASCADE', r.name);

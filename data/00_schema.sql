@@ -15,9 +15,20 @@ CREATE TYPE "hold_type" AS ENUM(
   'none'
 );
 
-CREATE TYPE fraction AS ("numerator" integer, "denominator" integer);
+CREATE TYPE unsafe_fraction AS ("numerator" integer, "denominator" integer);
+CREATE DOMAIN fraction AS unsafe_fraction
+CHECK (
+  VALUE IS NULL OR 
+  (
+    (VALUE)."denominator" <> 0
+    AND (VALUE)."denominator" IS NOT NULL
+    AND (VALUE)."numerator" IS NOT NULL
+  )
+);
 
 CREATE DOMAIN setupid AS varchar(12) CHECK (VALUE ~ '^[1-9][0-9a-f]{11}$');
+CREATE DOMAIN queue AS varchar(11) CHECK (VALUE IS NULL OR VALUE ~ '^[TILJSZO]+$');
+CREATE DOMAIN fumen AS text CHECK (VALUE IS NULL OR VALUE ~ '^v115@[A-Za-z0-9+/?]+$');
 
 CREATE OR REPLACE FUNCTION all_decimals_lte_100 (arr DECIMAL[]) RETURNS BOOLEAN LANGUAGE SQL IMMUTABLE
 SET
@@ -45,8 +56,8 @@ CREATE TABLE "schema_metadata" (
 CREATE TABLE "setups" (
   "setup_id" setupid PRIMARY KEY,
   "pc" smallint NOT NULL CHECK (pc BETWEEN 1 AND 9),
-  "leftover" varchar(7) NOT NULL CHECK (leftover ~ '^[TILJSZO]+$'), -- enforce tetris pieces
-  "build" varchar(10) NOT NULL CHECK (build ~ '^[TILJSZO]+$'), -- enforce tetris pieces
+  "leftover" queue NOT NULL CHECK (LENGTH(leftover) <= 7), -- enforce tetris pieces
+  "build" queue NOT NULL CHECK (LENGTH(build) <= 10), -- enforce tetris pieces
   "cover_pattern" varchar(255) NOT NULL, -- difficult to constrain
   "oqb_path" ltree CHECK (
     oqb_path IS NULL
@@ -59,7 +70,7 @@ CREATE TABLE "setups" (
     END
   ) STORED,
   "oqb_description" varchar(255),
-  "fumen" text NOT NULL CHECK (fumen ~ '^v115@[A-Za-z0-9+/?]+$'), -- enforce fumen structure with version 115
+  "fumen" fumen NOT NULL, -- enforce fumen structure with version 115
   "solve_pattern" varchar(100), -- difficult to constrain
   "mirror" setupid,
   "see"    smallint NOT NULL DEFAULT 7 CHECK (see BETWEEN 1 AND 11), 
@@ -86,8 +97,8 @@ CREATE TABLE setup_oqb_links (
 CREATE TABLE "setup_variants" (
   "setup_id" setupid NOT NULL,
   "variant_number" smallint NOT NULL CHECK (variant_number > 0), -- 1 index with intent 0 is the entry in setups
-  "build" varchar(10) NOT NULL CHECK (build ~ '^[TILJSZO]+$'), -- enforce tetris pieces
-  "fumen" text NOT NULL CHECK (fumen ~ '^v115@[A-Za-z0-9+/?]+$'), -- enforce fumen structure with version 115
+  "build" queue NOT NULL CHECK (LENGTH(build) <= 10), -- enforce tetris pieces
+  "fumen" fumen NOT NULL, -- enforce fumen structure with version 115
   "solve_pattern" varchar(100),
   PRIMARY KEY (setup_id, variant_number),
   FOREIGN KEY (setup_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
@@ -104,24 +115,10 @@ CREATE TABLE "statistics" (
     OR solve_percent <= 100
   ),
   "solve_fraction" fraction,
-  "all_solves" text CHECK (
-    minimal_solves IS NULL
-    OR minimal_solves ~ '^v115@[A-Za-z0-9+/?]+$'
-  ),
-  "minimal_solves" text CHECK (
-    minimal_solves IS NULL
-    OR minimal_solves ~ '^v115@[A-Za-z0-9+/?]+$'
-  ),
+  "all_solves" fumen,
+  "minimal_solves" fumen,
   "path_file" bool,
-  UNIQUE ("setup_id", "kicktable"),
-  CHECK (
-    solve_fraction IS NULL
-    OR (
-      (solve_fraction).numerator IS NOT NULL
-      AND (solve_fraction).denominator IS NOT NULL
-      AND (solve_fraction).denominator <> 0
-    )
-  )
+  UNIQUE ("setup_id", "kicktable", "hold_type")
 );
 
 CREATE TABLE "saves" (
@@ -136,23 +133,9 @@ CREATE TABLE "saves" (
   "save_fraction" fraction,
   "priority_save_percent" decimal(5, 2) [],
   "priority_save_fraction" fraction[],
-  "all_solves" text CHECK (
-    minimal_solves IS NULL
-    OR minimal_solves ~ '^v115@[A-Za-z0-9+/?]+$'
-  ),
-  "minimal_solves" text CHECK (
-    minimal_solves IS NULL
-    OR minimal_solves ~ '^v115@[A-Za-z0-9+/?]+$'
-  ),
+  "all_solves" fumen,
+  "minimal_solves" fumen,
   UNIQUE ("stat_id", "save"),
-  CHECK (
-    save_fraction IS NULL
-    OR (
-      (save_fraction).numerator IS NOT NULL
-      AND (save_fraction).denominator IS NOT NULL
-      AND (save_fraction).denominator <> 0
-    )
-  ),
   CHECK (
     priority_save_percent IS NULL
     OR all_decimals_lte_100 (priority_save_percent)
@@ -299,6 +282,6 @@ INSERT INTO
   schema_metadata (version, description)
 VALUES
   (
-    '1.2.0',
-    'Adds hold type to name types of hold. For multihold, it can either be swap with any piece or you cycle through them locking once through all of the hold. Also adds some comments for hold and see.'
+    '1.2.1',
+    'Adds domains for fumen, queue, and fraction as reused and more readable.'
   );
