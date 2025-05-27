@@ -121,6 +121,7 @@ CREATE TABLE "statistics" (
   UNIQUE ("setup_id", "kicktable", "hold_type")
 );
 
+
 CREATE TABLE "saves" (
   "save_id" uuid PRIMARY KEY DEFAULT (gen_random_uuid ()),
   "stat_id" uuid NOT NULL,
