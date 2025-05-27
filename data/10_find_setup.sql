@@ -30,7 +30,9 @@ RETURNS TABLE (
   variants        setup_variants_data[]
 )
 SET
-  search_path = public, extensions AS $$
+  search_path = public, extensions 
+SECURITY INVOKER
+  AS $$
 BEGIN
   RETURN QUERY
   SELECT 
@@ -102,7 +104,9 @@ RETURNS TABLE (
   variants        setup_variants_data[]
 )
 SET
-  search_path = public, extensions AS $$
+  search_path = public, extensions 
+SECURITY INVOKER
+AS $$
 BEGIN
   RETURN QUERY
   SELECT 
