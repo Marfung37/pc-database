@@ -5,6 +5,7 @@
   "nav_home": "Home",
   "nav_database": "Database",
   "nav_database_docs": "Database Docs",
+  "nav_lookup": "Setup Lookup",
   "nav_about": "About",
   "nav_login": "Login",
   "nav_logout": "Logout",
@@ -14,7 +15,9 @@
   "email_address": "Email Address",
   "password": "Password",
   "username": "Username",
-  "pc_number": "PC Number",
+  "database_pc_number": "PC Number",
+  "lookup_pc_number": "PC Number",
+  "lookup_queue": "Queue",
   "database_description": "Database for 4L PC Setups",
   "database_docs": "Documentation"
 }

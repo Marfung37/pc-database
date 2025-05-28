@@ -34,6 +34,7 @@
   <div class="flex-none">
     <ul class="menu menu-horizontal hidden px-1 text-lg font-bold sm:flex sm:items-center">
       <li class="md:mx-2"><a href="/database">{m.nav_database()}</a></li>
+      <li class="md:mx-2"><a href="/lookup">{m.nav_lookup()}</a></li>
       <li class="md:mx-2"><a href="/about">{m.nav_about()}</a></li>
       <li class="md:mx-2"><a href="/account"><User /></a></li>
       <li class="md:mx-2"><LocaleSwitcher /></li>
@@ -64,6 +65,7 @@
           class="menu menu-lg dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 font-bold shadow-sm"
         >
           <li><a href="/database">{m.nav_database()}</a></li>
+          <li><a href="/lookup">{m.nav_lookup()}</a></li>
           <li><a href="/about">{m.nav_about()}</a></li>
           <li><LocaleSwitcher /></li>
         </ul>

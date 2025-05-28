@@ -1,0 +1,130 @@
+<script lang="ts">
+  import { enhance, applyAction } from '$app/forms';
+  import { m } from '$lib/paraglide/messages.js';
+
+  export let data;
+  export let form;
+
+  const { columns } = data;
+  let loading = false;
+
+  const pcs = [
+    { id: 1, pc: '1st' },
+    { id: 2, pc: '2nd' },
+    { id: 3, pc: '3rd' },
+    { id: 4, pc: '4th' },
+    { id: 5, pc: '5th' },
+    { id: 6, pc: '6th' },
+    { id: 7, pc: '7th' },
+    { id: 8, pc: '8th' },
+    { id: 9, pc: '9th' }
+  ];
+
+  const handleSubmit: SubmitFunction = () => {
+    loading = true;
+    return async ({ result }) => {
+      loading = false;
+      applyAction(result);
+      console.log(result);
+    };
+  };
+</script>
+
+<div class="hero min-h-[10vh]">
+  <div class="hero-content py-12 text-center">
+    <div class="flex container flex-col gap-2">
+      <div
+        class="from-primary to-accent mb-3 bg-linear-to-r bg-clip-text pb-1 text-xl font-bold text-transparent md:mb-7 md:text-3xl"
+      >
+        WIP: {m.nav_lookup()}
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="text-left container mx-auto p-2 flex flex-col gap-2">
+  <form
+    class="flex w-full whitespace-nowrap"
+    method="POST"
+    action="?/lookup"
+    use:enhance={handleSubmit}
+  >
+    <div class="flex items-center gap-2 flex-wrap">
+      <div>
+      <label for="pc-select" class="block text-lg font-medium"> {m.lookup_pc_number()} </label>
+      <select
+        id="pc-select"
+        name="pc"
+        class="focus:shadow-outline block min-w-20 appearance-none rounded border border-gray-300 bg-white px-4 py-2 pr-8 leading-tight shadow hover:border-gray-400 focus:outline-none"
+      >
+        {#each pcs as pc (pc.id)}
+          <option value={pc.id}>{pc.pc}</option>
+        {/each}
+      </select>
+      </div>
+      <div>
+      <label for="queue-text" class="block text-lg font-medium"> {m.lookup_queue()} </label>
+      <input 
+        id="queue-text"
+        name="queue"
+        type="text" 
+        class="focus:shadow-outline block min-w-40 grow appearance-none rounded border border-gray-300 bg-white leading-tight shadow hover:border-gray-400 focus:outline-none" 
+        maxlength={11}
+        minlength={1}
+        />
+      </div>
+      <div class="place-self-end">
+      <button
+        type="submit"
+        class="flex w-full cursor-pointer justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+        disabled={loading}
+      >
+        {loading ? m.loading() : m.btn_submit()}
+      </button>
+      </div>
+    </div>
+  </form>
+  {#if form?.message}
+    <div
+      class="rounded-md p-3 text-sm {form?.success
+        ? 'bg-green-100 text-green-700'
+        : 'bg-red-100 text-red-700'}"
+      role="alert"
+    >
+      {form?.message}
+    </div>
+  {/if}
+
+  <div class="flex flex-col gap-4">
+  {#each (form?.setups ?? []) as setup (setup.setup_id)}
+	  {@const oqb = setup.oqb_path !== null}
+    <div
+      class='bg-white rounded-3xl w-full flex min-h-60 shadow-lg'
+    >
+      <div class="basis-1/2 lg:basis-1/3 xl:basis-1/4 flex justify-center items-center p-4">
+        <div class="h-auto w-full py-4 rounded-md bg-gray-200 border-gray-200 border">
+          <img class="h-auto w-full" src="/lookup/filler_fumen.png" alt="{setup.fumen}" />
+        </div>
+      </div>
+      <div class="flex-1">
+        <h2 class="text-2xl py-2">{setup.setup_id}</h2>
+        <h3 class="text-xl pb-2">Statistics</h3>
+        <p>Solve Percent: {setup.solve_percent}%</p>
+        <p>OQB: {(oqb) ? 'Yes' : 'No'}</p>
+        {#if oqb}
+          {#if setup.oqb_description}
+            <p>OQB Description: {setup.oqb_description}</p>
+          {/if}
+          <p>OQB Cover Pattern: {setup.cover_pattern}</p>
+        {/if}
+        <p>Credit: {setup.credit ?? 'Not Known'}</p>
+        <p>Minimal Solves</p>
+        <p>Variants</p>
+      </div>
+    </div>
+  {/each}
+  </div>
+
+
+</div>

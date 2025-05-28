@@ -55,7 +55,7 @@
         use:enhance={handleSubmit}
       >
         <div class="flex items-center gap-2">
-          <label for="pc-select" class="block text-lg font-medium"> {m.pc_number()} </label>
+          <label for="pc-select" class="block text-lg font-medium"> {m.database_pc_number()} </label>
           <select
             id="pc-select"
             name="pc"
