@@ -1,6 +1,7 @@
 <script lang="ts">
   import { enhance, applyAction } from '$app/forms';
   import { m } from '$lib/paraglide/messages.js';
+  import FumenRender from '$lib/components/FumenRender.svelte';
 
   export let data;
   export let form;
@@ -113,9 +114,7 @@
       class='bg-white rounded-3xl w-full flex min-h-60 shadow-lg'
     >
       <div class="basis-1/2 lg:basis-1/3 xl:basis-1/4 flex justify-center items-center p-4">
-        <div class="h-auto w-full py-4 rounded-md bg-gray-200 border-gray-200 border">
-          <img class="h-auto w-full" src="/lookup/filler_fumen.png" alt="{setup.fumen}" />
-        </div>
+        <FumenRender fumen={setup.fumen} />
       </div>
       <div class="flex-1">
         <h2 class="text-2xl py-2">{setup.setup_id}</h2>
@@ -129,8 +128,8 @@
           <p>OQB Cover Pattern: {setup.cover_pattern}</p>
         {/if}
         <p>Credit: {setup.credit ?? 'Not Known'}</p>
-        <p>Minimal Solves</p>
-        <p>Variants</p>
+        <!-- <p>Minimal Solves</p> -->
+        <!-- <p>Variants</p> -->
       </div>
     </div>
   {/each}
