@@ -1,5 +1,6 @@
 import { fail } from '@sveltejs/kit';
 import { isQueue } from '$lib/utils/queueUtils';
+import { PCNUM2LONUM } from '$lib/utils/formulas';
 import { setupFinder } from '$lib/utils/setupFinder';
 import type { Actions, PageServerLoad } from './$types';
 import type { Queue } from '$lib/types';
@@ -35,6 +36,15 @@ export const actions: Actions = {
 
     const pc = parseInt(pcStr) as number;
     const queue = queueStr as Queue;
+
+    if (queue.length < PCNUM2LONUM(pc)) {
+      return fail(400, {
+        success: false,
+        ...returnData,
+        message: `Not enough pieces to know leftover`
+      });
+    }
+
 
     const { data: setups, error: setupsErr } = await setupFinder(queue, pc);
 

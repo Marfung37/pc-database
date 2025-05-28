@@ -85,12 +85,25 @@ export async function setupFinder(
 
   if (setupErr) return { data: null, error: setupErr };
 
+  if (setups.length == 0) 
+    return { data: [], error: null };
+
+  if (pcNum === null)
+    pcNum = setups[0].pc as number;
+
   const validSetups = [];
   for (let setup of setups) {
     // check with build if the build is within the queue first len(build) + 1 pieces
     if (!subStringSet(queue.slice(0, setup.build.length + 1), setup.build)) continue;
 
-    const index = piecesContains(queue, setup.cover_pattern, (x, y) => y.startsWith(x));
+    // if (setup.see >= leftoverSize && queue.length < leftoverSize) {
+    //   // if see can see the whole leftover, expects whole leftover given
+    //   continue;
+    // }
+
+    const index = piecesContains(queue, setup.cover_pattern, (x, y) => {
+      return x.startsWith(y);
+    });
 
     if (index == -1) continue;
 
