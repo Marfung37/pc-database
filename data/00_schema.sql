@@ -9,17 +9,13 @@ CREATE TYPE "kicktable" AS ENUM(
   'none'
 );
 
-CREATE TYPE "hold_type" AS ENUM(
-  'any',
-  'cyclic',
-  'none'
-);
+CREATE TYPE "hold_type" AS ENUM('any', 'cyclic', 'none');
 
 CREATE TYPE unsafe_fraction AS ("numerator" integer, "denominator" integer);
-CREATE DOMAIN fraction AS unsafe_fraction
-CHECK (
-  VALUE IS NULL OR 
-  (
+
+CREATE DOMAIN fraction AS unsafe_fraction CHECK (
+  VALUE IS NULL
+  OR (
     (VALUE)."denominator" <> 0
     AND (VALUE)."denominator" IS NOT NULL
     AND (VALUE)."numerator" IS NOT NULL
@@ -27,8 +23,16 @@ CHECK (
 );
 
 CREATE DOMAIN setupid AS varchar(12) CHECK (VALUE ~ '^[1-9][0-9a-f]{11}$');
-CREATE DOMAIN queue AS varchar(11) CHECK (VALUE IS NULL OR VALUE ~ '^[TILJSZO]+$');
-CREATE DOMAIN fumen AS text CHECK (VALUE IS NULL OR VALUE ~ '^v115@[A-Za-z0-9+/?]+$');
+
+CREATE DOMAIN queue AS varchar(11) CHECK (
+  VALUE IS NULL
+  OR VALUE ~ '^[TILJSZO]+$'
+);
+
+CREATE DOMAIN fumen AS text CHECK (
+  VALUE IS NULL
+  OR VALUE ~ '^v115@[A-Za-z0-9+/?]+$'
+);
 
 CREATE OR REPLACE FUNCTION all_decimals_lte_100 (arr DECIMAL[]) RETURNS BOOLEAN LANGUAGE SQL IMMUTABLE
 SET
@@ -62,19 +66,19 @@ CREATE TABLE "setups" (
   "oqb_path" ltree CHECK (
     oqb_path IS NULL
     OR oqb_path::text ~ '^[1-9][0-9a-f]{11}(\.[1-9][0-9a-f]{11})*$'
-  ), 
+  ),
   "oqb_depth" smallint GENERATED ALWAYS AS (
     CASE
       WHEN oqb_path IS NULL THEN NULL
-      ELSE nlevel(oqb_path)
+      ELSE nlevel (oqb_path)
     END
   ) STORED,
   "oqb_description" varchar(255),
   "fumen" fumen NOT NULL, -- enforce fumen structure with version 115
   "solve_pattern" varchar(100), -- difficult to constrain
   "mirror" setupid,
-  "see"    smallint NOT NULL DEFAULT 7 CHECK (see BETWEEN 1 AND 11), 
-  "hold"   smallint NOT NULL DEFAULT 1 CHECK (hold BETWEEN 0 AND 11),
+  "see" smallint NOT NULL DEFAULT 7 CHECK (see BETWEEN 1 AND 11),
+  "hold" smallint NOT NULL DEFAULT 1 CHECK (hold BETWEEN 0 AND 11),
   "credit" varchar(255),
   -- either all columns about solves are filled or is an oqb setup that doesn't solve
   CONSTRAINT no_solve_oqb_setup CHECK (
@@ -120,7 +124,6 @@ CREATE TABLE "statistics" (
   "path_file" bool,
   UNIQUE ("setup_id", "kicktable", "hold_type")
 );
-
 
 CREATE TABLE "saves" (
   "save_id" uuid PRIMARY KEY DEFAULT (gen_random_uuid ()),

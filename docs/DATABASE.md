@@ -14,17 +14,19 @@
 ### Setup ID
 
 Goals:
+
 - Effective order
 - Representative of setup
 - Uniqueness
 
 The ID is a packed 48 bit hexstring, contents in the following table. The pieces are intended to be order by TILJSZO.
 
-| 4b        | 1b  | 3b              | 7b              | 4b                   | 1b          | 14b          | 4b         | 2b                    | 8b        |
-| --------- | --- | --------------- | --------------- | -------------------- | ----------- | ------------ | ---------- | --------------------- | --------- |
+| 4b        | 1b  | 3b              | 7b              | 4b                   | 1b          | 14b          | 4b         | 2b                 | 8b        |
+| --------- | --- | --------------- | --------------- | -------------------- | ----------- | ------------ | ---------- | ------------------ | --------- |
 | PC Number | OQB | Duplicate Piece | Leftover Pieces | Pieces Left to Solve | 4 Duplicate | Piece Counts | Fumen Hash | Cover Pattern Hash | Unique ID |
 
 The leading values determines the order and grouping of setups by the ID with larger is later.
+
 - PC Number - takes values 1-9 for 1st to 9th PC. This also allows ease to determine what PC the setup is from the ID.
 - OQB - flag whether the setup is oqb. This puts oqb setups after the non-oqb setups and groups them together.
 - Duplicate Piece - maps the duplicate leftover piece to a number. To have O later, O -> 7, T -> 1, and no duplicate -> 0. This puts the non duplicate leftover before the duplicates.
@@ -37,26 +39,29 @@ The leading values determines the order and grouping of setups by the ID with la
 - Unique ID - decrement from 255 if there is a collision to maintain uniqueness.
 
 Hashing functions
+
 ```python
 def fumen_hash(fumen: str) -> int:
     fumen_encoded = fumen[5:-8].encode() # take reasonably random section
-    h = len(fumen_encoded) 
+    h = len(fumen_encoded)
     for byte in fumen_encoded:
         h = ((h << 3) | (h >> 4)) & 0x7F # more mixing
         h ^= byte
     return h & 0b1111
 
 def cover_pattern_hash(cover_pattern: str) -> int:
-    cover_pattern_encoded = cover_pattern.encode() 
+    cover_pattern_encoded = cover_pattern.encode()
     h = len(cover_pattern_encoded)
     for byte in cover_pattern_encoded:
         h ^= byte
     return h & 0b11
 ```
+
 The functions were determined by testing the function's hashes entropy on data and making modifications that increased the entropy.
 The entropy was computed for all fumens in the original dataset and the worst case of one piece per fumen, and `cover_pattern_hash` is more focused on when same everything except for the cover pattern in setup. The results may be bias for cover pattern as intended to increase the entropy for specifically these setups on creation.
 
 Fumens:
+
 ```
 Number of Original Fumen Entries: 4109
 Entropy: 3.9917517745354885 out of a maximum of 4.0
@@ -64,7 +69,9 @@ Entropy: 3.9917517745354885 out of a maximum of 4.0
 Number of One Piece Fumen Entries: 162
 Entropy: 3.9227741499296895 out of a maximum of 4.0
 ```
+
 Cover Dependence:
+
 ```
 Number of Entries starting with 50f2eff6f[2-7]: 7
 Entropy: 1.9502120649147467 out of a maximum of 2.0
@@ -74,9 +81,9 @@ Entropy: 1.9502120649147467 out of a maximum of 2.0
 ```
 
 Example Setup ID: the following data
-| PC Number | Leftover | Build | Cover Dependence | Fumen                                | OQB |
+| PC Number | Leftover | Build | Cover Dependence | Fumen | OQB |
 | --------- | -------- | ----- | ---------------- | ------------------------------------ | --- |
-| 2nd       | TTIO     | TIO   | T,[TIO]!         | v115@9gwhIewhIewhEewwAeRpwhDeywRpJeAgH | false |
+| 2nd | TTIO | TIO | T,[TIO]! | v115@9gwhIewhIewhEewwAeRpwhDeywRpJeAgH | false |
 
 - `Duplicate Piece` is `001` as mentioned before `O` -> `111` and `T` -> `001`, no dup -> `000` and have duplicate `T`.
 - `Leftover Pieces` is `0011110` as `T` is in the leftover -> 1st bit unset, `I` is in leftover -> 2nd bit unset, and `O` is in leftover -> 7th bit unset.
@@ -106,7 +113,7 @@ The `oqb_path` is populated as a [materialized/label path](https://www.postgresq
 
 ### Cover Pattern
 
-The cover pattern is in [extended pieces](https://github.com/Marfung37/ExtendedSfinderPieces) and used to restrict what queues that the setup covers. 
+The cover pattern is in [extended pieces](https://github.com/Marfung37/ExtendedSfinderPieces) and used to restrict what queues that the setup covers.
 
 The cover pattern does not need to be exactly the correct coverage. The `cover_data` in `statistics` is a bitstring for which queue the setup is covered.
 
@@ -124,11 +131,11 @@ The first page with the least pieces is the base and the other pages are the var
 
 Since the values of a setup depends on the kicktable or have 180, this table separates the statistics for each kicktable.
 
-This stores the `cover_data`, solve percent/fraction, and solves. 
+This stores the `cover_data`, solve percent/fraction, and solves.
 
 ### Path File
 
-The `path_file` is a flag whether the `path.csv` file is stored on the server. 
+The `path_file` is a flag whether the `path.csv` file is stored on the server.
 
 The file is stored with the filename `<setup-id>-<kicktable>.csvd.xz`, which is a compressed version of the file.
 
@@ -137,6 +144,7 @@ In addition, remove columns that can be computed from the other columns, which t
 Then apply `xz` or the underlying `lzma` for compression of the file. This converts the 1-3 MB file into 5-150 KB file.
 
 The following function is the actual implementation.
+
 ```ts
 /**
  * Compress path file

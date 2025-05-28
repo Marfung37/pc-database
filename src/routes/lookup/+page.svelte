@@ -40,59 +40,58 @@
 
 <div class="hero min-h-[10vh]">
   <div class="hero-content py-12 text-center">
-    <div class="flex container flex-col gap-2">
+    <div class="container flex flex-col gap-2">
       <div
         class="from-primary to-accent mb-3 bg-linear-to-r bg-clip-text pb-1 text-xl font-bold text-transparent md:mb-7 md:text-3xl"
       >
         WIP: {m.nav_lookup()}
       </div>
-
     </div>
   </div>
 </div>
 
-<div class="text-left container mx-auto p-2 flex flex-col gap-2">
+<div class="container mx-auto flex flex-col gap-2 p-2 text-left">
   <form
     class="flex w-full whitespace-nowrap"
     method="POST"
     action="?/lookup"
     use:enhance={handleSubmit}
   >
-    <div class="flex items-center gap-2 flex-wrap">
+    <div class="flex flex-wrap items-center gap-2">
       <div>
-      <label for="pc-select" class="block text-xl font-medium"> {m.lookup_pc_number()} </label>
-      <select
-        id="pc-select"
-        name="pc"
-        class="text-2xl focus:shadow-outline block min-w-20 appearance-none rounded border border-gray-300 bg-white px-4 py-2 pr-8 leading-tight shadow hover:border-gray-400 focus:outline-none"
-      >
-        {#each pcs as pc (pc.id)}
-          <option value={pc.id}>{pc.pc}</option>
-        {/each}
-      </select>
+        <label for="pc-select" class="block text-xl font-medium"> {m.lookup_pc_number()} </label>
+        <select
+          id="pc-select"
+          name="pc"
+          class="focus:shadow-outline block min-w-20 appearance-none rounded border border-gray-300 bg-white px-4 py-2 pr-8 text-2xl leading-tight shadow hover:border-gray-400 focus:outline-none"
+        >
+          {#each pcs as pc (pc.id)}
+            <option value={pc.id}>{pc.pc}</option>
+          {/each}
+        </select>
       </div>
       <div>
-      <label for="queue-text" class="block text-xl font-medium"> {m.lookup_queue()} </label>
-      <input 
-        id="queue-text"
-        name="queue"
-        type="text" 
-        pattern="[TILJSZO]+"
-        bind:value={queueValue}
-        on:input={enforceTetraminoOnly}
-        class="mino text-2xl focus:shadow-outline block min-w-40 grow appearance-none rounded border border-gray-300 bg-white leading-tight shadow hover:border-gray-400 focus:outline-none" 
-        maxlength={11}
-        minlength={1}
+        <label for="queue-text" class="block text-xl font-medium"> {m.lookup_queue()} </label>
+        <input
+          id="queue-text"
+          name="queue"
+          type="text"
+          pattern="[TILJSZO]+"
+          bind:value={queueValue}
+          on:input={enforceTetraminoOnly}
+          class="mino focus:shadow-outline block min-w-40 grow appearance-none rounded border border-gray-300 bg-white text-2xl leading-tight shadow hover:border-gray-400 focus:outline-none"
+          maxlength={11}
+          minlength={1}
         />
       </div>
       <div class="place-self-end">
-      <button
-        type="submit"
-        class="text-xl flex w-full cursor-pointer justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
-        disabled={loading}
-      >
-        {loading ? m.loading() : m.btn_submit()}
-      </button>
+        <button
+          type="submit"
+          class="flex w-full cursor-pointer justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-xl font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+          disabled={loading}
+        >
+          {loading ? m.loading() : m.btn_submit()}
+        </button>
       </div>
     </div>
   </form>
@@ -108,32 +107,28 @@
   {/if}
 
   <div class="flex flex-col gap-4">
-  {#each (form?.setups ?? []) as setup (setup.setup_id)}
-	  {@const oqb = setup.oqb_path !== null}
-    <div
-      class='bg-white rounded-3xl w-full flex min-h-60 shadow-lg'
-    >
-      <div class="basis-1/2 lg:basis-1/3 xl:basis-1/4 flex justify-center items-center p-4">
-        <FumenRender fumen={setup.fumen} />
-      </div>
-      <div class="flex-1">
-        <h2 class="text-2xl py-2">{setup.setup_id}</h2>
-        <!-- <h3 class="text-xl pb-2">Statistics</h3> -->
-        <p>{m.lookup_solve_percent()}: {setup.solve_percent}%</p>
-        <p>OQB: {(oqb) ? m.yes() : m.no()}</p>
-        {#if oqb}
-          {#if setup.oqb_description}
-            <p>OQB Description: {setup.oqb_description}</p>
+    {#each form?.setups ?? [] as setup (setup.setup_id)}
+      {@const oqb = setup.oqb_path !== null}
+      <div class="flex min-h-60 w-full rounded-3xl bg-white shadow-lg">
+        <div class="flex basis-1/2 items-center justify-center p-4 lg:basis-1/3 xl:basis-1/4">
+          <FumenRender fumen={setup.fumen} />
+        </div>
+        <div class="flex-1">
+          <h2 class="py-2 text-2xl">{setup.setup_id}</h2>
+          <!-- <h3 class="text-xl pb-2">Statistics</h3> -->
+          <p>{m.lookup_solve_percent()}: {setup.solve_percent}%</p>
+          <p>OQB: {oqb ? m.yes() : m.no()}</p>
+          {#if oqb}
+            {#if setup.oqb_description}
+              <p>OQB Description: {setup.oqb_description}</p>
+            {/if}
+            <p>OQB Cover Pattern: {setup.cover_pattern}</p>
           {/if}
-          <p>OQB Cover Pattern: {setup.cover_pattern}</p>
-        {/if}
-        <p>{m.lookup_credit()}: {setup.credit ?? m.lookup_unknown()}</p>
-        <!-- <p>Minimal Solves</p> -->
-        <!-- <p>Variants</p> -->
+          <p>{m.lookup_credit()}: {setup.credit ?? m.lookup_unknown()}</p>
+          <!-- <p>Minimal Solves</p> -->
+          <!-- <p>Variants</p> -->
+        </div>
       </div>
-    </div>
-  {/each}
+    {/each}
   </div>
-
-
 </div>

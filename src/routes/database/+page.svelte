@@ -33,19 +33,18 @@
 
 <div class="hero min-h-[60vh]">
   <div class="hero-content py-12 text-center">
-    <div class="flex container flex-col gap-2">
+    <div class="container flex flex-col gap-2">
       <div
         class="from-primary to-accent mb-3 bg-linear-to-r bg-clip-text pb-1 text-xl font-bold text-transparent md:mb-7 md:text-3xl"
       >
         WIP: {m.nav_database()}
       </div>
 
-
-      <div
-        class="flex flex-col gap-2 items-center mx-auto"
-      >
-        <p class="text-2xl md:text-4xl font-bold px-2">{m.database_description()}</p>
-        <a class="btn btn-outline btn-primary px-6 max-w-sm" href="/database/docs">{m.database_docs()}</a>
+      <div class="mx-auto flex flex-col items-center gap-2">
+        <p class="px-2 text-2xl font-bold md:text-4xl">{m.database_description()}</p>
+        <a class="btn btn-outline btn-primary max-w-sm px-6" href="/database/docs"
+          >{m.database_docs()}</a
+        >
       </div>
 
       <form
@@ -55,7 +54,9 @@
         use:enhance={handleSubmit}
       >
         <div class="flex items-center gap-2">
-          <label for="pc-select" class="block text-lg font-medium"> {m.database_pc_number()} </label>
+          <label for="pc-select" class="block text-lg font-medium">
+            {m.database_pc_number()}
+          </label>
           <select
             id="pc-select"
             name="pc"

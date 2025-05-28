@@ -11,7 +11,7 @@
   let loading: boolean = false;
   let error: string | null = null;
 
-  let imageSrc: string | null = null; 
+  let imageSrc: string | null = null;
   const type = 'image/png';
 
   onMount(async () => {
@@ -26,11 +26,11 @@
     try {
       const params = new URLSearchParams();
       params.append('data', fumen);
-      if (scale)  params.append('scale', String(scale));
-      if (clear)  params.append('clear', String(clear));
+      if (scale) params.append('scale', String(scale));
+      if (clear) params.append('clear', String(clear));
       if (mirror) params.append('mirror', String(mirror));
-      if (loop)   params.append('loop', String(loop));
-      if (delay)  params.append('delay', String(delay));
+      if (loop) params.append('loop', String(loop));
+      if (delay) params.append('delay', String(delay));
       const url = `/render?${params.toString()}`;
 
       const response = await fetch(url);
@@ -59,8 +59,7 @@
 {:else if error}
   <p>Error: {error}</p>
 {:else if imageSrc}
-  <div 
-    class="h-auto w-full pt-4 rounded-md bg-gray-200 border-gray-200 border">
+  <div class="h-auto w-full rounded-md border border-gray-200 bg-gray-200 pt-4">
     <img class="h-auto w-full" src={imageSrc} alt={fumen} />
   </div>
 {:else}

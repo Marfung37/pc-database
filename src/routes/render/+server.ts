@@ -17,5 +17,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
   const b = await render_grid(p, true, lc, scale, mir, delay, lp);
 
-  return new Response(b, { headers: { 'Content-Type': is_many_frames ? 'image/gif' : 'image/png' } });
-}
+  return new Response(b, {
+    headers: { 'Content-Type': is_many_frames ? 'image/gif' : 'image/png' }
+  });
+};

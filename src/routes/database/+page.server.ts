@@ -109,11 +109,11 @@ interface ProcessedSetup extends BaseSetup {
 
 // Helper to safely extract and flatten solve_percent
 function processSetupData(rawSetups: RawSetup[] | null): ProcessedSetup[] {
-    if (!rawSetups) return [];
-    return rawSetups.map(s => ({
-        ...s,
-        solve_percent: s.statistics?.[0].solve_percent || null // Safely access and default to null
-    }));
+  if (!rawSetups) return [];
+  return rawSetups.map((s) => ({
+    ...s,
+    solve_percent: s.statistics?.[0].solve_percent || null // Safely access and default to null
+  }));
 }
 
 /**
@@ -124,62 +124,62 @@ function processSetupData(rawSetups: RawSetup[] | null): ProcessedSetup[] {
  * @returns The root nodes of the OQB tree with their children populated.
  */
 function buildOqbTree(allSetups: ProcessedSetup[]): ProcessedSetup[] {
-    const setupMap = new Map<string, ProcessedSetup>();
-    const rootNodes: ProcessedSetup[] = [];
+  const setupMap = new Map<string, ProcessedSetup>();
+  const rootNodes: ProcessedSetup[] = [];
 
-    // First pass: Populate map and add a 'children' array
-    // Also initialize 'open' state for UI if needed
-    for (const setup of allSetups) {
-        setup.data = []; // Initialize children array
-        setup.open = false; // Initialize UI state
-        setupMap.set(setup.setup_id, setup);
-    }
+  // First pass: Populate map and add a 'children' array
+  // Also initialize 'open' state for UI if needed
+  for (const setup of allSetups) {
+    setup.data = []; // Initialize children array
+    setup.open = false; // Initialize UI state
+    setupMap.set(setup.setup_id, setup);
+  }
 
-    // Second pass: Assign children to their parents
-    for (const setup of allSetups) {
-        if (setup.oqb_depth == 1) {
-            rootNodes.push(setup);
-        } else if (setup.oqb_path !== null) {
-            // Extract parent setup_id from oqb_path
-            const pathParts = setup.oqb_path.split('.');
-            const parentId = pathParts[pathParts.length - 2]; // Last part is the parent setup_id
+  // Second pass: Assign children to their parents
+  for (const setup of allSetups) {
+    if (setup.oqb_depth == 1) {
+      rootNodes.push(setup);
+    } else if (setup.oqb_path !== null) {
+      // Extract parent setup_id from oqb_path
+      const pathParts = setup.oqb_path.split('.');
+      const parentId = pathParts[pathParts.length - 2]; // Last part is the parent setup_id
 
-            const parent = setupMap.get(parentId);
-            if (parent) {
-                // Ensure data is initialized before pushing
-                if (!parent.data) {
-                    parent.data = [];
-                }
-                parent.data.push(setup);
-            } else {
-                // This scenario means a child has an oqb_path pointing to a non-existent parent
-                // or a parent that wasn't fetched in the 'allSetups' list (e.g., beyond max depth).
-                // You might want to log a warning or handle this edge case.
-                console.warn(`Parent setup_id ${parentId} not found for child ${setup.setup_id}`);
-                // If a parent is not found, this setup might become a root node or be dropped.
-                // For now, let's assume all parents will be in the map if fetched.
-            }
+      const parent = setupMap.get(parentId);
+      if (parent) {
+        // Ensure data is initialized before pushing
+        if (!parent.data) {
+          parent.data = [];
         }
+        parent.data.push(setup);
+      } else {
+        // This scenario means a child has an oqb_path pointing to a non-existent parent
+        // or a parent that wasn't fetched in the 'allSetups' list (e.g., beyond max depth).
+        // You might want to log a warning or handle this edge case.
+        console.warn(`Parent setup_id ${parentId} not found for child ${setup.setup_id}`);
+        // If a parent is not found, this setup might become a root node or be dropped.
+        // For now, let's assume all parents will be in the map if fetched.
+      }
     }
+  }
 
-    // Sort children for consistent display
-    rootNodes.forEach(root => {
-        if (root.data && root.data.length > 0) {
-            sortChildren(root.data);
-        }
-    });
+  // Sort children for consistent display
+  rootNodes.forEach((root) => {
+    if (root.data && root.data.length > 0) {
+      sortChildren(root.data);
+    }
+  });
 
-    return rootNodes;
+  return rootNodes;
 }
 
 // Helper to sort children (recursive sort for consistency)
 function sortChildren(children: ProcessedSetup[]) {
-    children.sort((a, b) => a.setup_id.localeCompare(b.setup_id)); // Or sort by a more meaningful field
-    children.forEach(child => {
-        if (child.data && child.data.length > 0) {
-            sortChildren(child.data);
-        }
-    });
+  children.sort((a, b) => a.setup_id.localeCompare(b.setup_id)); // Or sort by a more meaningful field
+  children.forEach((child) => {
+    if (child.data && child.data.length > 0) {
+      sortChildren(child.data);
+    }
+  });
 }
 
 export const actions: Actions = {
@@ -229,8 +229,8 @@ export const actions: Actions = {
     const allSetupsProcessed = processSetupData(allRelevantSetupsRaw);
 
     // 2. Separate non-OQB setups from OQB candidates
-    const nonOqbSetups = allSetupsProcessed.filter(s => s.oqb_path === null);
-    const oqbTreeCandidates = allSetupsProcessed.filter(s => s.oqb_path !== null);
+    const nonOqbSetups = allSetupsProcessed.filter((s) => s.oqb_path === null);
+    const oqbTreeCandidates = allSetupsProcessed.filter((s) => s.oqb_path !== null);
 
     // 3. Build the OQB tree in-memory
     // Pass only the candidates that could be part of the OQB tree to the builder

@@ -12,9 +12,8 @@ export type HoldType = Enums<'hold_type'>;
 
 export type Result<T> = Promise<{ data: T; error: null } | { data: null; error: Error }>;
 
-type RegexMatchedString<Pattern extends string> =
-    `${string & { __brand: Pattern }}`;
+type RegexMatchedString<Pattern extends string> = `${string & { __brand: Pattern }}`;
 
-export type SetupID = RegexMatchedString<'^[1-9][0-9a-f]{11}$'>
+export type SetupID = RegexMatchedString<'^[1-9][0-9a-f]{11}$'>;
 export type Piece = RegexMatchedString<'^[TILJSZO]$'>;
 export type Queue = RegexMatchedString<'^[TILJSZO]+$'>;

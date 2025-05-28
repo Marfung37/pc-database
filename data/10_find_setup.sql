@@ -1,38 +1,36 @@
 CREATE TYPE setup_variants_data AS (
-  build           queue,
-  fumen           fumen,
-  solve_pattern   varchar(100)
+  build queue,
+  fumen fumen,
+  solve_pattern varchar(100)
 );
 
 -- find a setup for solving using leftover
 CREATE OR REPLACE FUNCTION public.find_setup_leftover (
-  leftover  queue,
+  leftover queue,
   kicktable kicktable DEFAULT 'srs180',
   hold_type hold_type DEFAULT 'any'
-) 
-RETURNS TABLE (
-  setup_id        setupid,
-  build           queue,
-  cover_pattern   varchar(255),
-  oqb_path        ltree,
-  oqb_depth       smallint,
+) RETURNS TABLE (
+  setup_id setupid,
+  build queue,
+  cover_pattern varchar(255),
+  oqb_path ltree,
+  oqb_depth smallint,
   oqb_description varchar(255),
-  fumen           fumen,
-  solve_pattern   varchar(100),
-  mirror          setupid,
-  see             smallint,
-  hold            smallint,
-  credit          varchar(255),
-  cover_data      bytea,
-  solve_percent   decimal(5, 2),
-  solve_fraction  fraction,
-  minimal_solves  fumen,
-  variants        setup_variants_data[]
+  fumen fumen,
+  solve_pattern varchar(100),
+  mirror setupid,
+  see smallint,
+  hold smallint,
+  credit varchar(255),
+  cover_data bytea,
+  solve_percent decimal(5, 2),
+  solve_fraction fraction,
+  minimal_solves fumen,
+  variants setup_variants_data[]
 )
 SET
-  search_path = public, extensions 
-SECURITY INVOKER
-  AS $$
+  search_path = public,
+  extensions SECURITY INVOKER AS $$
 BEGIN
   RETURN QUERY
   SELECT 
@@ -83,30 +81,28 @@ CREATE OR REPLACE FUNCTION public.find_setup_parent_id (
   parent_id setupid,
   kicktable kicktable DEFAULT 'srs180',
   hold_type hold_type DEFAULT 'any'
-) 
-RETURNS TABLE (
-  setup_id        setupid,
-  build           queue,
-  cover_pattern   varchar(255),
-  oqb_path        ltree,
-  oqb_depth       smallint,
+) RETURNS TABLE (
+  setup_id setupid,
+  build queue,
+  cover_pattern varchar(255),
+  oqb_path ltree,
+  oqb_depth smallint,
   oqb_description varchar(255),
-  fumen           fumen,
-  solve_pattern   varchar(100),
-  mirror          setupid,
-  see             smallint,
-  hold            smallint,
-  credit          varchar(255),
-  cover_data      bytea,
-  solve_percent   decimal(5, 2),
-  solve_fraction  fraction,
-  minimal_solves  fumen,
-  variants        setup_variants_data[]
+  fumen fumen,
+  solve_pattern varchar(100),
+  mirror setupid,
+  see smallint,
+  hold smallint,
+  credit varchar(255),
+  cover_data bytea,
+  solve_percent decimal(5, 2),
+  solve_fraction fraction,
+  minimal_solves fumen,
+  variants setup_variants_data[]
 )
 SET
-  search_path = public, extensions 
-SECURITY INVOKER
-AS $$
+  search_path = public,
+  extensions SECURITY INVOKER AS $$
 BEGIN
   RETURN QUERY
   SELECT 
