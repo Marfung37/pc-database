@@ -56,6 +56,16 @@ export const actions: Actions = {
       }
     }
 
+    setups.sort((a, b) => {
+      if (a.solve_percent === null) {
+        return 1;
+      } else if (b.solve_percent === null) {
+        return -1;
+      }
+      
+      return b.solve_percent - a.solve_percent;
+    });
+
     return {
       success: true,
       setups

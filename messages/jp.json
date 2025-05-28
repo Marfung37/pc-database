@@ -12,12 +12,17 @@
   "btn_save": "保存",
   "btn_submit": "送信",
   "loading": "処理中...",
+  "yes": "はい",
+  "no": "いいえ",
   "email_address": "メールアドレス",
   "password": "パスワード",
   "username": "ユーザー名",
   "database_pc_number": "PC番号",
+  "database_description": "4L PCセットアップ用データベース",
+  "database_docs": "ドキュメンテーション",
   "lookup_pc_number": "PC番号",
   "lookup_queue": "キュー",
-  "database_description": "4L PCセットアップ用データベース",
-  "database_docs": "ドキュメンテーション"
+  "lookup_solve_percent": "パーセント",
+  "lookup_unknown": "不明",
+  "lookup_credit": "クレジット"
 }

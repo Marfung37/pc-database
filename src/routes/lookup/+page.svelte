@@ -118,16 +118,16 @@
       </div>
       <div class="flex-1">
         <h2 class="text-2xl py-2">{setup.setup_id}</h2>
-        <h3 class="text-xl pb-2">Statistics</h3>
-        <p>Solve Percent: {setup.solve_percent}%</p>
-        <p>OQB: {(oqb) ? 'Yes' : 'No'}</p>
+        <!-- <h3 class="text-xl pb-2">Statistics</h3> -->
+        <p>{m.lookup_solve_percent()}: {setup.solve_percent}%</p>
+        <p>OQB: {(oqb) ? m.yes() : m.no()}</p>
         {#if oqb}
           {#if setup.oqb_description}
             <p>OQB Description: {setup.oqb_description}</p>
           {/if}
           <p>OQB Cover Pattern: {setup.cover_pattern}</p>
         {/if}
-        <p>Credit: {setup.credit ?? 'Not Known'}</p>
+        <p>{m.lookup_credit()}: {setup.credit ?? m.lookup_unknown()}</p>
         <!-- <p>Minimal Solves</p> -->
         <!-- <p>Variants</p> -->
       </div>

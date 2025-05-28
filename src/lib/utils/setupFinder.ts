@@ -36,7 +36,7 @@ function subStringSet(str: string, substr: string): boolean {
  * @param hold_type
  * @returns array of setups
  */
-export async function setupFinder(pcNum: number, queue: Queue, previousSetup: SetupID | null = null, kicktable: Kicktable = "srs180", hold_type: HoldType = "any"): Result<Setup[]> {
+export async function setupFinder(pcNum: number, queue: Queue, previousSetup: SetupID | null = null, kicktable: Kicktable = "srs180", hold_type: HoldType = "any"): Result<setupFullData[]> {
   let setups, setupErr;
   if (previousSetup) {
     const {data: tmp, error: tmpErr} = await supabase.rpc('find_setup_leftover', {
