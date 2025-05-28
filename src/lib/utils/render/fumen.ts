@@ -25,8 +25,9 @@ export function fumenToGrid(z: string, compress: boolean = true): string {
     .decode(z)
     .map((x) => {
       return x.field
-        .str({ reduced: true, garbage: false })
+        .str({ reduced: false, garbage: false })
         .split('\n')
+        .slice(-4)
         .map((y) =>
           y
             .replaceAll('_', 'E')
