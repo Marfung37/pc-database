@@ -12,4 +12,5 @@
       </div>
     </div>
   </div>
+  <!-- Credit to mina/trueharuu for the rendering fumen code -->
 </div>
