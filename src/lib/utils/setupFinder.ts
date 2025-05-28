@@ -13,6 +13,12 @@ import { sortQueue } from '$lib/utils/queueUtils';
 import { piecesContains } from '$lib/utils/piecesContains';
 import { supabase } from '$lib/supabaseClient';
 
+const setupIDRegex = new RegExp(`^[1-9][0-9a-f]+$`);
+
+export function isSetupID(s: string): boolean {
+  return setupIDRegex.test(s);
+}
+
 type setupFullData = Setup & Statistic & { variants: SetupVariant[] };
 
 // Helper function remains necessary for counting characters
@@ -64,14 +70,17 @@ export async function setupFinder(
   } else if (pcNum) {
     const leftover = sortQueue(queue.slice(0, PCNUM2LONUM(pcNum)) as Queue);
     const { data: tmp, error: tmpErr } = await supabase.rpc('find_setup_leftover', {
-      leftover,
+      p_leftover: leftover,
       kicktable,
       hold_type
     });
     setups = tmp;
     setupErr = tmpErr;
   } else {
-    return {data: null, error: new Error('setupFinder expects either pcNum or previousSetup to be set')}
+    return {
+      data: null,
+      error: new Error('setupFinder expects either pcNum or previousSetup to be set')
+    };
   }
 
   if (setupErr) return { data: null, error: setupErr };
@@ -95,4 +104,20 @@ export async function setupFinder(
   }
 
   return { data: validSetups, error: null };
+}
+
+export async function getSetup(
+  setupId: SetupID,
+  kicktable: Kicktable = 'srs180',
+  hold_type: HoldType = 'any'
+): Result<setupFullData> {
+  const { data: setup, error: setupErr } = await supabase.rpc('find_setup_setup_id', {
+    p_setup_id: setupId,
+    kicktable,
+    hold_type
+  });
+
+  if (setupErr) return { data: null, error: setupErr };
+
+  return { data: setup[0], error: null };
 }

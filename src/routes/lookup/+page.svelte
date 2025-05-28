@@ -2,6 +2,7 @@
   import { enhance, applyAction } from '$app/forms';
   import { m } from '$lib/paraglide/messages.js';
   import FumenRender from '$lib/components/FumenRender.svelte';
+  import { ChevronRight } from '@lucide/svelte';
 
   export let form;
 
@@ -20,6 +21,7 @@
   ];
 
   let queueValue: string = '';
+  let submittedQueue: string = '';
 
   function enforceTetraminoOnly(event: Event) {
     const inputElement = event.target as HTMLInputElement;
@@ -27,8 +29,9 @@
     queueValue = inputElement.value.replace(/[^TILJSZOtiljszo]/g, '').toUpperCase();
   }
 
-  const handleSubmit: SubmitFunction = () => {
+  const handleSubmit: SubmitFunction = ({ formData }) => {
     loading = true;
+    submittedQueue = formData.get('queue');
     return async ({ result }) => {
       loading = false;
       applyAction(result);
@@ -110,7 +113,9 @@
         <div class="flex-1">
           <h2 class="py-2 text-2xl">{setup.setup_id}</h2>
           <!-- <h3 class="text-xl pb-2">Statistics</h3> -->
-          <p>{m.lookup_solve_percent()}: {setup.solve_percent}%</p>
+          {#if setup.solve_percent}
+            <p>{m.lookup_solve_percent()}: {setup.solve_percent}%</p>
+          {/if}
           <p>OQB: {oqb ? m.yes() : m.no()}</p>
           {#if oqb}
             {#if setup.oqb_description}
@@ -118,11 +123,18 @@
             {/if}
             <p>OQB Cover Pattern: {setup.cover_pattern}</p>
           {/if}
-          {console.log(setup.credit)}
-          <p>{m.lookup_credit()}: {(setup.credit) ? setup.credit: m.lookup_unknown()}</p>
+          <p>{m.lookup_credit()}: {setup.credit ? setup.credit : m.lookup_unknown()}</p>
           <!-- <p>Minimal Solves</p> -->
           <!-- <p>Variants</p> -->
         </div>
+        <!-- TODO solve percent not completely accurate -->
+        {#if oqb}
+          <div class="flex min-w-4 items-center">
+            <a href="/lookup/{setup.setup_id}+{submittedQueue}">
+              <ChevronRight size={32} />
+            </a>
+          </div>
+        {/if}
       </div>
     {/each}
   </div>

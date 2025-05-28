@@ -15,7 +15,7 @@ export const actions: Actions = {
     const returnData = {
       pc: pcStr,
       queue: queueStr
-    }
+    };
 
     // checking if valid pc number
     if (!pcStr.match(/^[1-9]$/)) {

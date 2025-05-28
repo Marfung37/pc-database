@@ -5,6 +5,11 @@
   import { m } from '$lib/paraglide/messages.js';
   import FumenRender from '$lib/components/FumenRender.svelte';
   import { onMount } from 'svelte';
+  import { ChevronRight } from '@lucide/svelte';
+
+  export let data;
+
+  let parent_setup = data.setup;
 
   $: parent = $page.params.parent;
   $: [parent_id, subbuild] = parent.split('+');
@@ -20,6 +25,7 @@
   let loading = false;
 
   let queueValue: string = subbuild;
+  let submittedQueue: string = '';
 
   function enforceTetraminoOnly(event: Event) {
     const inputElement = event.target as HTMLInputElement;
@@ -27,14 +33,14 @@
     queueValue = inputElement.value.replace(/[^TILJSZOtiljszo]/g, '').toUpperCase();
   }
 
-  const handleSubmit: SubmitFunction = ({formData}) => {
+  const handleSubmit: SubmitFunction = ({ formData }) => {
     loading = true;
+    submittedQueue = subbuild + formData.get('queue');
     return async ({ result }) => {
       loading = false;
       applyAction(result);
     };
   };
-
 </script>
 
 <div class="hero min-h-[10vh]">
@@ -50,6 +56,31 @@
 </div>
 
 <div class="container mx-auto flex flex-col gap-2 p-2 text-left">
+  <h1 class="py-2 text-3xl">Current Setup</h1>
+  <div class="mb-16 flex min-h-60 w-full rounded-3xl bg-white shadow-lg">
+    <div class="flex basis-1/2 items-center justify-center p-4 lg:basis-1/3 xl:basis-1/4">
+      <FumenRender fumen={parent_setup.fumen} />
+    </div>
+    <div class="flex-1">
+      <h2 class="py-2 text-2xl">{parent_setup.setup_id}</h2>
+      <!-- <h3 class="text-xl pb-2">Statistics</h3> -->
+      {#if parent_setup.solve_percent}
+        <p>{m.lookup_solve_percent()}: {parent_setup.solve_percent}%</p>
+      {/if}
+      <p>OQB: {parent_setup.oqb_path ? m.yes() : m.no()}</p>
+      {#if parent_setup.oqb_path}
+        {#if parent_setup.oqb_description}
+          <p>OQB Description: {parent_setup.oqb_description}</p>
+        {/if}
+        <p>OQB Cover Pattern: {parent_setup.cover_pattern}</p>
+      {/if}
+      <p>{m.lookup_credit()}: {parent_setup.credit ? parent_setup.credit : m.lookup_unknown()}</p>
+      <!-- <p>Minimal Solves</p> -->
+      <!-- <p>Variants</p> -->
+    </div>
+  </div>
+
+  <h1 class="py-2 text-3xl">Next Setup</h1>
   <form
     class="flex w-full whitespace-nowrap"
     method="POST"
@@ -104,7 +135,9 @@
         <div class="flex-1">
           <h2 class="py-2 text-2xl">{setup.setup_id}</h2>
           <!-- <h3 class="text-xl pb-2">Statistics</h3> -->
-          <p>{m.lookup_solve_percent()}: {setup.solve_percent}%</p>
+          {#if setup.solve_percent}
+            <p>{m.lookup_solve_percent()}: {setup.solve_percent}%</p>
+          {/if}
           <p>OQB: {oqb ? m.yes() : m.no()}</p>
           {#if oqb}
             {#if setup.oqb_description}
@@ -112,11 +145,18 @@
             {/if}
             <p>OQB Cover Pattern: {setup.cover_pattern}</p>
           {/if}
-          {console.log(setup.credit)}
-          <p>{m.lookup_credit()}: {(setup.credit) ? setup.credit: m.lookup_unknown()}</p>
+          <p>{m.lookup_credit()}: {setup.credit ? setup.credit : m.lookup_unknown()}</p>
           <!-- <p>Minimal Solves</p> -->
           <!-- <p>Variants</p> -->
         </div>
+        <!-- TODO solve percent not completely accurate -->
+        {#if oqb && !setup.solve_percent}
+          <div class="flex min-w-4 items-center">
+            <a href="/lookup/{setup.setup_id}+{submittedQueue.slice(0, setup.build.length)}">
+              <ChevronRight size={32} />
+            </a>
+          </div>
+        {/if}
       </div>
     {/each}
   </div>
