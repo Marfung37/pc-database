@@ -16,7 +16,8 @@
     "lint": "eslint .",
     "test:unit": "vitest",
     "test": "npm run test:unit -- --run && npm run test:e2e",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "upload_paths": "DOTENV_CONFIG_PATH=./.env.local tsx -r dotenv/config utils/populatePathFiles.ts"
   },
   "devDependencies": {
     "@eslint/compat": "^1.2.5",
@@ -36,6 +37,7 @@
     "@types/pngjs": "^6.0.5",
     "@types/yargs": "^17.0.33",
     "daisyui": "^5.0.35",
+    "dotenv": "^16.5.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-svelte": "^3.0.0",
@@ -49,6 +51,7 @@
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
     "tailwindcss": "^4.0.0",
+    "tsx": "^4.19.4",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.20.0",
     "vite": "^6.2.6",

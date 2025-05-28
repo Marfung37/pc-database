@@ -3,7 +3,8 @@ import * as lzma from 'lzma-native';
 import { parse } from 'csv-parse/sync';
 import { stringify } from 'csv-stringify/sync';
 import { extendPieces } from './pieces';
-import type { Result } from '$lib/types';
+
+export type Result<T> = Promise<{ data: T; error: null } | { data: null; error: Error }>;
 
 const PIECESTONUM: Record<string, number> = {
   T: 0,
