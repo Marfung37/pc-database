@@ -1,4 +1,4 @@
-import { fail, json } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import { isQueue } from '$lib/utils/queueUtils';
 import { setupFinder } from '$lib/utils/setupFinder';
 import type { Actions, PageServerLoad } from './$types';
@@ -18,13 +18,17 @@ export const actions: Actions = {
     if (!pcStr.match(/^[1-9]$/)) {
       return fail(400, {
         success: false,
-        message: `Invalid pc number.`
+        pcStr,
+        queueStr,
+        message: `Invalid pc number`
       });
     }
     if (!isQueue(queueStr)) {
       return fail(400, {
         success: false,
-        message: `Invalid queue.`
+        pcStr,
+        queueStr,
+        message: `Invalid queue`
       });
     }
 
@@ -37,8 +41,19 @@ export const actions: Actions = {
       console.error(`Failed to find setups for pc ${pc} and queue ${queue}:`, setupsErr.message)
       return fail(500, {
         success: false,
-        message: `Failed to find setups.`
+        pcStr,
+        queueStr,
+        message: `Failed to find setups`
       });
+    }
+
+    if (setups.length == 0) {
+      return {
+        success: false,
+        pcStr,
+        queueStr,
+        message: 'No setups found'
+      }
     }
 
     return {
