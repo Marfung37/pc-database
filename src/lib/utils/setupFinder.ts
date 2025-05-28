@@ -46,22 +46,22 @@ function subStringSet(str: string, substr: string): boolean {
  * @returns array of setups
  */
 export async function setupFinder(
-  pcNum: number,
   queue: Queue,
+  pcNum: number | null = null,
   previousSetup: SetupID | null = null,
   kicktable: Kicktable = 'srs180',
   hold_type: HoldType = 'any'
 ): Result<setupFullData[]> {
   let setups, setupErr;
   if (previousSetup) {
-    const { data: tmp, error: tmpErr } = await supabase.rpc('find_setup_leftover', {
+    const { data: tmp, error: tmpErr } = await supabase.rpc('find_setup_parent_id', {
       parent_id: previousSetup,
       kicktable,
       hold_type
     });
     setups = tmp;
     setupErr = tmpErr;
-  } else {
+  } else if (pcNum) {
     const leftover = sortQueue(queue.slice(0, PCNUM2LONUM(pcNum)) as Queue);
     const { data: tmp, error: tmpErr } = await supabase.rpc('find_setup_leftover', {
       leftover,
@@ -70,6 +70,8 @@ export async function setupFinder(
     });
     setups = tmp;
     setupErr = tmpErr;
+  } else {
+    return {data: null, error: new Error('setupFinder expects either pcNum or previousSetup to be set')}
   }
 
   if (setupErr) return { data: null, error: setupErr };

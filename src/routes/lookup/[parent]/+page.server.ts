@@ -2,47 +2,42 @@ import { fail } from '@sveltejs/kit';
 import { isQueue } from '$lib/utils/queueUtils';
 import { setupFinder } from '$lib/utils/setupFinder';
 import type { Actions, PageServerLoad } from './$types';
-import type { Queue } from '$lib/types';
+import type { Queue, SetupID } from '$lib/types';
 
 export const load: PageServerLoad = async () => {};
 
 export const actions: Actions = {
-  lookup: async ({ request }) => {
+  lookup: async ({ params, request }) => {
     const formData = await request.formData();
-    const pcStr = formData.get('pc') as string;
-    const queueStr = formData.get('queue') as string;
+    let queueStr = formData.get('queue') as string;
+    const [parent_id, subbuild] = params.parent.split('+');
 
-    const returnData = {
-      pc: pcStr,
-      queue: queueStr
-    }
-
-    // checking if valid pc number
-    if (!pcStr.match(/^[1-9]$/)) {
+    if (parent_id === undefined || subbuild === undefined) {
       return fail(400, {
         success: false,
-        ...returnData,
-        message: `Invalid pc number`
-      });
+        queue: queueStr,
+        message: 'Expected <parent_id>+<subbuild> for route'
+      })
     }
+
+    queueStr = subbuild + queueStr;
     if (!isQueue(queueStr)) {
       return fail(400, {
         success: false,
-        ...returnData,
+        queue: queueStr,
         message: `Invalid queue`
       });
     }
 
-    const pc = parseInt(pcStr) as number;
     const queue = queueStr as Queue;
 
-    const { data: setups, error: setupsErr } = await setupFinder(queue, pc);
+    const { data: setups, error: setupsErr } = await setupFinder(queue, null, parent_id as SetupID);
 
     if (setupsErr) {
-      console.error(`Failed to find setups for pc ${pc} and queue ${queue}:`, setupsErr.message);
+      console.error(`Failed to find setups for parent ${parent_id} and queue ${queue}:`, setupsErr.message);
       return fail(500, {
         success: false,
-        ...returnData,
+        queue: queueStr,
         message: `Failed to find setups`
       });
     }
@@ -50,7 +45,7 @@ export const actions: Actions = {
     if (setups.length == 0) {
       return {
         success: false,
-        ...returnData,
+        queue: queueStr,
         message: 'No setups found'
       };
     }

@@ -1,25 +1,25 @@
 <script lang="ts">
+  import { page } from '$app/stores';
+  import { goto } from '$app/navigation';
   import { enhance, applyAction } from '$app/forms';
   import { m } from '$lib/paraglide/messages.js';
   import FumenRender from '$lib/components/FumenRender.svelte';
+  import { onMount } from 'svelte';
+
+  $: parent = $page.params.parent;
+  $: [parent_id, subbuild] = parent.split('+');
+
+  // Basic validation or error handling if '+' is not present
+  $: if (parent_id === undefined || subbuild === undefined) {
+    console.error('Invalid parent+subbuild format:', parent);
+    goto('/lookup');
+  }
 
   export let form;
 
   let loading = false;
 
-  const pcs = [
-    { id: 1, pc: '1st' },
-    { id: 2, pc: '2nd' },
-    { id: 3, pc: '3rd' },
-    { id: 4, pc: '4th' },
-    { id: 5, pc: '5th' },
-    { id: 6, pc: '6th' },
-    { id: 7, pc: '7th' },
-    { id: 8, pc: '8th' },
-    { id: 9, pc: '9th' }
-  ];
-
-  let queueValue: string = '';
+  let queueValue: string = subbuild;
 
   function enforceTetraminoOnly(event: Event) {
     const inputElement = event.target as HTMLInputElement;
@@ -27,13 +27,14 @@
     queueValue = inputElement.value.replace(/[^TILJSZOtiljszo]/g, '').toUpperCase();
   }
 
-  const handleSubmit: SubmitFunction = () => {
+  const handleSubmit: SubmitFunction = ({formData}) => {
     loading = true;
     return async ({ result }) => {
       loading = false;
       applyAction(result);
     };
   };
+
 </script>
 
 <div class="hero min-h-[10vh]">
@@ -56,17 +57,10 @@
     use:enhance={handleSubmit}
   >
     <div class="flex flex-wrap items-center gap-2">
-      <label for="pc-select" class="block text-lg font-medium"> {m.lookup_pc_number()} </label>
-      <select
-        id="pc-select"
-        name="pc"
-        class="focus:shadow-outline block min-w-20 appearance-none rounded border border-gray-300 bg-white px-4 py-2 pr-8 leading-tight shadow hover:border-gray-400 focus:outline-none"
-      >
-        {#each pcs as pc (pc.id)}
-          <option value={pc.id}>{pc.pc}</option>
-        {/each}
-      </select>
-      <label for="queue-text" class="block text-lg font-medium"> {m.lookup_queue()} </label>
+      <label for="queue-text" class="block text-lg font-medium"> {m.lookup_queue()}: </label>
+      <span class="mino text-2xl">
+        {subbuild}
+      </span>
       <input
         id="queue-text"
         name="queue"
@@ -75,7 +69,7 @@
         bind:value={queueValue}
         on:input={enforceTetraminoOnly}
         class="mino focus:shadow-outline block min-w-40 grow appearance-none rounded border border-gray-300 bg-white text-2xl leading-tight shadow hover:border-gray-400 focus:outline-none"
-        maxlength={11}
+        maxlength={11 - subbuild.length}
         minlength={1}
       />
       <div>
