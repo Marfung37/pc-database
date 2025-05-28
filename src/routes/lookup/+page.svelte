@@ -20,12 +20,19 @@
     { id: 9, pc: '9th' }
   ];
 
+  let queueValue: string = '';
+
+  function enforceTetraminoOnly(event: Event) {
+    const inputElement = event.target as HTMLInputElement;
+    // Update the bound variable with the sanitized value
+    queueValue = inputElement.value.replace(/[^TILJSZO]/g, '');
+  }
+
   const handleSubmit: SubmitFunction = () => {
     loading = true;
     return async ({ result }) => {
       loading = false;
       applyAction(result);
-      console.log(result);
     };
   };
 </script>
@@ -69,7 +76,10 @@
         id="queue-text"
         name="queue"
         type="text" 
-        class="focus:shadow-outline block min-w-40 grow appearance-none rounded border border-gray-300 bg-white leading-tight shadow hover:border-gray-400 focus:outline-none" 
+        pattern="[TILJSZO]+"
+        bind:value={queueValue}
+        on:input={enforceTetraminoOnly}
+        class="mino focus:shadow-outline block min-w-40 grow appearance-none rounded border border-gray-300 bg-white leading-tight shadow hover:border-gray-400 focus:outline-none" 
         maxlength={11}
         minlength={1}
         />
