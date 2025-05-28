@@ -119,9 +119,9 @@
           <p>OQB: {oqb ? m.yes() : m.no()}</p>
           {#if oqb}
             {#if setup.oqb_description}
-              <p>OQB Description: {setup.oqb_description}</p>
+              <p>OQB {m.description()}: {setup.oqb_description}</p>
             {/if}
-            <p>OQB Cover Pattern: {setup.cover_pattern}</p>
+            <p>OQB {m.cover_pattern()}: {setup.cover_pattern}</p>
           {/if}
           <p>{m.lookup_credit()}: {setup.credit ? setup.credit : m.lookup_unknown()}</p>
           <!-- <p>Minimal Solves</p> -->

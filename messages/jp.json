@@ -20,9 +20,14 @@
   "database_pc_number": "PC番号",
   "database_description": "4L PCセットアップ用データベース",
   "database_docs": "ドキュメンテーション",
+  "cover_pattern": "カバーパターン",
+  "solve_pattern": "パフェパータン",
+  "description": "記述",
   "lookup_pc_number": "PC番号",
   "lookup_queue": "キュー",
-  "lookup_solve_percent": "パーセント",
+  "lookup_solve_percent": "パフェ率",
   "lookup_unknown": "不明",
-  "lookup_credit": "クレジット"
+  "lookup_credit": "クレジット",
+  "lookup_current_setup": "今の組み方",
+  "lookup_next_setup": "次の組み方"
 }

@@ -56,7 +56,7 @@
 </div>
 
 <div class="container mx-auto flex flex-col gap-2 p-2 text-left">
-  <h1 class="py-2 text-3xl">Current Setup</h1>
+  <h1 class="py-2 text-3xl">{m.lookup_current_setup()}</h1>
   <div class="mb-16 flex min-h-60 w-full rounded-3xl bg-white shadow-lg">
     <div class="flex basis-1/2 items-center justify-center p-4 lg:basis-1/3 xl:basis-1/4">
       <FumenRender fumen={parent_setup.fumen} />
@@ -70,9 +70,9 @@
       <p>OQB: {parent_setup.oqb_path ? m.yes() : m.no()}</p>
       {#if parent_setup.oqb_path}
         {#if parent_setup.oqb_description}
-          <p>OQB Description: {parent_setup.oqb_description}</p>
+          <p>OQB {m.description()}: {parent_setup.oqb_description}</p>
         {/if}
-        <p>OQB Cover Pattern: {parent_setup.cover_pattern}</p>
+        <p>OQB {m.cover_pattern()}: {parent_setup.cover_pattern}</p>
       {/if}
       <p>{m.lookup_credit()}: {parent_setup.credit ? parent_setup.credit : m.lookup_unknown()}</p>
       <!-- <p>Minimal Solves</p> -->
@@ -80,7 +80,7 @@
     </div>
   </div>
 
-  <h1 class="py-2 text-3xl">Next Setup</h1>
+  <h1 class="py-2 text-3xl">{m.lookup_next_setup()}</h1>
   <form
     class="flex w-full whitespace-nowrap"
     method="POST"
@@ -141,9 +141,9 @@
           <p>OQB: {oqb ? m.yes() : m.no()}</p>
           {#if oqb}
             {#if setup.oqb_description}
-              <p>OQB Description: {setup.oqb_description}</p>
+              <p>OQB {m.description()}: {setup.oqb_description}</p>
             {/if}
-            <p>OQB Cover Pattern: {setup.cover_pattern}</p>
+            <p>OQB {m.cover_pattern()}: {setup.cover_pattern}</p>
           {/if}
           <p>{m.lookup_credit()}: {setup.credit ? setup.credit : m.lookup_unknown()}</p>
           <!-- <p>Minimal Solves</p> -->

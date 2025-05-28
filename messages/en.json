@@ -20,9 +20,14 @@
   "database_pc_number": "PC Number",
   "database_description": "Database for 4L PC Setups",
   "database_docs": "Documentation",
+  "cover_pattern": "Cover Pattern",
+  "solve_pattern": "Solve Pattern",
+  "description": "Description",
   "lookup_pc_number": "PC Number",
   "lookup_queue": "Queue",
   "lookup_solve_percent": "Solve Percent",
   "lookup_unknown": "Not Known",
-  "lookup_credit": "Credit"
+  "lookup_credit": "Credit",
+  "lookup_current_setup": "Current Setup",
+  "lookup_next_setup": "Next Setup"
 }
