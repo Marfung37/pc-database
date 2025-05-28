@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
+  import { Clipboard, ClipboardCheck } from '@lucide/svelte';
 
   export let fumen: string = null;
   export let scale: number = null;
@@ -13,6 +14,39 @@
 
   let imageSrc: string | null = null;
   const type = 'image/png';
+
+  let showFeedback: boolean = false;
+  let feedbackMessage: string = '';
+
+  /**
+   * Copies the fumen string to the user's clipboard.
+   * Provides visual feedback to the user.
+   */
+  async function copyContent(): Promise<void> {
+    // Check if the Clipboard API is supported by the browser
+    if (!navigator.clipboard || !navigator.clipboard.writeText) {
+      feedbackMessage = 'Clipboard API not supported by your browser.';
+      showFeedback = true;
+      console.warn('Clipboard API not supported.');
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(fumen);
+      feedbackMessage = 'Copied to clipboard!';
+      showFeedback = true;
+    } catch (err) {
+      console.error('Failed to copy content:', err);
+      feedbackMessage = 'Failed to copy to clipboard.';
+      showFeedback = true;
+    } finally {
+      // Hide the feedback message after a short delay
+      setTimeout(() => {
+        showFeedback = false;
+        feedbackMessage = ''
+      }, 1000); // Display feedback for 1 seconds
+    }
+  }
 
   onMount(async () => {
     loading = true;
@@ -59,8 +93,32 @@
 {:else if error}
   <p>Error: {error}</p>
 {:else if imageSrc}
-  <div class="h-auto w-full rounded-md border border-gray-200 bg-gray-200 pt-4">
+  <div class="h-auto w-full rounded-md border border-gray-200 bg-gray-200 pt-4 relative group">
     <img class="h-auto w-full" src={imageSrc} alt={fumen} />
+
+    <div 
+      class={"absolute top-[10px] right-[10px] z-20 opacity-0 transition-opacity duration-300 group-hover:opacity-100 border-gray-500 rounded-md transparent " + (showFeedback ? "bg-gray-100": "")}
+      class:border={showFeedback}>
+      <div class="flex justify-end">
+        {#if showFeedback}
+          <span class="h-full p-2" class:show={showFeedback}>
+            {feedbackMessage}
+          </span>
+        {/if}
+
+        <button 
+          class="bg-gray-100 border border-gray-500 rounded-md p-2 cursor-pointer opacity-50 hover:opacity-80" 
+          class:border={!showFeedback}
+          on:click={copyContent}
+        >
+          {#if showFeedback}
+            <ClipboardCheck class="text-gray-500" />
+          {:else}
+            <Clipboard class="text-gray-500" />
+          {/if}
+        </button>
+      </div>
+    </div>
   </div>
 {:else}
   <p></p>
