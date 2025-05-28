@@ -2,7 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
 
   export let fumen: string = null;
-  export let scale: number = 10;
+  export let scale: number = null;
   export let clear: number = null;
   export let mirror: boolean = null;
   export let loop: boolean = null;
