@@ -43,7 +43,7 @@
       // Hide the feedback message after a short delay
       setTimeout(() => {
         showFeedback = false;
-        feedbackMessage = ''
+        feedbackMessage = '';
       }, 1000); // Display feedback for 1 seconds
     }
   }
@@ -93,12 +93,14 @@
 {:else if error}
   <p>Error: {error}</p>
 {:else if imageSrc}
-  <div class="h-auto w-full rounded-md border border-gray-200 bg-gray-200 pt-4 relative group">
+  <div class="group relative h-auto w-full rounded-md border border-gray-200 bg-gray-200 pt-4">
     <img class="h-auto w-full" src={imageSrc} alt={fumen} />
 
-    <div 
-      class={"absolute top-[10px] right-[10px] z-20 opacity-0 transition-opacity duration-300 group-hover:opacity-100 border-gray-500 rounded-md transparent " + (showFeedback ? "bg-gray-100": "")}
-      class:border={showFeedback}>
+    <div
+      class={'transparent absolute top-[10px] right-[10px] z-20 rounded-md border-gray-500 opacity-0 transition-opacity duration-300 group-hover:opacity-100 ' +
+        (showFeedback ? 'bg-gray-100' : '')}
+      class:border={showFeedback}
+    >
       <div class="flex justify-end">
         {#if showFeedback}
           <span class="h-full p-2" class:show={showFeedback}>
@@ -106,8 +108,8 @@
           </span>
         {/if}
 
-        <button 
-          class="bg-gray-100 border border-gray-500 rounded-md p-2 cursor-pointer opacity-50 hover:opacity-80" 
+        <button
+          class="cursor-pointer rounded-md border border-gray-500 bg-gray-100 p-2 opacity-50 hover:opacity-80"
           class:border={!showFeedback}
           on:click={copyContent}
         >
