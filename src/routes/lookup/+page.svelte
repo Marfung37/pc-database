@@ -120,7 +120,8 @@
             {/if}
             <p>OQB Cover Pattern: {setup.cover_pattern}</p>
           {/if}
-          <p>{m.lookup_credit()}: {setup.credit ?? m.lookup_unknown()}</p>
+          {console.log(setup.credit)}
+          <p>{m.lookup_credit()}: {(setup.credit) ? setup.credit: m.lookup_unknown()}</p>
           <!-- <p>Minimal Solves</p> -->
           <!-- <p>Variants</p> -->
         </div>

@@ -83,7 +83,7 @@
   onDestroy(() => {
     if (imageSrc) {
       URL.revokeObjectURL(imageSrc);
-      fetchedImageSrc = null;
+      imageSrc = null;
     }
   });
 </script>
