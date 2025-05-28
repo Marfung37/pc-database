@@ -30,7 +30,7 @@ function getCharCounts(str: string): Map<string, number> {
   return counts;
 }
 
-function subStringSet(str: string, substr: string): boolean {
+export function subStringSet(str: string, substr: string): boolean {
   const strCounts = getCharCounts(str);
   const substrCounts = getCharCounts(substr);
   for (const [char, count] of substrCounts.entries()) {
