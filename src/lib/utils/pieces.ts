@@ -897,7 +897,7 @@ function handleExtendedSfinderFormatPieces(
 }
 
 // Handle user input and runs the program
-function extendPieces(customInput: string | string[] = process.argv.slice(2)): string[] {
+function extendPieces(customInput: string | string[]): string[] {
   /** Main function for handling user input and program */
 
   if (typeof customInput === 'string') {
