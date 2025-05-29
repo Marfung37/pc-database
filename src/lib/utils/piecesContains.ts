@@ -71,7 +71,7 @@ function binarySearch(
     const mid = Math.floor(low + (high - low) / 2);
 
     // Check if the queue at the middle index is equal to the target queue.
-    if (equality(queueList[mid], queue)) {
+    if (equality(queue, queueList[mid])) {
       return mid;
     }
 
