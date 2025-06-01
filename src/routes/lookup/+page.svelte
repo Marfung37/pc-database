@@ -117,12 +117,11 @@
             <p>{m.lookup_solve_percent()}: {setup.solve_percent}%</p>
           {/if}
           <p>OQB: {oqb ? m.yes() : m.no()}</p>
-          {#if oqb}
-            {#if setup.oqb_description}
-              <p>OQB {m.description()}: {setup.oqb_description}</p>
-            {/if}
-            <p>OQB {m.cover_pattern()}: {setup.cover_pattern}</p>
+          {#if setup.cover_description}
+            <p>{m.cover_description()}: {setup.cover_description}</p>
           {/if}
+          <p>{m.cover_pattern()}: {setup.cover_pattern}</p>
+          <p>{m.exact_cover_pattern()}: {(setup.cover_data === null) ? m.yes() : m.no()}</p>
           <p>{m.lookup_credit()}: {setup.credit ? setup.credit : m.lookup_unknown()}</p>
           <!-- <p>Minimal Solves</p> -->
           <!-- <p>Variants</p> -->
