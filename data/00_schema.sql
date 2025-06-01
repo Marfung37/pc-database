@@ -73,7 +73,7 @@ CREATE TABLE "setups" (
       ELSE nlevel (oqb_path)
     END
   ) STORED,
-  "oqb_description" varchar(255),
+  "cover_description" varchar(255),
   "fumen" fumen NOT NULL, -- enforce fumen structure with version 115
   "solve_pattern" varchar(100), -- difficult to constrain
   "mirror" setupid,
@@ -178,7 +178,7 @@ COMMENT ON COLUMN "setups"."oqb_path" IS 'Materialized path of ids to this setup
 
 COMMENT ON COLUMN "setups"."oqb_depth" IS 'Setup oqb tree depth';
 
-COMMENT ON COLUMN "setups"."oqb_description" IS 'Description for when to use this setup';
+COMMENT ON COLUMN "setups"."cover_description" IS 'Description for when to use this setup';
 
 COMMENT ON COLUMN "setups"."fumen" IS 'Fumen of the setup';
 
@@ -286,6 +286,6 @@ INSERT INTO
   schema_metadata (version, description)
 VALUES
   (
-    '1.2.1',
-    'Adds domains for fumen, queue, and fraction as reused and more readable.'
+    '1.2.2',
+    'Change from oqb_description to cover_description.'
   );
