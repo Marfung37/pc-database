@@ -1,8 +1,9 @@
 import fsPromises from "fs/promises";
 import { compressPath } from './lib/compression';
-import { is2Line } from './lib/fumenUtils';
+import { isPC } from './lib/fumenUtils';
 import { supabaseAdmin } from './lib/supabaseAdmin';
 import { extendPieces } from './lib/pieces';
+import { generatePCPath } from './lib/generatePathFile';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { Setup, Statistic, SetupID, Kicktable, HoldType } from './lib/types';
@@ -14,7 +15,6 @@ if (process.env.PATH_UPLOAD_BUCKET === undefined) {
   process.exit(1);
 }
 
-// Get the absolute path of the current module file (e.g., /path/to/myTypeScriptFile.ts)
 const currentFilePath = fileURLToPath(import.meta.url);
 
 // Get the directory name from the file path
@@ -51,40 +51,47 @@ async function uploadPath(setup: Setup, stat: Statistic): Promise<boolean> {
   const drop = is180[stat.kicktable] ? '180': 'soft';
   const output = path.join(outputPath, pathFilename);
   const patternPath = path.join(outputPath, patternFilename)
-  const clear = is2Line(setup.fumen) ? 2: 4;
-  const cmd = `java -jar ${sfinderPath} path -t ${setup.fumen} -pp ${patternPath} -f csv -k pattern -K ${kicktable} -d ${drop} -o ${output} -c ${clear}`;
+  const cmd = `java -jar ${sfinderPath} path -t ${setup.fumen} -pp ${patternPath} -f csv -k pattern -K ${kicktable} -d ${drop} -o ${output}`;
   console.log("Creating path file", pathFilename);
 
   try {
-    const queues = extendPieces(setup.solve_pattern).join('\n');
+    const queues = extendPieces(setup.solve_pattern);
 
-    await fsPromises.writeFile(patternPath, queues);
+    if (isPC(setup.fumen)) {
+      const { error: genPathErr } = await generatePCPath(setup.fumen, queues, output);
+      if (genPathErr) {
+        throw genPathErr;
+      }
+    } else {
+      await fsPromises.writeFile(patternPath, queues.join('\n'));
 
-    const { stdout, stderr: sfinderErr } = await execPromise(cmd);
-    if (sfinderErr) {
-      console.error(`An error occurred running sfinder to generate ${pathFilename}`, sfinderErr);
-      return false;
-    }
+      const { stdout, stderr: sfinderErr } = await execPromise(cmd);
+      if (sfinderErr) {
+        console.error(`An error occurred running sfinder to generate ${pathFilename}`, sfinderErr);
+        return false;
+      }
+      await fsPromises.unlink(patternPath);
 
-    const match = stdout.match(solveRegex);
-    if (match === null) {
-      console.error(`Fail to get the solve percent of the setup`);
-      return false;
-    }
+      const match = stdout.match(solveRegex);
+      if (match === null) {
+        console.error(`Fail to get the solve percent of the setup`);
+        return false;
+      }
 
-    const percent = parseFloat(match[1]); // Convert the captured string to a number
-    const numerator = parseInt(match[2], 10); // Convert to integer
-    const denominator = parseInt(match[3], 10); // Convert to integer
+      const percent = parseFloat(match[1]); // Convert the captured string to a number
+      const numerator = parseInt(match[2], 10); // Convert to integer
+      const denominator = parseInt(match[3], 10); // Convert to integer
 
-    if (Math.abs(percent - stat.solve_percent) > 0e-4) {
-      console.error(`Percentage different for ${setup.setup_id} ${stat.stat_id}: percent computed ${percent}, database ${stat.solve_percent}`);
-      console.error(cmd);
-      return false;
-    } 
-    if (numerator != stat.solve_fraction.numerator || denominator != stat.solve_fraction.denominator) {
-      console.error(`Percentage different for ${setup.setup_id} ${stat.stat_id}: fraction computed ${numerator}/${denominator}, database ${stat.solve_fraction.numerator}/${stat.solve_fraction.denominator}`);
-      console.error(cmd);
-      return false;
+      if (Math.abs(percent - stat.solve_percent) > 0e-4) {
+        console.error(`Percentage different for ${setup.setup_id} ${stat.stat_id}: percent computed ${percent}, database ${stat.solve_percent}`);
+        console.error(cmd);
+        return false;
+      } 
+      if (numerator != stat.solve_fraction.numerator || denominator != stat.solve_fraction.denominator) {
+        console.error(`Percentage different for ${setup.setup_id} ${stat.stat_id}: fraction computed ${numerator}/${denominator}, database ${stat.solve_fraction.numerator}/${stat.solve_fraction.denominator}`);
+        console.error(cmd);
+        return false;
+      }
     }
 
     const { data, error: compressErr } = await compressPath(output, setup.solve_pattern);
@@ -116,7 +123,6 @@ async function uploadPath(setup: Setup, stat: Statistic): Promise<boolean> {
       return false;
     }
     
-    await fsPromises.unlink(patternPath);
     await fsPromises.unlink(output);
 
     return true;

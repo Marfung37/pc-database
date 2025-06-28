@@ -18,7 +18,7 @@ const PIECESTONUM: Record<string, number> = {
 
 const NUMTOPIECES: string = 'TILJSZO';
 
-const COLUMN_ORDER = [
+export const COLUMN_ORDER = [
   'ツモ', // Queue
   '対応地形数', // Fumen count
   '使用ミノ', // Used pieces

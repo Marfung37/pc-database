@@ -90,6 +90,9 @@ importers:
       '@types/yargs':
         specifier: ^17.0.33
         version: 17.0.33
+      csv-writer:
+        specifier: ^1.6.0
+        version: 1.6.0
       daisyui:
         specifier: ^5.0.35
         version: 5.0.35
@@ -1117,6 +1120,9 @@ packages:
 
   csv-stringify@6.5.2:
     resolution: {integrity: sha512-RFPahj0sXcmUyjrObAK+DOWtMvMIFV328n4qZJhgX3x2RqkQgOTU2mCUmiFR0CzM6AzChlRSUErjiJeEt8BaQA==}
+
+  csv-writer@1.6.0:
+    resolution: {integrity: sha512-NOx7YDFWEsM/fTRAJjRpPp8t+MKRVvniAg9wQlUKx20MFrPs73WLJhFf5iteqrxNYnsy924K3Iroh3yNHeYd2g==}
 
   daisyui@5.0.35:
     resolution: {integrity: sha512-AWi11n/x5++mps55jcwrBf0Lmip1euWY0FYcH/05SFGmoqrU7S7/aIUWaiaeqlJ5EcmEZ/7zEY73aOxMv6hcIg==}
@@ -3365,6 +3371,8 @@ snapshots:
   csv-parse@5.6.0: {}
 
   csv-stringify@6.5.2: {}
+
+  csv-writer@1.6.0: {}
 
   daisyui@5.0.35: {}
 
