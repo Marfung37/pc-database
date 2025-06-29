@@ -3,7 +3,9 @@ import * as lzma from 'lzma-native';
 import { parse } from 'csv-parse/sync';
 import { stringify } from 'csv-stringify/sync';
 import { extendPieces } from './pieces';
-import type { Result } from '$lib/types';
+import type { SetupID, Kicktable, HoldType } from '$lib/types';
+
+export type Result<T> = Promise<{ data: T; error: null } | { data: null; error: Error }>;
 
 const PIECESTONUM: Record<string, number> = {
   T: 0,
@@ -17,7 +19,7 @@ const PIECESTONUM: Record<string, number> = {
 
 const NUMTOPIECES: string = 'TILJSZO';
 
-const COLUMN_ORDER = [
+export const COLUMN_ORDER = [
   'ツモ', // Queue
   '対応地形数', // Fumen count
   '使用ミノ', // Used pieces
@@ -30,6 +32,7 @@ function queueKey(queue: string): number {
 }
 
 function mapSaves(saves: string): number {
+  if (saves.length == 0) return 0;
   return saves.split(';').reduce((mask, p) => mask | (1 << PIECESTONUM[p]), 0);
 }
 
@@ -60,15 +63,17 @@ export async function compressPath(filename: string, pieces: string): Result<Buf
   const fumens: Record<string, number> = {};
 
   for (const row of records) {
-    const rowFumens = row['テト譜'].trim().split(';');
-    for (let i = 0; i < rowFumens.length; i++) {
-      const f = rowFumens[i];
-      if (!(f in fumens)) {
-        fumens[f] = Object.keys(fumens).length;
+    if (row['テト譜'].length > 0) {
+      const rowFumens = row['テト譜'].trim().split(';');
+      for (let i = 0; i < rowFumens.length; i++) {
+        const f = rowFumens[i];
+        if (!(f in fumens)) {
+          fumens[f] = Object.keys(fumens).length;
+        }
+        rowFumens[i] = fumens[f].toString();
       }
-      rowFumens[i] = fumens[f].toString();
+      row['テト譜'] = rowFumens.join(';');
     }
-    row['テト譜'] = rowFumens.join(';');
     row['未使用ミノ'] = mapSaves(row['未使用ミノ']).toString();
 
     delete row['ツモ'];
@@ -169,7 +174,7 @@ export async function decompressPath(data: Buffer, level: number = 4): Result<st
       }
     }
     if (level >= 3) {
-      const rowKeyFumens = row['テト譜'].split(';');
+      const rowKeyFumens = (row['テト譜'].length > 0) ? row['テト譜'].split(';'): [];
       try {
         row['テト譜'] = rowKeyFumens.map((key) => fumens[strictParseInt(key)]).join(';'); // fumens
       } catch (err) {
@@ -182,7 +187,7 @@ export async function decompressPath(data: Buffer, level: number = 4): Result<st
       }
       row['対応地形数'] = rowKeyFumens.length.toString(); // number of fumens
     }
-    if (level >= 4) {
+    if (level >= 4 && row['未使用ミノ'].length > 0) {
       const sortedQueue = [...row['ツモ']].sort((a, b) => PIECESTONUM[a] - PIECESTONUM[b]).join('');
       row['使用ミノ'] = row['未使用ミノ']
         .split(';')
@@ -198,4 +203,8 @@ export async function decompressPath(data: Buffer, level: number = 4): Result<st
     }).trim(),
     error: null
   };
+}
+
+export function generateBucketPathFilename(setupid: SetupID, kicktable: Kicktable, holdtype: HoldType) {
+  return `${setupid}-${kicktable}-${holdtype}.csvd.xz`;
 }

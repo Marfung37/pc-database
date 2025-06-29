@@ -28,3 +28,7 @@ src/lib/paraglide
 
 # Database
 data/init_db.sql
+
+# utils
+utils/tmp
+output/

@@ -121,7 +121,7 @@ CREATE TABLE "statistics" (
   "solve_fraction" fraction,
   "all_solves" fumen,
   "minimal_solves" fumen,
-  "path_file" bool,
+  "path_file" bool NOT NULL DEFAULT FALSE,
   UNIQUE ("setup_id", "kicktable", "hold_type")
 );
 

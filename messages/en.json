@@ -12,6 +12,7 @@
   "btn_save": "Save",
   "btn_submit": "Submit",
   "loading": "Loading...",
+  "processing": "Processing...",
   "yes": "Yes",
   "no": "No",
   "email_address": "Email Address",
@@ -30,5 +31,6 @@
   "lookup_unknown": "Not Known",
   "lookup_credit": "Credit",
   "lookup_current_setup": "Current Setup",
-  "lookup_next_setup": "Next Setup"
+  "lookup_next_setup": "Next Setup",
+  "lookup_download_path": "Download Path File"
 }
