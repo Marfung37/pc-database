@@ -56,8 +56,8 @@ export async function setupFinder(
   queue: Queue,
   pcNum: number | null = null,
   previousSetup: SetupID | null = null,
-  kicktable: Kicktable = PUBLIC_DEFAULT_KICKTABLE,
-  hold_type: HoldType = PUBLIC_DEFAULT_HOLDTYPE
+  kicktable: Kicktable = PUBLIC_DEFAULT_KICKTABLE as Kicktable,
+  hold_type: HoldType = PUBLIC_DEFAULT_HOLDTYPE as HoldType
 ): Result<setupFullData[]> {
   let setups, setupErr;
   if (previousSetup) {
@@ -122,8 +122,8 @@ export async function setupFinder(
 
 export async function getSetup(
   setupId: SetupID,
-  kicktable: Kicktable = PUBLIC_DEFAULT_KICKTABLE,
-  hold_type: HoldType = PUBLIC_DEFAULT_HOLDTYPE
+  kicktable: Kicktable = PUBLIC_DEFAULT_KICKTABLE as Kicktable,
+  hold_type: HoldType = PUBLIC_DEFAULT_HOLDTYPE as HoldType
 ): Result<setupFullData> {
   const { data: setup, error: setupErr } = await supabase.rpc('find_setup_setup_id', {
     p_setup_id: setupId,

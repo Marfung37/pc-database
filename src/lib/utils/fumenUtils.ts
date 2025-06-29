@@ -1,4 +1,4 @@
-import { decoder, encoder, Field } from 'tetris-fumen';
+import { decoder, encoder, Field, type Page } from 'tetris-fumen';
 
 function getFieldHeight(field: Field): number {
   return field.str({ reduced: true, garbage: false }).split('\n').length;
@@ -51,9 +51,20 @@ export function getHeight(fumen: string): number {
   return height;
 }
 
+function decodeWrapper(fumen: string): Page[] {
+  let pages: Page[];
+  try {
+    pages = decoder.decode(fumen)
+  } catch (e) {
+    throw new Error(`Fumen ${fumen} could not be decoded`)
+  }
+
+  return pages
+}
+
 export function grayFumen(fumen: string): string {
   // gray out all colored minos
-  const pages = decoder.decode(fumen);
+  const pages = decodeWrapper(fumen);
 
   for(let page of pages) {
     if (page.field !== null) {
@@ -62,4 +73,14 @@ export function grayFumen(fumen: string): string {
   }
 
   return encoder.encode(pages);
+}
+
+export function fumenGetComments(fumen: string): string[] {
+  const pages = decodeWrapper(fumen);
+  const comments = [];
+
+  for (let page of pages) 
+    comments.push(page.comment)
+
+  return comments;
 }

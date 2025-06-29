@@ -1,3 +1,5 @@
+import { PCSIZE } from '$lib/constants';
+
 /**
  * Converts a given PC (Perfect Clear) number to the length of the leftover.
  *
@@ -30,12 +32,12 @@ export function LONUM2PCNUM(leftoverNum: number): number {
  * @returns A list of numbers representing the composition of pieces in each bag
  * to reach the 11-piece target.
  */
-export function LONUM2BAGCOMP(leftoverNum: number): number[] {
+export function LONUM2BAGCOMP(leftoverNum: number, numPieces: number = PCSIZE + 1): number[] {
   // Initialize the bag composition with the given leftover number.
   const bagComp: number[] = [leftoverNum];
 
   // Continue adding bags until the total number of pieces reaches or exceeds 11.
-  while (bagComp.reduce((sum, current) => sum + current, 0) < 11) {
+  while (bagComp.reduce((sum, current) => sum + current, 0) < numPieces) {
     // Calculate remaining pieces needed to reach 11.
     const remainingNeeded = 11 - bagComp.reduce((sum, current) => sum + current, 0);
     // Add either the remaining needed pieces or a full bag (7 pieces), whichever is smaller.
