@@ -12,7 +12,7 @@ import { PCNUM2LONUM } from '$lib/utils/formulas';
 import { sortQueue } from '$lib/utils/queueUtils';
 import { piecesContains } from '$lib/utils/piecesContains';
 import { supabase } from '$lib/supabaseClient';
-import { PUBLIC_DEFAULT_KICKTABLE, PUBLIC_DEFAULT_HOLDTYPE } from '$env/static/private';
+import { PUBLIC_DEFAULT_KICKTABLE, PUBLIC_DEFAULT_HOLDTYPE } from '$env/static/public';
 
 const setupIDRegex = new RegExp(`^[1-9][0-9a-f]+$`);
 
