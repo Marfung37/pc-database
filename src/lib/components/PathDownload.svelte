@@ -1,5 +1,6 @@
 <script lang="ts">
   import { PUBLIC_DEFAULT_KICKTABLE, PUBLIC_DEFAULT_HOLDTYPE } from '$env/static/public';
+  import { m } from '$lib/paraglide/messages.js';
   import type { SetupID, Kicktable, HoldType } from '$lib/types';
 
   export let setupid: SetupID;
@@ -56,6 +57,6 @@
   }
 </script>
 
-<button on:click={download} disabled={downloading}>
-  {downloading ? 'Processing...' : 'Download Path File'}
+<button class="cursor-pointer" on:click={download} disabled={downloading}>
+  {downloading ? m.processing() : m.lookup_download_path()}
 </button>

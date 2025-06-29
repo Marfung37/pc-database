@@ -12,6 +12,7 @@
   "btn_save": "保存",
   "btn_submit": "送信",
   "loading": "処理中...",
+  "processing": "処理...",
   "yes": "はい",
   "no": "いいえ",
   "email_address": "メールアドレス",
@@ -29,5 +30,6 @@
   "lookup_unknown": "不明",
   "lookup_credit": "クレジット",
   "lookup_current_setup": "今の組み方",
-  "lookup_next_setup": "次の組み方"
+  "lookup_next_setup": "次の組み方",
+  "lookup_download_path": "ダウンロード・パス・ファイル"
 }
