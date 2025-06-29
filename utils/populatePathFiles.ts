@@ -1,5 +1,6 @@
 import fsPromises from "fs/promises";
-import { compressPath } from './lib/compression';
+import { compressPath, decompressPath } from './lib/compression'; // DEBUG
+import * as lzma from 'lzma-native';
 import { isPC } from './lib/fumenUtils';
 import { supabaseAdmin } from './lib/supabaseAdmin';
 import { extendPieces } from './lib/pieces';
@@ -101,11 +102,11 @@ async function uploadPath(setup: Setup, stat: Statistic): Promise<boolean> {
 
     const { data: uploadData, error: uploadErr } = await supabaseAdmin.storage
       .from(process.env.PATH_UPLOAD_BUCKET as string)
-      .upload(supabaseFilename, data, {
+      .upload(supabaseFilename, data, { 
         contentType: 'application/x-xz',
         upsert: true, // Set to true to overwrite if a file with the same path exists
       });
-    
+
     if (uploadErr) {
       console.error('Error uploading file to supabase:', uploadErr.message);
       return false;
@@ -161,4 +162,60 @@ async function runUploads(batchSize: number = 1000) {
   }
 }
 
-await runUploads();
+// await runUploads();
+
+const pageSize = 100
+let offset = 0
+let done = false
+
+while(!done) {
+  const { data: files, error: listError } = await supabaseAdmin
+    .storage
+    .from(process.env.PATH_UPLOAD_BUCKET as string)
+    .list('', { limit: pageSize, offset })
+  if (listError) {
+    console.error(listError);
+    process.exit(1);
+  }
+
+  if (files.length < pageSize) {
+    // Last page reached
+    done = true
+  } else {
+    offset += pageSize
+  }
+
+  for (let file of files) {
+    const {data: rawData, error: downloadError} = await supabaseAdmin.storage.from(process.env.PATH_UPLOAD_BUCKET as string).download(file.name);
+    if (downloadError) {
+      console.error(downloadError)
+      process.exit(1);
+    }
+    console.log("Downloaded", file.name);
+
+    const {data, error: decompressError} = await decompressPath(Buffer.from(await rawData.arrayBuffer()), 0);
+    if (decompressError) {
+      console.error(decompressError)
+      process.exit(1);
+    }
+
+    // replace all 1, with 0,
+    const fixedData = data.replace(/^1,$/mg, '0,')
+
+    const compressed = await lzma.compress(Buffer.from(fixedData), { preset: 9 });
+
+    const { data: uploadData, error: uploadErr } = await supabaseAdmin.storage
+      .from(process.env.PATH_UPLOAD_BUCKET as string)
+      .upload(file.name, compressed, { 
+        contentType: 'application/x-xz',
+        upsert: true, // Set to true to overwrite if a file with the same path exists
+      });
+    if (uploadErr) {
+      console.error('Error uploading file to supabase:', uploadErr.message);
+      process.exit(1);
+    }
+    
+    console.log("Uploaded", uploadData.path);
+  }
+
+}

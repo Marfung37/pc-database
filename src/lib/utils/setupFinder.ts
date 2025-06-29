@@ -12,6 +12,7 @@ import { PCNUM2LONUM } from '$lib/utils/formulas';
 import { sortQueue } from '$lib/utils/queueUtils';
 import { piecesContains } from '$lib/utils/piecesContains';
 import { supabase } from '$lib/supabaseClient';
+import { PUBLIC_DEFAULT_KICKTABLE, PUBLIC_DEFAULT_HOLDTYPE } from '$env/static/private';
 
 const setupIDRegex = new RegExp(`^[1-9][0-9a-f]+$`);
 
@@ -55,8 +56,8 @@ export async function setupFinder(
   queue: Queue,
   pcNum: number | null = null,
   previousSetup: SetupID | null = null,
-  kicktable: Kicktable = 'srs180',
-  hold_type: HoldType = 'any'
+  kicktable: Kicktable = PUBLIC_DEFAULT_KICKTABLE,
+  hold_type: HoldType = PUBLIC_DEFAULT_HOLDTYPE
 ): Result<setupFullData[]> {
   let setups, setupErr;
   if (previousSetup) {
@@ -121,8 +122,8 @@ export async function setupFinder(
 
 export async function getSetup(
   setupId: SetupID,
-  kicktable: Kicktable = 'srs180',
-  hold_type: HoldType = 'any'
+  kicktable: Kicktable = PUBLIC_DEFAULT_KICKTABLE,
+  hold_type: HoldType = PUBLIC_DEFAULT_HOLDTYPE
 ): Result<setupFullData> {
   const { data: setup, error: setupErr } = await supabase.rpc('find_setup_setup_id', {
     p_setup_id: setupId,

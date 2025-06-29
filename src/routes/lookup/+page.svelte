@@ -2,6 +2,7 @@
   import { enhance, applyAction } from '$app/forms';
   import { m } from '$lib/paraglide/messages.js';
   import FumenRender from '$lib/components/FumenRender.svelte';
+  import PathDownload from '$lib/components/PathDownload.svelte';
   import { ChevronRight } from '@lucide/svelte';
 
   export let form;
@@ -124,6 +125,9 @@
             <p>OQB {m.cover_pattern()}: {setup.cover_pattern}</p>
           {/if}
           <p>{m.lookup_credit()}: {setup.credit ? setup.credit : m.lookup_unknown()}</p>
+          {#if setup.solve_pattern}
+            <PathDownload setupid={setup.setup_id} />
+          {/if}
           <!-- <p>Minimal Solves</p> -->
           <!-- <p>Variants</p> -->
         </div>
