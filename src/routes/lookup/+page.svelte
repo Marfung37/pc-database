@@ -122,7 +122,7 @@
             <p>{m.cover_description()}: {setup.cover_description}</p>
           {/if}
           <p>{m.cover_pattern()}: {setup.cover_pattern}</p>
-          <p>{m.exact_cover_pattern()}: {(setup.cover_data === null) ? m.yes() : m.no()}</p>
+          <p>{m.exact_cover_pattern()}: {setup.cover_data === null ? m.yes() : m.no()}</p>
           <p>{m.lookup_credit()}: {setup.credit ? setup.credit : m.lookup_unknown()}</p>
           {#if setup.solve_pattern}
             <PathDownload setupid={setup.setup_id} />
@@ -131,7 +131,7 @@
           <!-- <p>Variants</p> -->
         </div>
         <div class="flex min-w-4 items-center">
-          <a href={`/lookup/${setup.setup_id}` + ((oqb) ? `+${submittedQueue}`: '')}>
+          <a href={`/lookup/${setup.setup_id}` + (oqb ? `+${submittedQueue}` : '')}>
             <ChevronRight size={32} />
           </a>
         </div>

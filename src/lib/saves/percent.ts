@@ -14,31 +14,31 @@ export function anyIndex(seq: Iterable<boolean>): number {
 
 export function percent(
   wantedSaves: string[],
-  build: string, 
+  build: string,
   leftover: string,
-  pcNum: number, 
+  pcNum: number,
   filepath: string | null = null,
   fileData: string | null = null,
-  twoline: boolean = false,
+  twoline: boolean = false
 ): Fraction[] {
   const saveableCounters: number[] = Array(wantedSaves.length).fill(0);
-  let total: number = 0
+  let total: number = 0;
 
-  const wantedSavesParser = new WantedSavesParser() 
+  const wantedSavesParser = new WantedSavesParser();
   const asts: AST[] = [];
   for (let wantedSave of wantedSaves) {
     asts.push(wantedSavesParser.parse(wantedSave));
   }
 
   if (fileData === null && filepath === null) {
-    throw new Error('Either filepath or records must be filled for percent')
+    throw new Error('Either filepath or records must be filled for percent');
   }
 
   const saveReader = new SavesReader(build, leftover, pcNum, filepath, fileData, twoline);
 
   for (let row of saveReader.read()) {
     // get first index that satisfies the save
-    const index = anyIndex(asts.map((ast) => evaluateAst(ast, row.saves)))
+    const index = anyIndex(asts.map((ast) => evaluateAst(ast, row.saves)));
 
     if (index != -1) {
       saveableCounters[index] += 1;

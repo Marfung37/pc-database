@@ -1,1 +1,1 @@
-export const WANTED_SAVE_DELIMITER = ','
+export const WANTED_SAVE_DELIMITER = ',';

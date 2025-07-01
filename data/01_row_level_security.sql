@@ -338,7 +338,6 @@ CREATE POLICY delete_saves ON saves FOR DELETE TO authenticated USING (
   )
 );
 
-CREATE POLICY "Allow service_role to upload to path bucket"
-ON storage.objects
-FOR INSERT TO service_role
-WITH CHECK (bucket_id = 'path');
+CREATE POLICY "Allow service_role to upload to path bucket" ON storage.objects FOR INSERT TO service_role
+WITH
+  CHECK (bucket_id = 'path');

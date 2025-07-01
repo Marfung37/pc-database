@@ -45,7 +45,6 @@ export const actions: Actions = {
       });
     }
 
-
     const { data: setups, error: setupsErr } = await setupFinder(queue, pc);
 
     if (setupsErr) {
@@ -79,5 +78,5 @@ export const actions: Actions = {
       success: true,
       setups
     };
-  },
+  }
 };

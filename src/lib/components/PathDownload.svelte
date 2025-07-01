@@ -28,16 +28,15 @@
     try {
       response = await fetch(url);
     } catch (e) {
-      console.error("Failed to get file:", (e as Error).message);
+      console.error('Failed to get file:', (e as Error).message);
       downloading = false;
       return;
     }
     if (!response.ok) {
-      console.error("Failed to get file");
+      console.error('Failed to get file');
       downloading = false;
       return;
     }
-
 
     const data = await response.blob();
 
@@ -46,7 +45,7 @@
       const url = URL.createObjectURL(data);
       const link = document.createElement('a');
       link.href = url;
-      link.download = generatePathFilename(setupid, kicktable, holdtype); 
+      link.download = generatePathFilename(setupid, kicktable, holdtype);
       document.body.appendChild(link);
       link.click();
       link.remove();

@@ -2,11 +2,11 @@ import * as fs from 'fs';
 import * as csv from 'csv-parse/sync';
 import { PCNUM2LONUM, LONUM2BAGCOMP } from '$lib/utils/formulas';
 import { sortQueue } from '$lib/utils/queueUtils';
-import { fumenGetComments} from '$lib/utils/fumenUtils';
-import { 
-  BAG, 
-  PCSIZE, 
-  COLUMN_QUEUE, 
+import { fumenGetComments } from '$lib/utils/fumenUtils';
+import {
+  BAG,
+  PCSIZE,
+  COLUMN_QUEUE,
   COLUMN_UNUSED_PIECES,
   COLUMN_UNUSED_PIECES_DELIMITER,
   COLUMN_FUMENS,
@@ -14,11 +14,7 @@ import {
 } from '$lib/constants';
 import type { Queue } from '$lib/types';
 
-const REQUIRED_COLUMNS = new Set([
-  COLUMN_QUEUE,
-  COLUMN_UNUSED_PIECES,
-  COLUMN_FUMENS,
-]);
+const REQUIRED_COLUMNS = new Set([COLUMN_QUEUE, COLUMN_UNUSED_PIECES, COLUMN_FUMENS]);
 
 // Helper to get the multiset difference
 function multisetDifference(str1: string, str2: string): Record<string, number> {
@@ -37,19 +33,19 @@ function multisetToSet(count: Record<string, number>): Set<string> {
   return result;
 }
 
-function getUnusedLastBag(
-  build: string,
-  leftover: string,
-  bagComp: number[]
-): Set<string> {
+function getUnusedLastBag(build: string, leftover: string, bagComp: number[]): Set<string> {
   let lastBagPiecesUsed: Record<string, number>;
   if (bagComp.length < 3) {
     lastBagPiecesUsed = multisetDifference(build, leftover);
   } else {
     lastBagPiecesUsed = multisetDifference(build, leftover + BAG);
   }
-  const unusedLastBagCount = multisetDifference(BAG, Object.entries(lastBagPiecesUsed)
-    .flatMap(([k, v]) => k.repeat(v > 0 ? v : 0)).join(''));
+  const unusedLastBagCount = multisetDifference(
+    BAG,
+    Object.entries(lastBagPiecesUsed)
+      .flatMap(([k, v]) => k.repeat(v > 0 ? v : 0))
+      .join('')
+  );
   return multisetToSet(unusedLastBagCount);
 }
 
@@ -74,25 +70,28 @@ export class SavesReader {
     private filepath: string | null = null,
     fileData: string | null = null,
     private twoline = false,
-    private hold = 1,
+    private hold = 1
   ) {
     const bagComp = LONUM2BAGCOMP(PCNUM2LONUM(pcNum), twoline ? 6 : 11);
     this.unusedLastBag = getUnusedLastBag(build, leftover, bagComp);
-    this.leadingSize = Math.max(bagComp.slice(0, -1).reduce((a, b) => a + b, 0), build.length);
+    this.leadingSize = Math.max(
+      bagComp.slice(0, -1).reduce((a, b) => a + b, 0),
+      build.length
+    );
 
     if (fileData === null && filepath === null) {
-      throw new Error('Either filepath or records must be filled for saves reader')
+      throw new Error('Either filepath or records must be filled for saves reader');
     }
-    
-    const csvContent = (fileData !== null) ? fileData : fs.readFileSync(filepath!, 'utf-8');
+
+    const csvContent = fileData !== null ? fileData : fs.readFileSync(filepath!, 'utf-8');
     const parsed = csv.parse(csvContent, {
       columns: true,
-      skip_empty_lines: true,
+      skip_empty_lines: true
     });
     this.records = parsed;
 
     const fieldnames = Object.keys(parsed[0] ?? {});
-    const missing = [...REQUIRED_COLUMNS].filter(c => !fieldnames.includes(c));
+    const missing = [...REQUIRED_COLUMNS].filter((c) => !fieldnames.includes(c));
     if (missing.length > 0) {
       throw new Error(`Missing required columns: ${missing.join(', ')}`);
     }
@@ -112,7 +111,7 @@ export class SavesReader {
         const saveRow: SavesRow = {
           saves: [],
           solveable,
-          queue: row[COLUMN_QUEUE],
+          queue: row[COLUMN_QUEUE]
         };
         if (assignFumens) saveRow.fumens = [];
         if (assignLine) saveRow.line = row;
@@ -132,15 +131,10 @@ export class SavesReader {
       }
 
       const unseenLastBagPart = new Set(
-        [...this.unusedLastBag].filter(
-          p => !fullQueue.slice(this.leadingSize).includes(p)
-        )
+        [...this.unusedLastBag].filter((p) => !fullQueue.slice(this.leadingSize).includes(p))
       );
 
-      const queueValue = [...row[COLUMN_QUEUE]].reduce(
-        (sum, c) => sum + c.charCodeAt(0),
-        0
-      );
+      const queueValue = [...row[COLUMN_QUEUE]].reduce((sum, c) => sum + c.charCodeAt(0), 0);
 
       for (const unusedPiece of row[COLUMN_UNUSED_PIECES].split(COLUMN_UNUSED_PIECES_DELIMITER)) {
         let save = [...unseenLastBagPart].join('') + unusedPiece;
@@ -152,10 +146,7 @@ export class SavesReader {
           for (const fumen of row[COLUMN_FUMENS].split(COLUMN_FUMENS_DELIMITER)) {
             if (!(fumen in fumenLabels)) {
               const comment = fumenGetComments(fumen)[0];
-              fumenLabels[fumen] = [...comment].reduce(
-                (s, c) => s + c.charCodeAt(0),
-                0
-              );
+              fumenLabels[fumen] = [...comment].reduce((s, c) => s + c.charCodeAt(0), 0);
             }
             const commentValue = fumenLabels[fumen];
             const fumenUnusedPiece = String.fromCharCode(queueValue - commentValue);
@@ -170,7 +161,7 @@ export class SavesReader {
       const saveRow: SavesRow = {
         saves,
         solveable,
-        queue: row[COLUMN_QUEUE],
+        queue: row[COLUMN_QUEUE]
       };
       if (assignFumens) saveRow.fumens = saveFumens;
       if (assignLine) saveRow.line = row;

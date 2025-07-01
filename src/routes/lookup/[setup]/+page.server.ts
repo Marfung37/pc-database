@@ -12,7 +12,8 @@ import type { Actions, PageServerLoad } from './$types';
 import type { Queue, SetupID, Kicktable, HoldType } from '$lib/types';
 
 export const load: PageServerLoad = async ({ params }) => {
-  let setupid: string, subbuild: string = '';
+  let setupid: string,
+    subbuild: string = '';
   let oqb: boolean = false;
   if (!params.setup.includes('+')) {
     setupid = params.setup;
@@ -39,7 +40,7 @@ export const load: PageServerLoad = async ({ params }) => {
     // looking up from a non oqb setup?
     if (setup.oqb_path === null) {
       error(404, { message: 'Setup is not an oqb setup' });
-    } else if (!subStringSet( subbuild.slice(0, setup.build.length + 1), setup.build)) {
+    } else if (!subStringSet(subbuild.slice(0, setup.build.length + 1), setup.build)) {
       error(404, { message: 'Incorrect pieces for the setup' });
     }
   }
@@ -117,7 +118,7 @@ export const actions: Actions = {
     const leftoverStr = formData.get('leftover') as string;
     const pcStr = formData.get('pc') as string;
 
-    const returnData = { 
+    const returnData = {
       wantedSaves,
       setupid: setupidStr,
       build: buildStr,
@@ -167,9 +168,13 @@ export const actions: Actions = {
     const build = buildStr as Queue;
     const leftover = leftoverStr as Queue;
 
-    const filename = generateBucketPathFilename(setupid, PUBLIC_DEFAULT_KICKTABLE as Kicktable, PUBLIC_DEFAULT_HOLDTYPE as HoldType);
+    const filename = generateBucketPathFilename(
+      setupid,
+      PUBLIC_DEFAULT_KICKTABLE as Kicktable,
+      PUBLIC_DEFAULT_HOLDTYPE as HoldType
+    );
 
-    const {data: fileExists, error: existError} = await supabase.storage
+    const { data: fileExists, error: existError } = await supabase.storage
       .from(PATH_UPLOAD_BUCKET)
       .exists(filename);
 
@@ -190,7 +195,7 @@ export const actions: Actions = {
       });
     }
 
-    const {data: fileData, error: downloadError} = await supabase.storage
+    const { data: fileData, error: downloadError } = await supabase.storage
       .from(PATH_UPLOAD_BUCKET)
       .download(filename);
 
@@ -203,7 +208,10 @@ export const actions: Actions = {
       });
     }
 
-    const {data: decompressedFile, error: decompressError} = await decompressPath(Buffer.from(await fileData.arrayBuffer()), 2);
+    const { data: decompressedFile, error: decompressError } = await decompressPath(
+      Buffer.from(await fileData.arrayBuffer()),
+      2
+    );
 
     if (decompressError) {
       console.error(`Failed to decompress path file ${filename}:`, decompressError.message);
@@ -216,7 +224,14 @@ export const actions: Actions = {
 
     let fractions: Fraction[];
     try {
-      fractions = percent(wantedSaves.split(WANTED_SAVE_DELIMITER), build, leftover, pc, null, decompressedFile, ) // TODO: twoline
+      fractions = percent(
+        wantedSaves.split(WANTED_SAVE_DELIMITER),
+        build,
+        leftover,
+        pc,
+        null,
+        decompressedFile
+      ); // TODO: twoline
     } catch (e) {
       console.error('Percent failed to run:', e);
       return fail(500, {
@@ -232,5 +247,4 @@ export const actions: Actions = {
       fractions: fractions.map((f: Fraction) => f.toString())
     };
   }
-
 };

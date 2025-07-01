@@ -10,9 +10,7 @@ function isMultisetSubset(wanted: string, target: string): boolean {
     targetCounts[c] = (targetCounts[c] ?? 0) + 1;
   }
 
-  return Object.entries(wantedCounts).every(
-    ([char, count]) => (targetCounts[char] ?? 0) >= count
-  );
+  return Object.entries(wantedCounts).every(([char, count]) => (targetCounts[char] ?? 0) >= count);
 }
 
 // Utility function: allIndex
@@ -35,13 +33,11 @@ const TOKEN_SPEC: [string, string][] = [
   ['LPAREN', '\\('],
   ['RPAREN', '\\)'],
   ['REGEX', '/[^/]+/'],
-  ['PIECES', '[TILJSZO]+' ],
-  ['WS', '\\s+'],
+  ['PIECES', '[TILJSZO]+'],
+  ['WS', '\\s+']
 ];
 
-const MASTER_REGEX = TOKEN_SPEC
-  .map(([name, pattern]) => `(?<${name}>${pattern})`)
-  .join('|');
+const MASTER_REGEX = TOKEN_SPEC.map(([name, pattern]) => `(?<${name}>${pattern})`).join('|');
 const tokenRe = new RegExp(MASTER_REGEX, 'g');
 
 // Token class
@@ -107,9 +103,7 @@ export function tokenize(text: string): Token[] {
   const tokens: Token[] = [];
   let match: RegExpExecArray | null;
   while ((match = tokenRe.exec(text)) !== null) {
-    const kind = Object.entries(match.groups ?? {}).find(
-      ([, v]) => v !== undefined
-    )?.[0];
+    const kind = Object.entries(match.groups ?? {}).find(([, v]) => v !== undefined)?.[0];
     let value = match[0];
     if (kind === 'WS') continue;
     if (kind === 'REGEX') value = value.slice(1, -1); // strip slashes
@@ -126,9 +120,7 @@ export class Parser {
   private tokens: Token[] = [];
   private pos = 0;
 
-  constructor(
-    private lexer: (text: string) => Token[] = tokenize
-  ) {}
+  constructor(private lexer: (text: string) => Token[] = tokenize) {}
 
   private peek(): Token {
     return this.pos < this.tokens.length ? this.tokens[this.pos] : new Token();
@@ -201,14 +193,12 @@ export class Parser {
     }
     if (token.kind === 'REGEX') {
       const regexExpr = this.consume('REGEX');
-      if (regexExpr.value === null)
-        throw new Error('Empty REGEX token');
+      if (regexExpr.value === null) throw new Error('Empty REGEX token');
       return new RegexLiteral(regexExpr.value);
     }
     if (token.kind === 'PIECES') {
       const pieces = this.consume('PIECES');
-      if (pieces.value === null)
-        throw new Error('Empty PIECES token');
+      if (pieces.value === null) throw new Error('Empty PIECES token');
       return new PiecesLiteral(pieces.value);
     }
     throw new Error(`Unexpected token: ${token}`);
@@ -218,16 +208,16 @@ export class Parser {
 // Evaluator
 export function evaluateAst(node: AST, saves: string[]): boolean {
   if (node instanceof PiecesLiteral) {
-    return saves.some(s => isMultisetSubset(node.value, s));
+    return saves.some((s) => isMultisetSubset(node.value, s));
   }
   if (node instanceof RegexLiteral) {
     const re = new RegExp(node.value);
-    return saves.some(s => re.test(s));
+    return saves.some((s) => re.test(s));
   }
   if (node instanceof UnaryOp) {
     if (node.op === 'NOT') return !evaluateAst(node.expr, saves);
     if (node.op === 'AVOID') {
-      return saves.some(s => !evaluateAst(node.expr, [s]));
+      return saves.some((s) => !evaluateAst(node.expr, [s]));
     }
   }
   if (node instanceof BinaryOp) {
@@ -241,20 +231,20 @@ export function evaluateAst(node: AST, saves: string[]): boolean {
 
 export function evaluateAstAll(node: AST, saves: string[]): number[] {
   if (node instanceof PiecesLiteral) {
-    return allIndex(saves.map(s => isMultisetSubset(node.value, s)));
+    return allIndex(saves.map((s) => isMultisetSubset(node.value, s)));
   }
   if (node instanceof RegexLiteral) {
     const re = new RegExp(node.value);
-    return allIndex(saves.map(s => re.test(s)));
+    return allIndex(saves.map((s) => re.test(s)));
   }
   if (node instanceof UnaryOp) {
     if (node.op === 'NOT') {
       const all = new Set(Array.from({ length: saves.length }, (_, i) => i));
       const neg = new Set(evaluateAstAll(node.expr, saves));
-      return [...[...all].filter(i => !neg.has(i))];
+      return [...[...all].filter((i) => !neg.has(i))];
     }
     if (node.op === 'AVOID') {
-      return allIndex(saves.map(s => !evaluateAstAll(node.expr, [s]).length));
+      return allIndex(saves.map((s) => !evaluateAstAll(node.expr, [s]).length));
     }
   }
   if (node instanceof BinaryOp) {

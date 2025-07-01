@@ -174,7 +174,7 @@ export async function decompressPath(data: Buffer, level: number = 4): Result<st
       }
     }
     if (level >= 3) {
-      const rowKeyFumens = (row['テト譜'].length > 0) ? row['テト譜'].split(';'): [];
+      const rowKeyFumens = row['テト譜'].length > 0 ? row['テト譜'].split(';') : [];
       try {
         row['テト譜'] = rowKeyFumens.map((key) => fumens[strictParseInt(key)]).join(';'); // fumens
       } catch (err) {
@@ -205,6 +205,10 @@ export async function decompressPath(data: Buffer, level: number = 4): Result<st
   };
 }
 
-export function generateBucketPathFilename(setupid: SetupID, kicktable: Kicktable, holdtype: HoldType) {
+export function generateBucketPathFilename(
+  setupid: SetupID,
+  kicktable: Kicktable,
+  holdtype: HoldType
+) {
   return `${setupid}-${kicktable}-${holdtype}.csvd.xz`;
 }

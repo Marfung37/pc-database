@@ -80,11 +80,9 @@ export async function setupFinder(
 
   if (setupErr) return { data: null, error: setupErr };
 
-  if (setups.length == 0) 
-    return { data: [], error: null };
+  if (setups.length == 0) return { data: [], error: null };
 
-  if (pcNum === null)
-    pcNum = setups[0].pc as number;
+  if (pcNum === null) pcNum = setups[0].pc as number;
 
   const validSetups = [];
   for (let setup of setups) {
