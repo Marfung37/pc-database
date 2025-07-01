@@ -70,17 +70,23 @@ table statistics {
   }
 }
 
-table saves {
-  save_id           uuid          [primary key, default: `gen_random_uuid()`]
+table save_data {
+  save_data_id      uuid          [primary key, default: `gen_random_uuid()`]
+  save_id           uuid          [not null]
   stat_id           uuid          [not null]
-  save              varchar(255)  [not null, note: 'Pieces saved for next PC for sfinder-saves']
-  description       varchar(255)  [note: 'Description of the save. Ex: One T or Two LJ']
   save_percent      decimal(5, 2) [note: 'Save percent. NULL if multiple saves']
   save_fraction     fraction      [note: 'Precise save fraction. NULL if multiple saves']
   priority_save_percent   decimal(5, 2) [note: 'Array of percents for giving priority for saves. NULL if one save']
   priority_save_fraction  fraction      [note: 'Array of fraction for giving priority for saves. NULL if one save']
   all_solves        text          [note: 'All solves for save']
   minimal_solves    text          [note: 'Minimal set of solves for save']
+}
+
+table saves {
+  save_id           uuid          [primary key, default: `gen_random_uuid()`]
+  save              varchar(255)  [not null, note: 'Pieces saved for next PC for sfinder-saves']
+  description       varchar(255)  [note: 'Description of the save. Ex: One T or Two LJ']
+  pc                smallint      [not null, note: 'PC Number for 1-9']
 }
 
 table users {
@@ -103,7 +109,8 @@ table auth.users {
 }
 
 Ref: statistics.setup_id > setups.setup_id        [delete: cascade, update: cascade]
-Ref: saves.stat_id > statistics.stat_id           [delete: cascade, update: cascade]
+Ref: save_data.stat_id > statistics.stat_id       [delete: cascade, update: cascade]
+Ref: saves.save_id > save_data.save_id            [delete: cascade, update: cascade]
 
 Ref: setup_variants.setup_id > setups.setup_id    [delete: cascade, update: cascade]
 Ref: setup_oqb_links.child_id > setups.setup_id   [delete: cascade, update: cascade]
