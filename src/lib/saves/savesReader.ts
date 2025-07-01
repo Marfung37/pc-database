@@ -68,18 +68,23 @@ export class SavesReader {
   private records: Record<string, string>[];
 
   constructor(
-    private filepath: string,
     private build: string,
     private leftover: string,
     private pcNum: number,
+    private filepath: string | null = null,
+    fileData: string | null = null,
     private twoline = false,
-    private hold = 1
+    private hold = 1,
   ) {
     const bagComp = LONUM2BAGCOMP(PCNUM2LONUM(pcNum), twoline ? 6 : 11);
     this.unusedLastBag = getUnusedLastBag(build, leftover, bagComp);
     this.leadingSize = Math.max(bagComp.slice(0, -1).reduce((a, b) => a + b, 0), build.length);
 
-    const csvContent = fs.readFileSync(filepath, 'utf-8');
+    if (fileData === null && filepath === null) {
+      throw new Error('Either filepath or records must be filled for saves reader')
+    }
+    
+    const csvContent = (fileData !== null) ? fileData : fs.readFileSync(filepath!, 'utf-8');
     const parsed = csv.parse(csvContent, {
       columns: true,
       skip_empty_lines: true,

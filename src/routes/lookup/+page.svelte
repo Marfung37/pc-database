@@ -130,14 +130,11 @@
           <!-- <p>Minimal Solves</p> -->
           <!-- <p>Variants</p> -->
         </div>
-        <!-- TODO solve percent not completely accurate -->
-        {#if oqb}
-          <div class="flex min-w-4 items-center">
-            <a href="/lookup/{setup.setup_id}+{submittedQueue}">
-              <ChevronRight size={32} />
-            </a>
-          </div>
-        {/if}
+        <div class="flex min-w-4 items-center">
+          <a href={`/lookup/${setup.setup_id}` + ((oqb) ? `+${submittedQueue}`: '')}>
+            <ChevronRight size={32} />
+          </a>
+        </div>
       </div>
     {/each}
   </div>

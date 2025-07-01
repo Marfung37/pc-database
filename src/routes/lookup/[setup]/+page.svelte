@@ -9,19 +9,9 @@
   import { ChevronRight } from '@lucide/svelte';
 
   export let data;
-
-  let parent_setup = data.setup;
-
-  $: parent = $page.params.parent;
-  $: [parent_id, subbuild] = parent.split('+');
-
-  // Basic validation or error handling if '+' is not present
-  $: if (parent_id === undefined || subbuild === undefined) {
-    console.error('Invalid parent+subbuild format:', parent);
-    goto('/lookup');
-  }
-
   export let form;
+
+  const {setup, subbuild} = data;
 
   let loading = false;
 
@@ -60,26 +50,64 @@
   <h1 class="py-2 text-3xl">{m.lookup_current_setup()}</h1>
   <div class="mb-16 flex min-h-60 w-full rounded-3xl bg-white shadow-lg">
     <div class="flex basis-1/2 items-center justify-center p-4 lg:basis-1/3 xl:basis-1/4">
-      <FumenRender fumen={parent_setup.fumen} />
+      <FumenRender fumen={setup.fumen} />
     </div>
     <div class="flex-1">
-      <h2 class="py-2 text-2xl">{parent_setup.setup_id}</h2>
+      <h2 class="py-2 text-2xl">{setup.setup_id}</h2>
       <!-- <h3 class="text-xl pb-2">Statistics</h3> -->
-      {#if parent_setup.solve_percent}
-        <p>{m.lookup_solve_percent()}: {parent_setup.solve_percent}%</p>
+      {#if setup.solve_percent}
+        <p>{m.lookup_solve_percent()}: {setup.solve_percent}%</p>
       {/if}
-      <p>OQB: {parent_setup.oqb_path ? m.yes() : m.no()}</p>
-      {#if parent_setup.cover_description}
-        <p>{m.cover_description()}: {parent_setup.cover_description}</p>
+      <p>OQB: {setup.oqb_path ? m.yes() : m.no()}</p>
+      {#if setup.cover_description}
+        <p>{m.cover_description()}: {setup.cover_description}</p>
       {/if}
-      <p>{m.cover_pattern()}: {parent_setup.cover_pattern}</p>
-      <p>{m.exact_cover_pattern()}: {(parent_setup.cover_data === null) ? m.yes() : m.no()}</p>
-      <p>{m.lookup_credit()}: {parent_setup.credit ? parent_setup.credit : m.lookup_unknown()}</p>
+      <p>{m.cover_pattern()}: {setup.cover_pattern}</p>
+      <p>{m.exact_cover_pattern()}: {(setup.cover_data === null) ? m.yes() : m.no()}</p>
+      <p>{m.lookup_credit()}: {setup.credit ? setup.credit : m.lookup_unknown()}</p>
+      {#if setup.solve_pattern}
+        <PathDownload setupid={setup.setup_id} />
+      {/if}
       <!-- <p>Minimal Solves</p> -->
       <!-- <p>Variants</p> -->
     </div>
   </div>
 
+  {#if setup.solve_pattern}
+    <form 
+      class="flex gap-2 w-full whitespace-nowrap items-center"
+      method="post" 
+      action="?/saves_percent" 
+      use:enhance
+    >
+      <label for="wanted-save" class="block text-lg font-medium"> {m.lookup_wanted_saves()} </label>
+      <input
+        id="wanted-save"
+        name="wantedSaves"
+        type="text"
+        class="focus:shadow-outline block grow max-w-64 appearance-none rounded border border-gray-300 bg-white text-lg leading-tight shadow hover:border-gray-400 focus:outline-none"
+        value={form?.wantedSaves ?? ''}
+      />
+      <input type="hidden" name="setupid" value={setup.setup_id} />
+      <input type="hidden" name="build" value={setup.build} />
+      <input type="hidden" name="leftover" value={setup.leftover} />
+      <input type="hidden" name="pc" value={setup.pc} />
+      <button
+        type="submit"
+        class="flex cursor-pointer justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+        disabled={loading}
+      >
+        {loading ? m.loading() : m.btn_submit()}
+      </button>
+    </form>
+    <p>{m.lookup_save_percent()}: {loading ? m.loading() : 
+      form?.fractions
+        .map((f) => `${(f.split('/')[0] / f.split('/')[1] * 100).toFixed(2)}% (${f})`)
+        .join(', ') ?? ''}</p>
+  {/if}
+
+
+  {#if subbuild.length > 0}
   <h1 class="py-2 text-3xl">{m.lookup_next_setup()}</h1>
   <form
     class="flex w-full whitespace-nowrap"
@@ -126,35 +154,35 @@
   {/if}
 
   <div class="flex flex-col gap-4">
-    {#each form?.setups ?? [] as setup (setup.setup_id)}
-      {@const oqb = setup.oqb_path !== null}
+    {#each form?.setups ?? [] as next_setup (next_setup.setup_id)}
+      {@const oqb = next_setup.oqb_path !== null}
       <div class="flex min-h-60 w-full rounded-3xl bg-white shadow-lg">
         <div class="flex basis-1/2 items-center justify-center p-4 lg:basis-1/3 xl:basis-1/4">
-          <FumenRender fumen={setup.fumen} />
+          <FumenRender fumen={next_setup.fumen} />
         </div>
         <div class="flex-1">
-          <h2 class="py-2 text-2xl">{setup.setup_id}</h2>
+          <h2 class="py-2 text-2xl">{next_setup.setup_id}</h2>
           <!-- <h3 class="text-xl pb-2">Statistics</h3> -->
-          {#if setup.solve_percent}
-            <p>{m.lookup_solve_percent()}: {setup.solve_percent}%</p>
+          {#if next_setup.solve_percent}
+            <p>{m.lookup_solve_percent()}: {next_setup.solve_percent}%</p>
           {/if}
           <p>OQB: {oqb ? m.yes() : m.no()}</p>
-          {#if setup.cover_description}
-            <p>{m.cover_description()}: {setup.cover_description}</p>
+          {#if next_setup.cover_description}
+            <p>{m.cover_description()}: {next_setup.cover_description}</p>
           {/if}
-          <p>{m.cover_pattern()}: {setup.cover_pattern}</p>
-          <p>{m.exact_cover_pattern()}: {(setup.cover_data === null) ? m.yes() : m.no()}</p>
-          <p>{m.lookup_credit()}: {setup.credit ? setup.credit : m.lookup_unknown()}</p>
-          {#if setup.solve_pattern}
-            <PathDownload setupid={setup.setup_id} />
+          <p>{m.cover_pattern()}: {next_setup.cover_pattern}</p>
+          <p>{m.exact_cover_pattern()}: {(next_setup.cover_data === null) ? m.yes() : m.no()}</p>
+          <p>{m.lookup_credit()}: {next_setup.credit ? next_setup.credit : m.lookup_unknown()}</p>
+          {#if next_setup.solve_pattern}
+            <PathDownload setupid={next_setup.setup_id} />
           {/if}
           <!-- <p>Minimal Solves</p> -->
           <!-- <p>Variants</p> -->
         </div>
         <!-- TODO solve percent not completely accurate -->
-        {#if oqb && !setup.solve_percent}
+        {#if oqb && !next_setup.solve_percent}
           <div class="flex min-w-4 items-center">
-            <a href="/lookup/{setup.setup_id}+{submittedQueue.slice(0, setup.build.length)}">
+            <a href="/lookup/{next_setup.setup_id}+{submittedQueue.slice(0, next_setup.build.length)}">
               <ChevronRight size={32} />
             </a>
           </div>
@@ -162,4 +190,5 @@
       </div>
     {/each}
   </div>
+  {/if}
 </div>

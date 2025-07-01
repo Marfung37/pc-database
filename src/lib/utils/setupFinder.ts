@@ -14,12 +14,6 @@ import { piecesContains } from '$lib/utils/piecesContains';
 import { supabase } from '$lib/supabaseClient';
 import { PUBLIC_DEFAULT_KICKTABLE, PUBLIC_DEFAULT_HOLDTYPE } from '$env/static/public';
 
-const setupIDRegex = new RegExp(`^[1-9][0-9a-f]+$`);
-
-export function isSetupID(s: string): boolean {
-  return setupIDRegex.test(s);
-}
-
 type setupFullData = Setup & Statistic & { variants: SetupVariant[] };
 
 // Helper function remains necessary for counting characters

@@ -265,14 +265,3 @@ export function evaluateAstAll(node: AST, saves: string[]): number[] {
   }
   throw new Error(`Unknown AST node: ${node}`);
 }
-
-// Example usage:
-if (require.main === module) {
-  const parser = new Parser();
-  const expr = 'S && !T || (O && !I)';
-  console.log(`Parsing: ${expr}`);
-  const ast = parser.parse(expr);
-  console.log(`AST: ${ast}`);
-  const saves = ['ST', 'SZ', 'OI'];
-  console.log(`Evaluate: ${evaluateAst(ast, saves)}`);
-}

@@ -13,11 +13,12 @@ export function anyIndex(seq: Iterable<boolean>): number {
 }
 
 export function percent(
-  filepath: string,
   wantedSaves: string[],
   build: string, 
   leftover: string,
   pcNum: number, 
+  filepath: string | null = null,
+  fileData: string | null = null,
   twoline: boolean = false,
 ): Fraction[] {
   const saveableCounters: number[] = Array(wantedSaves.length).fill(0);
@@ -29,7 +30,11 @@ export function percent(
     asts.push(wantedSavesParser.parse(wantedSave));
   }
 
-  const saveReader = new SavesReader(filepath, build, leftover, pcNum, twoline);
+  if (fileData === null && filepath === null) {
+    throw new Error('Either filepath or records must be filled for percent')
+  }
+
+  const saveReader = new SavesReader(build, leftover, pcNum, filepath, fileData, twoline);
 
   for (let row of saveReader.read()) {
     // get first index that satisfies the save

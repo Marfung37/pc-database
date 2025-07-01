@@ -32,5 +32,7 @@
   "lookup_credit": "Credit",
   "lookup_current_setup": "Current Setup",
   "lookup_next_setup": "Next Setup",
-  "lookup_download_path": "Download Path File"
+  "lookup_download_path": "Download Path File",
+  "lookup_wanted_saves": "Wanted Save",
+  "lookup_save_percent": "Save Percent"
 }

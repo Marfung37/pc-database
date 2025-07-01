@@ -12,4 +12,8 @@ export class Fraction {
     this.numerator = numerator;
     this.denominator = denominator;
   }
+
+  public toString() {
+    return `${this.numerator}/${this.denominator}`
+  }
 }

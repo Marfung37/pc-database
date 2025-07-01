@@ -79,5 +79,5 @@ export const actions: Actions = {
       success: true,
       setups
     };
-  }
+  },
 };
