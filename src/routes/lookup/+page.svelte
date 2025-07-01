@@ -130,7 +130,7 @@
           <!-- <p>Minimal Solves</p> -->
           <!-- <p>Variants</p> -->
         </div>
-        <div class="flex min-w-4 items-center">
+        <div class="flex min-w-4 items-center rounded-r-3xl {(oqb) ? 'bg-blue-100': ''}">
           <a href={`/lookup/${setup.setup_id}` + (oqb ? `+${submittedQueue}` : '')}>
             <ChevronRight size={32} />
           </a>

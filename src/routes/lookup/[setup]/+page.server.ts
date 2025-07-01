@@ -52,7 +52,7 @@ export const actions: Actions = {
   lookup: async ({ params, request }) => {
     const formData = await request.formData();
     let queueStr = formData.get('queue') as string;
-    const [parent_id, subbuild] = params.parent.split('+');
+    const [parent_id, subbuild] = params.setup.split('+');
 
     if (parent_id === undefined || subbuild === undefined) {
       return fail(400, {

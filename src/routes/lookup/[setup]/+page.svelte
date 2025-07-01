@@ -15,7 +15,7 @@
 
   let loading = false;
 
-  let queueValue: string = subbuild;
+  let queueValue: string = '';
   let submittedQueue: string = '';
 
   function enforceTetraminoOnly(event: Event) {
@@ -191,7 +191,7 @@
           </div>
           <!-- TODO solve percent not completely accurate -->
           {#if oqb && !next_setup.solve_percent}
-            <div class="flex min-w-4 items-center">
+            <div class="flex min-w-4 items-center rounded-r-3xl bg-blue-100">
               <a
                 href="/lookup/{next_setup.setup_id}+{submittedQueue.slice(
                   0,
