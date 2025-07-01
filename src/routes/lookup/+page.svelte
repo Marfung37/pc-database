@@ -130,11 +130,12 @@
           <!-- <p>Minimal Solves</p> -->
           <!-- <p>Variants</p> -->
         </div>
-        <div class="flex min-w-4 items-center rounded-r-3xl {(oqb) ? 'bg-blue-100': ''}">
-          <a href={`/lookup/${setup.setup_id}` + (oqb ? `+${submittedQueue}` : '')}>
+        <a 
+          class="flex min-w-20 justify-center items-center rounded-r-3xl transition-colors duration-500 ease-in-out {(oqb) ? 'bg-blue-100 hover:bg-blue-200': 'hover:bg-gray-200'}"
+          href={`/lookup/${setup.setup_id}` + (oqb ? `+${submittedQueue}` : '')}
+        >
             <ChevronRight size={32} />
-          </a>
-        </div>
+        </a>
       </div>
     {/each}
   </div>

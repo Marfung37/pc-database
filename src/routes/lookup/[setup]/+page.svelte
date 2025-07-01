@@ -191,16 +191,16 @@
           </div>
           <!-- TODO solve percent not completely accurate -->
           {#if oqb && !next_setup.solve_percent}
-            <div class="flex min-w-4 items-center rounded-r-3xl bg-blue-100">
-              <a
-                href="/lookup/{next_setup.setup_id}+{submittedQueue.slice(
-                  0,
-                  next_setup.build.length
-                )}"
-              >
-                <ChevronRight size={32} />
-              </a>
-            </div>
+            <a
+
+              class="flex min-w-20 justify-center items-center rounded-r-3xl transition-colors duration-500 ease-in-out bg-blue-100 hover:bg-blue-200"
+              href="/lookup/{next_setup.setup_id}+{submittedQueue.slice(
+                0,
+                next_setup.build.length
+              )}"
+            >
+              <ChevronRight size={32} />
+            </a>
           {/if}
         </div>
       {/each}
