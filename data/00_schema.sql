@@ -125,11 +125,10 @@ CREATE TABLE "statistics" (
   UNIQUE ("setup_id", "kicktable", "hold_type")
 );
 
-CREATE TABLE "saves" (
-  "save_id" uuid PRIMARY KEY DEFAULT (gen_random_uuid ()),
+CREATE TABLE "save_data" (
+  "save_data_id" uuid PRIMARY KEY DEFAULT (gen_random_uuid ()),
+  "save_id" uuid NOT NULL,
   "stat_id" uuid NOT NULL,
-  "save" varchar(255) NOT NULL,
-  "description" varchar(255),
   "save_percent" decimal(5, 2) CHECK (
     save_percent IS NULL
     OR save_percent <= 100
@@ -162,6 +161,16 @@ CREATE TABLE "saves" (
       AND priority_save_fraction IS NOT NULL
     )
   )
+);
+
+CREATE TABLE "saves" (
+  "save_id" uuid PRIMARY KEY DEFAULT (gen_random_uuid ()),
+  "save" varchar(255) NOT NULL,
+  "description" varchar(255),
+  "pc" smallint NOT NULL,
+  "auto_populate" bool NOT NULL DEFAULT false,
+  "gen_minimal" bool NOT NULL DEFAULT false,
+  "gen_all_solves" bool NOT NULL DEFAULT false
 );
 
 COMMENT ON COLUMN "setups"."setup_id" IS '12 hexdigits';
@@ -220,27 +229,38 @@ COMMENT ON COLUMN "statistics"."minimal_solves" IS 'Minimal set of solves. NULL 
 
 COMMENT ON COLUMN "statistics"."path_file" IS 'Whether path file exist. Follows [setup-id]-[kicktable].csvd.xz format';
 
+COMMENT ON COLUMN "saves_data"."save_percent" IS 'Save percent. NULL if multiple saves';
+
+COMMENT ON COLUMN "saves_data"."save_fraction" IS 'Precise save fraction. NULL if multiple saves';
+
+COMMENT ON COLUMN "saves_data"."priority_save_percent" IS 'Array of percents for giving priority for saves. NULL if one save';
+
+COMMENT ON COLUMN "saves_data"."priority_save_fraction" IS 'Array of fraction for giving priority for saves. NULL if one save';
+
+COMMENT ON COLUMN "saves_data"."all_solves" IS 'All solves for save';
+
+COMMENT ON COLUMN "saves_data"."minimal_solves" IS 'Minimal set of solves';
+
 COMMENT ON COLUMN "saves"."save" IS 'Pieces saved for next PC for sfinder-saves';
 
 COMMENT ON COLUMN "saves"."description" IS 'Description of the save. Ex: One T or Two LJ';
 
-COMMENT ON COLUMN "saves"."save_percent" IS 'Save percent. NULL if multiple saves';
+COMMENT ON COLUMN "saves"."pc" IS 'PC Number for 1-9';
 
-COMMENT ON COLUMN "saves"."save_fraction" IS 'Precise save fraction. NULL if multiple saves';
+COMMENT ON COLUMN "saves"."auto_populate" IS 'Whether to automatically populate for all setups with this pc';
 
-COMMENT ON COLUMN "saves"."priority_save_percent" IS 'Array of percents for giving priority for saves. NULL if one save';
+COMMENT ON COLUMN "saves"."gen_minimal" IS 'When automatically populating, populate the minimal solves';
 
-COMMENT ON COLUMN "saves"."priority_save_fraction" IS 'Array of fraction for giving priority for saves. NULL if one save';
-
-COMMENT ON COLUMN "saves"."all_solves" IS 'All solves for save';
-
-COMMENT ON COLUMN "saves"."minimal_solves" IS 'Minimal set of solves';
+COMMENT ON COLUMN "saves"."gen_all_solves" IS 'When automatically populating, populate all solves';
 
 ALTER TABLE "statistics"
 ADD FOREIGN KEY ("setup_id") REFERENCES "setups" ("setup_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE "saves"
+ALTER TABLE "save_data"
 ADD FOREIGN KEY ("stat_id") REFERENCES "statistics" ("stat_id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "save_data"
+ADD FOREIGN KEY ("save_id") REFERENCES "saves" ("save_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE "setup_variants"
 ADD FOREIGN KEY ("setup_id") REFERENCES "setups" ("setup_id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -286,6 +306,6 @@ INSERT INTO
   schema_metadata (version, description)
 VALUES
   (
-    '1.2.2',
-    'Change from oqb_description to cover_description.'
+    '1.3.0',
+    'Separate the saves into save_data and saves to store wanted saves to be generate for all setups of a pc.'
   );
