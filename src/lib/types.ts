@@ -17,3 +17,4 @@ type RegexMatchedString<Pattern extends string> = `${string & { __brand: Pattern
 export type SetupID = RegexMatchedString<'^[1-9][0-9a-f]{11}$'>;
 export type Piece = RegexMatchedString<'^[TILJSZO]$'>;
 export type Queue = RegexMatchedString<'^[TILJSZO]+$'>;
+export type Fumen = RegexMatchedString<'^v115@[A-Za-z0-9+/?]+$'>;

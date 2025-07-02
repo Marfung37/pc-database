@@ -1,4 +1,5 @@
 import { decoder, encoder, Field, type Page } from 'tetris-fumen';
+import type { Fumen } from '$lib/types';
 
 function getFieldHeight(field: Field): number {
   return field.str({ reduced: true, garbage: false }).split('\n').length;
@@ -50,7 +51,7 @@ export function getHeight(fumen: string): number {
   return height;
 }
 
-function decodeWrapper(fumen: string): Page[] {
+function decodeWrapper(fumen: Fumen): Page[] {
   let pages: Page[];
   try {
     pages = decoder.decode(fumen);
@@ -61,7 +62,7 @@ function decodeWrapper(fumen: string): Page[] {
   return pages;
 }
 
-export function grayFumen(fumen: string): string {
+export function grayFumen(fumen: Fumen): string {
   // gray out all colored minos
   const pages = decodeWrapper(fumen);
 
@@ -79,11 +80,31 @@ export function grayFumen(fumen: string): string {
   return encoder.encode(pages);
 }
 
-export function fumenGetComments(fumen: string): string[] {
+export function fumenGetComments(fumen: Fumen): string[] {
   const pages = decodeWrapper(fumen);
   const comments = [];
 
   for (let page of pages) comments.push(page.comment);
 
   return comments;
+}
+
+export function fumenCombine(fumens: Iterable<Fumen>): Fumen {
+  const pages: Page[] = [];
+  for (let fumen of fumens)
+    pages.concat(decodeWrapper(fumen));
+
+  return encoder.encode(pages) as Fumen;
+}
+
+export function fumenCombineComments(fumens: Fumen[], comments: string[]): Fumen {
+  // treats the fumens as if they only have one page (only considers first pages)
+  const pages: Page[] = [];
+  for (let i = 0; i < Math.min(fumens.length, comments.length); i++) {
+    const page = decodeWrapper(fumens[i])[0];
+    page.comment = comments[i];
+    pages.push(page);
+  }
+
+  return encoder.encode(pages) as Fumen;
 }

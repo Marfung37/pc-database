@@ -1,6 +1,7 @@
 import { Parser as WantedSavesParser, evaluateAst, type AST } from './parser';
 import { SavesReader } from './savesReader';
 import { Fraction } from './fraction';
+import type { Queue } from '$lib/types';
 
 // Utility function: anyIndex
 export function anyIndex(seq: Iterable<boolean>): number {
@@ -14,8 +15,8 @@ export function anyIndex(seq: Iterable<boolean>): number {
 
 export function percent(
   wantedSaves: string[],
-  build: string,
-  leftover: string,
+  build: Queue,
+  leftover: Queue,
   pcNum: number,
   filepath: string | null = null,
   fileData: string | null = null,

@@ -1,14 +1,7 @@
 // code based on https://github.com/eight04/sfinder-strict-minimal/blob/master/index.js
 
 import { parse } from 'csv-parse/sync';
-
-interface pathRow {
-  pattern: string,
-  solutionCount: number,
-  solutions: string[],
-  unusedMinos: string[],
-  fumens: string[]
-}
+import type { pathRow } from './types';
 
 interface Node {
   key: string,

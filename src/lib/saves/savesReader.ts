@@ -12,7 +12,7 @@ import {
   COLUMN_FUMENS,
   COLUMN_FUMENS_DELIMITER
 } from '$lib/constants';
-import type { Queue } from '$lib/types';
+import type { Queue, Fumen } from '$lib/types';
 
 const REQUIRED_COLUMNS = new Set([COLUMN_QUEUE, COLUMN_UNUSED_PIECES, COLUMN_FUMENS]);
 
@@ -54,7 +54,7 @@ export interface SavesRow {
   saves: string[];
   solveable: boolean;
   queue: string;
-  fumens?: string[][];
+  fumens?: Fumen[][];
   line?: Record<string, string>;
 }
 
@@ -104,7 +104,7 @@ export class SavesReader {
 
     for (const row of this.records) {
       const saves: string[] = [];
-      const saveFumens: string[][] = [];
+      const saveFumens: Fumen[][] = [];
       const solveable = row[COLUMN_FUMENS] !== '';
 
       if (!solveable) {
@@ -142,7 +142,7 @@ export class SavesReader {
         saves.push(save);
 
         if (assignFumens) {
-          const currSaveFumens: string[] = [];
+          const currSaveFumens: Fumen[] = [];
           for (const fumen of row[COLUMN_FUMENS].split(COLUMN_FUMENS_DELIMITER)) {
             if (!(fumen in fumenLabels)) {
               const comment = fumenGetComments(fumen)[0];
@@ -151,7 +151,7 @@ export class SavesReader {
             const commentValue = fumenLabels[fumen];
             const fumenUnusedPiece = String.fromCharCode(queueValue - commentValue);
             if (unusedPiece === fumenUnusedPiece) {
-              currSaveFumens.push(fumen);
+              currSaveFumens.push(fumen as Fumen);
             }
           }
           saveFumens.push(currSaveFumens);
