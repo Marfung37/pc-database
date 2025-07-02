@@ -11,6 +11,12 @@ CREATE TYPE "kicktable" AS ENUM(
 
 CREATE TYPE "hold_type" AS ENUM('any', 'cyclic', 'none');
 
+CREATE TYPE "status" AS ENUM (
+  'processing',
+  'completed',
+  'failed'
+);
+
 CREATE TYPE unsafe_fraction AS ("numerator" integer, "denominator" integer);
 
 CREATE DOMAIN fraction AS unsafe_fraction CHECK (
@@ -138,6 +144,7 @@ CREATE TABLE "save_data" (
   "priority_save_fraction" fraction[],
   "all_solves" fumen,
   "minimal_solves" fumen,
+  "status" status NOT NULL,
   UNIQUE ("stat_id", "save_id"),
   CHECK (
     priority_save_percent IS NULL
@@ -241,6 +248,8 @@ COMMENT ON COLUMN "save_data"."all_solves" IS 'All solves for save';
 
 COMMENT ON COLUMN "save_data"."minimal_solves" IS 'Minimal set of solves';
 
+COMMENT ON COLUMN "save_data"."status" IS 'Status of the populating data';
+
 COMMENT ON COLUMN "saves"."save" IS 'Pieces saved for next PC for sfinder-saves';
 
 COMMENT ON COLUMN "saves"."description" IS 'Description of the save. Ex: One T or Two LJ';
@@ -306,6 +315,6 @@ INSERT INTO
   schema_metadata (version, description)
 VALUES
   (
-    '1.3.0',
-    'Separate the saves into save_data and saves to store wanted saves to be generate for all setups of a pc.'
+    '1.3.1',
+    'Adds status to save_data for giving info when the data is completed.'
   );
