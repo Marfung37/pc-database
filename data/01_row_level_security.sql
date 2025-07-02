@@ -293,6 +293,51 @@ CREATE POLICY delete_statistics ON statistics FOR DELETE TO authenticated USING 
   )
 );
 
+-- save_data RLS
+-- SELECT all save_data
+-- INSERT if have editor set
+-- UPDATE if have editor set
+-- DELETE if have editor set
+ALTER TABLE save_data ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS view_save_data ON save_data;
+
+CREATE POLICY view_save_data ON save_data FOR
+SELECT
+  TO authenticated,
+  anon USING (true);
+
+DROP POLICY IF EXISTS edit_save_data ON save_data;
+
+CREATE POLICY edit_save_data ON save_data FOR INSERT TO authenticated
+WITH
+  CHECK (
+    (
+      SELECT
+        public.has_edit_permission ()
+    )
+  );
+
+DROP POLICY IF EXISTS update_save_data ON save_data;
+
+CREATE POLICY update_save_data ON save_data
+FOR UPDATE
+  TO authenticated USING (
+    (
+      SELECT
+        public.has_edit_permission ()
+    )
+  );
+
+DROP POLICY IF EXISTS delete_save_data ON save_data;
+
+CREATE POLICY delete_save_data ON save_data FOR DELETE TO authenticated USING (
+  (
+    SELECT
+      public.has_edit_permission ()
+  )
+);
+
 -- saves RLS
 -- SELECT all saves
 -- INSERT if have editor set
@@ -337,7 +382,3 @@ CREATE POLICY delete_saves ON saves FOR DELETE TO authenticated USING (
       public.has_edit_permission ()
   )
 );
-
-CREATE POLICY "Allow service_role to upload to path bucket" ON storage.objects FOR INSERT TO service_role
-WITH
-  CHECK (bucket_id = 'path');

@@ -138,7 +138,7 @@ CREATE TABLE "save_data" (
   "priority_save_fraction" fraction[],
   "all_solves" fumen,
   "minimal_solves" fumen,
-  UNIQUE ("stat_id", "save"),
+  UNIQUE ("stat_id", "save_id"),
   CHECK (
     priority_save_percent IS NULL
     OR all_decimals_lte_100 (priority_save_percent)
@@ -229,17 +229,17 @@ COMMENT ON COLUMN "statistics"."minimal_solves" IS 'Minimal set of solves. NULL 
 
 COMMENT ON COLUMN "statistics"."path_file" IS 'Whether path file exist. Follows [setup-id]-[kicktable].csvd.xz format';
 
-COMMENT ON COLUMN "saves_data"."save_percent" IS 'Save percent. NULL if multiple saves';
+COMMENT ON COLUMN "save_data"."save_percent" IS 'Save percent. NULL if multiple saves';
 
-COMMENT ON COLUMN "saves_data"."save_fraction" IS 'Precise save fraction. NULL if multiple saves';
+COMMENT ON COLUMN "save_data"."save_fraction" IS 'Precise save fraction. NULL if multiple saves';
 
-COMMENT ON COLUMN "saves_data"."priority_save_percent" IS 'Array of percents for giving priority for saves. NULL if one save';
+COMMENT ON COLUMN "save_data"."priority_save_percent" IS 'Array of percents for giving priority for saves. NULL if one save';
 
-COMMENT ON COLUMN "saves_data"."priority_save_fraction" IS 'Array of fraction for giving priority for saves. NULL if one save';
+COMMENT ON COLUMN "save_data"."priority_save_fraction" IS 'Array of fraction for giving priority for saves. NULL if one save';
 
-COMMENT ON COLUMN "saves_data"."all_solves" IS 'All solves for save';
+COMMENT ON COLUMN "save_data"."all_solves" IS 'All solves for save';
 
-COMMENT ON COLUMN "saves_data"."minimal_solves" IS 'Minimal set of solves';
+COMMENT ON COLUMN "save_data"."minimal_solves" IS 'Minimal set of solves';
 
 COMMENT ON COLUMN "saves"."save" IS 'Pieces saved for next PC for sfinder-saves';
 
@@ -273,7 +273,7 @@ CREATE INDEX idx_setups_oqb_links_parent_id ON setup_oqb_links (parent_id);
 
 CREATE INDEX idx_variants_setup_id ON setup_variants (setup_id);
 
-CREATE INDEX idx_saves_setup_id ON saves (stat_id);
+CREATE INDEX idx_saves_setup_id ON save_data (stat_id);
 
 -- Create authenticated role if not exist. Mostly for testing as supabase has already
 DO $$
