@@ -15,6 +15,12 @@ enum hold_type {
   none
 }
 
+enum status {
+  processing
+  completed
+  failed
+}
+
 table schema_metadata {
   version           text          [primary key]
   description       text          [not null]
@@ -80,6 +86,7 @@ table save_data {
   priority_save_fraction  fraction      [note: 'Array of fraction for giving priority for saves. NULL if one save']
   all_solves        text          [note: 'All solves for save']
   minimal_solves    text          [note: 'Minimal set of solves for save']
+  status            status        [not null, note: 'Status of the populating data']
 }
 
 table saves {
