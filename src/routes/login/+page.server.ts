@@ -25,6 +25,9 @@ export const actions: Actions = {
 
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
+    // DEBUG
+    console.log(error);
+
     if (error) {
       return fail(400, {
         success: false,

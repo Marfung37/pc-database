@@ -52,12 +52,15 @@ export function csvToPatterns(data: string) {
 
 export function patternsToGraph(patterns: pathRow[]): Graph {
   const fumenStore = createFumenStore();
+  console.log(patterns[0]);
   const edges: Edge[] = patterns.map((p: pathRow) => ({
     nodes: new Set(p.fumens.map(fumenStore.fumenToNode)),
     color: 0,
     // visit: 0,
     // groupId: 0
   }));
+  // DEBUG
+  console.log(edges[0]);
   for (const edge of edges) {
     for (const node of edge.nodes) {
       node.edges.add(edge);

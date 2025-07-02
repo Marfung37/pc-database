@@ -5,10 +5,12 @@ export type Setup = Tables<'setups'>;
 export type SetupVariant = Tables<'setup_variants'>;
 export type SetupOQBLink = Tables<'setup_oqb_links'>;
 export type Statistic = Tables<'statistics'>;
+export type SaveData = Tables<'save_data'>;
 export type Save = Tables<'saves'>;
 
 export type Kicktable = Enums<'kicktable'>;
 export type HoldType = Enums<'hold_type'>;
+export type Status = Enums<'status'>;
 
 export type Result<T> = Promise<{ data: T; error: null } | { data: null; error: Error }>;
 

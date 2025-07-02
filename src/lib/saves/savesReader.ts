@@ -98,7 +98,7 @@ export class SavesReader {
   }
 
   *read(assignFumens = false, assignLine = false): Generator<SavesRow> {
-    const fumenLabels: Record<string, number> = {};
+    const fumenLabels: Record<Fumen, number> = {};
     const VALID_4L_PCSIZE = new Set([PCSIZE, PCSIZE + this.hold]);
     const VALID_2L_PCSIZE = new Set([PCSIZE / 2, PCSIZE / 2 + this.hold]);
 
@@ -130,6 +130,7 @@ export class SavesReader {
         );
       }
 
+
       const unseenLastBagPart = new Set(
         [...this.unusedLastBag].filter((p) => !fullQueue.slice(this.leadingSize).includes(p))
       );
@@ -145,10 +146,10 @@ export class SavesReader {
           const currSaveFumens: Fumen[] = [];
           for (const fumen of row[COLUMN_FUMENS].split(COLUMN_FUMENS_DELIMITER)) {
             if (!(fumen in fumenLabels)) {
-              const comment = fumenGetComments(fumen)[0];
-              fumenLabels[fumen] = [...comment].reduce((s, c) => s + c.charCodeAt(0), 0);
+              const comment = fumenGetComments(fumen as Fumen)[0];
+              fumenLabels[fumen as Fumen] = [...comment].reduce((s, c) => s + c.charCodeAt(0), 0);
             }
-            const commentValue = fumenLabels[fumen];
+            const commentValue = fumenLabels[fumen as Fumen];
             const fumenUnusedPiece = String.fromCharCode(queueValue - commentValue);
             if (unusedPiece === fumenUnusedPiece) {
               currSaveFumens.push(fumen as Fumen);

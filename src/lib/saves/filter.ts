@@ -61,6 +61,8 @@ export function filter(
       i++;
     }
 
+    // console.log(row.fumens);
+
     const newFumens: Fumen[] = [];
     for (let i of indicies) {
       newFumens.concat(row.fumens[i]);
@@ -69,7 +71,7 @@ export function filter(
     if (uniqueSolves)
       uniqueFumens.union(new Set(newFumens))
 
-    if (minimalSolves) {
+    if (minimalSolves && newFumens.length > 0) {
       const newRow: pathRow = {
         pattern: row.queue, 
         fumens: newFumens
@@ -99,6 +101,7 @@ function unionInPlace<T>(target: Set<T>, other: Set<T>): void {
 
 function generateMinimalSet(patterns: pathRow[], total: number): Fumen {
   const graph = patternsToGraph(patterns);
+  console.log(graph);
 
   const {sets} = findMinimalNodes(graph.edges);
 
