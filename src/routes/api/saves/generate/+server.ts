@@ -112,15 +112,13 @@ export const GET: RequestHandler = async ({ locals: { supabase }}) => {
       newRow.priority_save_fraction = data.fractions;
     }
 
-    console.log(newRow);
-    break;
-    // const {error: updateError} = await supabase.from('save_data').update(newRow).eq('save_data_id', saveDataID.save_data_id);
-    // if (updateError) {
-    //   console.error(`Failed to update ${saveDataID.save_data_id}:`, updateError.message);
-    //   throw error(500, {
-    //     message: `Failed to update ${saveDataID.save_data_id}`
-    //   });
-    // }
+    const {error: updateError} = await supabase.from('save_data').update(newRow).eq('save_data_id', saveDataID.save_data_id);
+    if (updateError) {
+      console.error(`Failed to update ${saveDataID.save_data_id}:`, updateError.message);
+      throw error(500, {
+        message: `Failed to update ${saveDataID.save_data_id}`
+      });
+    }
   }
 
   return json({ status: 'success' });
