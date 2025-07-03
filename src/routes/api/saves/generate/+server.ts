@@ -101,8 +101,8 @@ export const GET: RequestHandler = async ({ locals: { supabase }}) => {
       save_fraction: null,
       priority_save_percent: null,
       priority_save_fraction: null,
-      all_solves: (row.gen_all_saves) ? data.uniqueSolves!: null,
-      minimal_solves: (row.gen_minimal) ? data.minimalSolves!: null
+      all_solves: data.uniqueSolves ?? null,
+      minimal_solves: data.minimalSolves ?? null
     }
     if (percents.length == 1) {
       newRow.save_percent = percents[0];
@@ -112,13 +112,15 @@ export const GET: RequestHandler = async ({ locals: { supabase }}) => {
       newRow.priority_save_fraction = data.fractions;
     }
 
-    const {error: updateError} = await supabase.from('save_data').update(newRow).eq('save_data_id', saveDataID.save_data_id);
-    if (updateError) {
-      console.error(`Failed to update ${saveDataID.save_data_id}:`, updateError.message);
-      throw error(500, {
-        message: `Failed to update ${saveDataID.save_data_id}`
-      });
-    }
+    console.log(newRow);
+    break;
+    // const {error: updateError} = await supabase.from('save_data').update(newRow).eq('save_data_id', saveDataID.save_data_id);
+    // if (updateError) {
+    //   console.error(`Failed to update ${saveDataID.save_data_id}:`, updateError.message);
+    //   throw error(500, {
+    //     message: `Failed to update ${saveDataID.save_data_id}`
+    //   });
+    // }
   }
 
   return json({ status: 'success' });

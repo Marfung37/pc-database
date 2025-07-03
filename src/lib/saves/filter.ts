@@ -82,10 +82,10 @@ export function filter(
     fractions: saveableCounters.map((val) => new Fraction(val, total))
   }
 
-  if (uniqueSolves)
+  if (uniqueSolves && uniqueFumens.size > 0)
     returnData.uniqueSolves = fumenCombine(uniqueFumens);
 
-  if (minimalSolves) 
+  if (minimalSolves && patterns.length > 0) 
     returnData.minimalSolves = generateMinimalSet(patterns, total);
   
   return returnData;
