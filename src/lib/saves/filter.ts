@@ -57,21 +57,19 @@ export function filter(
         saveableCounters[i]++;
         break
       }
-
       i++;
     }
-
-    // console.log(row.fumens);
+    if (i == asts.length) continue; // no save worked
 
     const newFumens: Fumen[] = [];
     for (let i of indicies) {
-      newFumens.concat(row.fumens[i]);
+      newFumens.push(...row.fumens[i]);
     }
 
     if (uniqueSolves)
       uniqueFumens.union(new Set(newFumens))
 
-    if (minimalSolves && newFumens.length > 0) {
+    if (minimalSolves) {
       const newRow: pathRow = {
         pattern: row.queue, 
         fumens: newFumens
@@ -101,7 +99,6 @@ function unionInPlace<T>(target: Set<T>, other: Set<T>): void {
 
 function generateMinimalSet(patterns: pathRow[], total: number): Fumen {
   const graph = patternsToGraph(patterns);
-  console.log(graph);
 
   const {sets} = findMinimalNodes(graph.edges);
 
@@ -142,7 +139,7 @@ function generateMinimalSet(patterns: pathRow[], total: number): Fumen {
     let largestIndex = -1;
     for (let j = 0; j < solutions.length; j++) {
       if (indiciesUsed.has(j)) continue;
-      const size = queueCoveredSet.difference(solutions[i].patterns).size;
+      const size = solutions[i].patterns.difference(queueCoveredSet).size;
       if (size > largestSize) {
         largestSize = size;
         largestIndex = j;
@@ -150,7 +147,7 @@ function generateMinimalSet(patterns: pathRow[], total: number): Fumen {
     }
     unionInPlace(queueCoveredSet, solutions[largestIndex].patterns);
     indiciesUsed.add(largestIndex);
-    const fraction = new Fraction(solutions[largestIndex].patterns.size, total);
+    const fraction = new Fraction(queueCoveredSet.size, total);
     cumuFractions.push(fraction);
     fumenOrder.push(solutions[largestIndex].fumen);
   }

@@ -5,6 +5,7 @@ import { is2Line } from '$lib/utils/fumenUtils';
 import { Fraction } from '$lib/saves/fraction';
 import type { SetupID, SaveData } from '$lib/types';
 import { decompressPath, generateBucketPathFilename } from '$lib/utils/compression';
+import { WANTED_SAVE_DELIMITER } from '$lib/saves/constants';
 import { PATH_UPLOAD_BUCKET } from '$env/static/private';
 
 export const GET: RequestHandler = async ({ locals: { supabase }}) => {
@@ -81,11 +82,9 @@ export const GET: RequestHandler = async ({ locals: { supabase }}) => {
       });
     }
 
-    console.log(decompressedFile);
-
     let data;
     try {
-      data = filter(row.save, row.build, row.leftover, row.pc, null, decompressedFile, is2Line(row.fumen), row.gen_all_saves, row.gen_minimal);
+      data = filter(row.save.split(WANTED_SAVE_DELIMITER), row.build, row.leftover, row.pc, null, decompressedFile, is2Line(row.fumen), row.gen_all_saves, row.gen_minimal);
     } catch (e) {
       console.error(`Failed to generate data for ${saveDataID.save_data_id}:`, e);
       throw error(500, {
@@ -113,7 +112,7 @@ export const GET: RequestHandler = async ({ locals: { supabase }}) => {
       newRow.priority_save_fraction = data.fractions;
     }
 
-    console.log(newRow);
+    console.log(newRow)
     break;
   }
 
