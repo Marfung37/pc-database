@@ -8696,7 +8696,9 @@ INSERT INTO statistics (
 INSERT INTO saves (
   save, description, pc, auto_populate, gen_minimal, gen_all_solves
 ) VALUES
-  ('TILJSZO', '1st PC', 7, true, true, false);
+  ('TILJSZO', '1st PC', 7, true, true, false),
+  ('T', 'T', 2, true, true, false),
+  ('!^/[SZ]/', 'Force S/Z', 2, true, false, false);
 INSERT INTO save_data (
   stat_id, save_id, save_percent,
   save_fraction, minimal_solves, status
