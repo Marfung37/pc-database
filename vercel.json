@@ -4,6 +4,6 @@
     {
       "path": "/api/saves/generate",
       "schedule": "0 * * * *"
-    },
+    }
   ]
 }
