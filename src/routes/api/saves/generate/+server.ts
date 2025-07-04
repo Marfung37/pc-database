@@ -40,7 +40,7 @@ export const GET: RequestHandler = async ({ url }) => {
         continue;
       } else {
         // insert error
-        console.error('Failed to insert skeleton row:', insertError.message);
+        console.error('Failed to insert skeleton row:', insertError);
         throw error(500, {message: 'Failed to insert skeleton row'});
       }
     }
@@ -56,7 +56,7 @@ export const GET: RequestHandler = async ({ url }) => {
       .exists(filename);
   
     if (existError) {
-      console.error(`Failed to check path file ${filename} existance:`, existError.message);
+      console.error(`Failed to check path file ${filename} existance:`, existError);
       throw error(500, {
         message: `Failed to check path file existance`
       });
@@ -73,7 +73,7 @@ export const GET: RequestHandler = async ({ url }) => {
       .download(filename);
   
     if (downloadError) {
-      console.error(`Failed to download path file ${filename}:`, downloadError.message);
+      console.error(`Failed to download path file ${filename}:`, downloadError);
       throw error(500, {
         message: `Failed to download path file`
       });
@@ -85,7 +85,7 @@ export const GET: RequestHandler = async ({ url }) => {
     );
   
     if (decompressError) {
-      console.error(`Failed to decompress path file ${filename}:`, decompressError.message);
+      console.error(`Failed to decompress path file ${filename}:`, decompressError);
       throw error(500, {
         message: `Failed to decompress path file`
       });
@@ -123,7 +123,7 @@ export const GET: RequestHandler = async ({ url }) => {
   
     const {error: updateError} = await supabaseAdmin.from('save_data').update(newRow).eq('save_data_id', saveDataID.save_data_id);
     if (updateError) {
-      console.error(`Failed to update ${saveDataID.save_data_id}:`, updateError.message);
+      console.error(`Failed to update ${saveDataID.save_data_id}:`, updateError);
       throw error(500, {
         message: `Failed to update ${saveDataID.save_data_id}`
       });
