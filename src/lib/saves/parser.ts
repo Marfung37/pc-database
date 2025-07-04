@@ -239,9 +239,9 @@ export function evaluateAstAll(node: AST, saves: string[]): number[] {
   }
   if (node instanceof UnaryOp) {
     if (node.op === 'NOT') {
-      const all = new Set(Array.from({ length: saves.length }, (_, i) => i));
-      const neg = new Set(evaluateAstAll(node.expr, saves));
-      return [...[...all].filter((i) => !neg.has(i))];
+      return (evaluateAstAll(node.expr, saves).length > 0) 
+        ? []
+        : Array.from({ length: saves.length }, (_, i) => i);
     }
     if (node.op === 'AVOID') {
       return allIndex(saves.map((s) => !evaluateAstAll(node.expr, [s]).length));
@@ -255,3 +255,8 @@ export function evaluateAstAll(node: AST, saves: string[]): number[] {
   }
   throw new Error(`Unknown AST node: ${node}`);
 }
+
+// DEBUG
+const parser = new Parser();
+const ast = parser.parse('!^/[SZ]/');
+console.log(evaluateAstAll(ast, ['O', 'Z']))
