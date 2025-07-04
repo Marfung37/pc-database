@@ -9,7 +9,7 @@ import { WANTED_SAVE_DELIMITER } from '$lib/saves/constants';
 import { supabaseAdmin } from '$lib/server/supabaseAdmin';
 import { PATH_UPLOAD_BUCKET, CRON_SECRET } from '$env/static/private';
 
-const MAX_ROWS = 10;
+const MAX_ROWS = 100;
 
 export const GET: RequestHandler = async ({ url }) => {
   const token = url.searchParams.get('token');
