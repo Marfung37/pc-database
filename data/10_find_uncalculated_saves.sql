@@ -1,4 +1,6 @@
-CREATE OR REPLACE FUNCTION public.find_uncalculated_saves ()
+CREATE OR REPLACE FUNCTION public.find_uncalculated_saves (
+  max_rows smallint DEFAULT 1
+)
 RETURNS TABLE (
   setup_id setupid,
   pc smallint,
@@ -52,6 +54,7 @@ BEGIN
         AND sd.save_id = sa.save_id
     )
   ORDER BY
-    s.setup_id, s.pc;
+    s.setup_id, s.pc
+  LIMIT max_rows;
 END;
 $$ LANGUAGE plpgsql;

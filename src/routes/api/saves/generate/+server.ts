@@ -8,8 +8,10 @@ import { decompressPath, generateBucketPathFilename } from '$lib/utils/compressi
 import { WANTED_SAVE_DELIMITER } from '$lib/saves/constants';
 import { PATH_UPLOAD_BUCKET } from '$env/static/private';
 
+const MAX_ROWS = 10;
+
 export const GET: RequestHandler = async ({ locals: { supabase }}) => {
-  const {data, error: dataError} = await supabase.rpc('find_uncalculated_saves');
+  const {data, error: dataError} = await supabase.rpc('find_uncalculated_saves', MAX_ROWS);
   if (dataError) {
     console.error("Failed to get save data to calculate for");
     throw error(500, {message: "Failed to get save data to calculate for"});
@@ -31,8 +33,7 @@ export const GET: RequestHandler = async ({ locals: { supabase }}) => {
       } else {
         // insert error
         console.error('Failed to insert skeleton row:', insertError.message);
-        throw error(500, {message: 'Failed to insert skeleton row'})
-
+        throw error(500, {message: 'Failed to insert skeleton row'});
       }
     }
 
