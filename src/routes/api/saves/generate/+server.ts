@@ -11,7 +11,9 @@ import { PATH_UPLOAD_BUCKET } from '$env/static/private';
 const MAX_ROWS = 10;
 
 export const GET: RequestHandler = async ({ locals: { supabase }}) => {
-  const {data, error: dataError} = await supabase.rpc('find_uncalculated_saves', MAX_ROWS);
+  const {data, error: dataError} = await supabase.rpc('find_uncalculated_saves', {
+    max_rows: MAX_ROWS
+  });
   if (dataError) {
     console.error("Failed to get save data to calculate for");
     throw error(500, {message: "Failed to get save data to calculate for"});

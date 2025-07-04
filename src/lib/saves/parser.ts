@@ -255,8 +255,3 @@ export function evaluateAstAll(node: AST, saves: string[]): number[] {
   }
   throw new Error(`Unknown AST node: ${node}`);
 }
-
-// DEBUG
-const parser = new Parser();
-const ast = parser.parse('!^/[SZ]/');
-console.log(evaluateAstAll(ast, ['O', 'Z']))
