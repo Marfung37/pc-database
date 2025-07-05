@@ -47,6 +47,7 @@ BEGIN
     s.setup_id = st.setup_id
   WHERE
     sa.auto_populate = true
+    AND s.solve_pattern <> NULL
     AND NOT EXISTS ( -- anti join for save data entry doesn't exist
       SELECT 1
       FROM save_data sd
