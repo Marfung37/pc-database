@@ -37,11 +37,13 @@
       <!-- <p>Variants</p> -->
     </div>
     </div>
+    {#if setup.saves}
     <div class="flex h-60 flex-col flex-wrap w-full gap-x-2 p-4 lg:w-auto lg:p-0 lg:pl-8 lg:py-12">
       {#each setup.saves as save (save.save)}
         <p>{save.description ?? save.save}: {save.save_percent.toFixed(2)}% ({save.save_fraction.numerator}/{save.save_fraction.denominator})</p>
       {/each}
     </div>
+    {/if}
   </div>
   {#if next}
   <a 

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { browser } from '$app/environment';
   import { onMount, onDestroy } from 'svelte';
   import { Clipboard, ClipboardCheck } from '@lucide/svelte';
 
@@ -48,36 +49,32 @@
     }
   }
 
-  onMount(async () => {
+  $: if (browser && fumen) {
     loading = true;
     error = null;
+    (async () => {
+      try {
+        const params = new URLSearchParams();
+        params.append('data', fumen);
+        if (scale) params.append('scale', String(scale));
+        if (clear) params.append('clear', String(clear));
+        if (mirror) params.append('mirror', String(mirror));
+        if (loop) params.append('loop', String(loop));
+        if (delay) params.append('delay', String(delay));
+        const url = `/render?${params.toString()}`;
 
-    if (!fumen) {
-      // can't load image
-      return;
-    }
+        const response = await fetch(url);
+        const data = await response.blob();
 
-    try {
-      const params = new URLSearchParams();
-      params.append('data', fumen);
-      if (scale) params.append('scale', String(scale));
-      if (clear) params.append('clear', String(clear));
-      if (mirror) params.append('mirror', String(mirror));
-      if (loop) params.append('loop', String(loop));
-      if (delay) params.append('delay', String(delay));
-      const url = `/render?${params.toString()}`;
-
-      const response = await fetch(url);
-      const data = await response.blob();
-
-      imageSrc = URL.createObjectURL(data);
-    } catch (e: any) {
-      error = e.message;
-      console.error('Error fetching or processing image:', e);
-    } finally {
-      loading = false;
-    }
-  });
+        imageSrc = URL.createObjectURL(data);
+      } catch (e: any) {
+        error = e.message;
+        console.error('Error fetching or processing image:', e);
+      } finally {
+        loading = false;
+      }
+    })();
+  };
 
   // Crucial: Revoke the Object URL when the component is destroyed
   onDestroy(() => {

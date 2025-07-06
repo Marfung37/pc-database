@@ -9,7 +9,7 @@
   export let data;
   export let form;
 
-  const { setup, subbuild } = data;
+  $: ({ setup, subbuild } = data);
 
   let loading = false;
 
