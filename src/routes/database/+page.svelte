@@ -74,20 +74,20 @@
             >
               {loading ? m.loading() : m.btn_submit()}
             </button>
-
-            {#if form?.message}
-              <div
-                class="rounded-md p-3 text-sm {form?.success
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-red-100 text-red-700'}"
-                role="alert"
-              >
-                {form?.message}
-              </div>
-            {/if}
           </div>
         </div>
       </form>
+      {#if form?.message}
+        <div
+          class="rounded-md p-3 text-sm {form?.success
+            ? 'bg-green-100 text-green-700'
+            : 'bg-red-100 text-red-700'}"
+          role="alert"
+        >
+          {form?.message}
+        </div>
+      {/if}
+
 
       <Willow>
         <Grid tree={true} footer={true} data={form?.gridData ?? []} {columns} />

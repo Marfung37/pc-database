@@ -233,11 +233,18 @@ export const actions: Actions = {
         decompressedFile
       ); // TODO: twoline
     } catch (e) {
+      if ((e as Error).message.match(/Expression '.*' could not be tokenized/)) {
+        return fail(400, {
+          success: false,
+          ...returnData,
+          message: `Percent failed: ${(e as Error).message}`
+        });
+      }
       console.error('Percent failed to run:', e);
       return fail(500, {
         success: false,
         ...returnData,
-        message: `Failed to run percent`
+        message: `Percent failed to run: ${(e as Error).message}`
       });
     }
 

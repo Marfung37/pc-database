@@ -108,12 +108,25 @@
         {loading ? m.loading() : m.btn_submit()}
       </button>
     </form>
+    {#if form?.message}
+      <div
+        class="rounded-md p-3 text-sm {form?.success
+          ? 'bg-green-100 text-green-700'
+          : 'bg-red-100 text-red-700'}"
+        role="alert"
+      >
+        {form?.message}
+      </div>
+    {/if}
     <p>
-      {m.lookup_save_percent()}: {loading
+      {m.lookup_save_percent()}: 
+      {#if form?.fractions}
+      {loading
         ? m.loading()
         : (form?.fractions
             .map((f) => `${((f.split('/')[0] / f.split('/')[1]) * 100).toFixed(2)}% (${f})`)
             .join(', ') ?? '')}
+      {/if}
     </p>
   {/if}
 
@@ -192,7 +205,6 @@
           <!-- TODO solve percent not completely accurate -->
           {#if oqb && !next_setup.solve_percent}
             <a
-
               class="flex min-w-20 justify-center items-center rounded-r-3xl transition-colors duration-500 ease-in-out bg-blue-100 hover:bg-blue-200"
               href="/lookup/{next_setup.setup_id}+{submittedQueue.slice(
                 0,
