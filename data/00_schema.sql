@@ -175,6 +175,7 @@ CREATE TABLE "saves" (
   "save" varchar(255) NOT NULL,
   "description" varchar(255),
   "pc" smallint NOT NULL,
+  "importance" smallint NOT NULL,
   "auto_populate" bool NOT NULL DEFAULT false,
   "gen_minimal" bool NOT NULL DEFAULT false,
   "gen_all_solves" bool NOT NULL DEFAULT false
@@ -256,6 +257,8 @@ COMMENT ON COLUMN "saves"."description" IS 'Description of the save. Ex: One T o
 
 COMMENT ON COLUMN "saves"."pc" IS 'PC Number for 1-9';
 
+COMMENT ON COLUMN "saves"."importance" IS 'Level of importance this save is. Denotes which saves are shown above others';
+
 COMMENT ON COLUMN "saves"."auto_populate" IS 'Whether to automatically populate for all setups with this pc';
 
 COMMENT ON COLUMN "saves"."gen_minimal" IS 'When automatically populating, populate the minimal solves';
@@ -315,6 +318,6 @@ INSERT INTO
   schema_metadata (version, description)
 VALUES
   (
-    '1.3.1',
-    'Adds status to save_data for giving info when the data is completed.'
+    '1.3.2',
+    'Adds importance to saves to provide level of importance of the save.'
   );

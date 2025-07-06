@@ -94,6 +94,7 @@ table saves {
   save              varchar(255)  [not null, note: 'Pieces saved for next PC for sfinder-saves']
   description       varchar(255)  [note: 'Description of the save. Ex: One T or Two LJ']
   pc                smallint      [not null, note: 'PC Number for 1-9']
+  importance        smallint      [not null, note: 'Level of importance this save is. Denotes which saves are shown above others']
   auto_populate     bool          [not null, default: false, note: 'Whether to automatically populate for all setups with this pc']
   gen_minimal       bool          [not null, default: false, note: 'When automatically populating, populate the minimal solves']
   gen_all_solves    bool          [not null, default: false, note: 'When automatically populating, populate all solves']
