@@ -3,10 +3,8 @@
   import { goto } from '$app/navigation';
   import { enhance, applyAction } from '$app/forms';
   import { m } from '$lib/paraglide/messages.js';
-  import FumenRender from '$lib/components/FumenRender.svelte';
-  import PathDownload from '$lib/components/PathDownload.svelte';
   import { onMount } from 'svelte';
-  import { ChevronRight } from '@lucide/svelte';
+  import SetupInfo from '$lib/components/SetupInfo.svelte';
 
   export let data;
   export let form;
@@ -56,30 +54,8 @@
 
 <div class="container mx-auto flex flex-col gap-2 p-2 text-left">
   <h1 class="py-2 text-3xl">{m.lookup_current_setup()}</h1>
-  <div class="mb-16 flex min-h-60 w-full rounded-3xl bg-white shadow-lg">
-    <div class="flex basis-1/2 items-center justify-center p-4 lg:basis-1/3 xl:basis-1/4">
-      <FumenRender fumen={setup.fumen} />
-    </div>
-    <div class="flex-1">
-      <h2 class="py-2 text-2xl">{setup.setup_id}</h2>
-      <!-- <h3 class="text-xl pb-2">Statistics</h3> -->
-      {#if setup.solve_percent}
-        <p>{m.lookup_solve_percent()}: {setup.solve_percent}%</p>
-      {/if}
-      <p>OQB: {setup.oqb_path ? m.yes() : m.no()}</p>
-      {#if setup.cover_description}
-        <p>{m.cover_description()}: {setup.cover_description}</p>
-      {/if}
-      <p>{m.cover_pattern()}: {setup.cover_pattern}</p>
-      <p>{m.exact_cover_pattern()}: {setup.cover_data === null ? m.yes() : m.no()}</p>
-      <p>{m.lookup_credit()}: {setup.credit ? setup.credit : m.lookup_unknown()}</p>
-      {#if setup.solve_pattern}
-        <PathDownload setupid={setup.setup_id} />
-      {/if}
-      <!-- <p>Minimal Solves</p> -->
-      <!-- <p>Variants</p> -->
-    </div>
-  </div>
+  <SetupInfo setup={setup} submittedQueue={subbuild} baseUrl="" next={false} />
+
 
   {#if setup.solve_pattern}
     <form
@@ -130,7 +106,8 @@
     </p>
   {/if}
 
-  {#if subbuild.length > 0}
+  <!-- TODO: solve pattern not quite accurate for leaf node -->
+  {#if subbuild.length > 0 && setup.solve_pattern === null}
     <h1 class="py-2 text-3xl">{m.lookup_next_setup()}</h1>
     <form
       class="flex w-full whitespace-nowrap"
@@ -178,43 +155,7 @@
 
     <div class="flex flex-col gap-4">
       {#each form?.setups ?? [] as next_setup (next_setup.setup_id)}
-        {@const oqb = next_setup.oqb_path !== null}
-        <div class="flex min-h-60 w-full rounded-3xl bg-white shadow-lg">
-          <div class="flex basis-1/2 items-center justify-center p-4 lg:basis-1/3 xl:basis-1/4">
-            <FumenRender fumen={next_setup.fumen} />
-          </div>
-          <div class="flex-1">
-            <h2 class="py-2 text-2xl">{next_setup.setup_id}</h2>
-            <!-- <h3 class="text-xl pb-2">Statistics</h3> -->
-            {#if next_setup.solve_percent}
-              <p>{m.lookup_solve_percent()}: {next_setup.solve_percent}%</p>
-            {/if}
-            <p>OQB: {oqb ? m.yes() : m.no()}</p>
-            {#if next_setup.cover_description}
-              <p>{m.cover_description()}: {next_setup.cover_description}</p>
-            {/if}
-            <p>{m.cover_pattern()}: {next_setup.cover_pattern}</p>
-            <p>{m.exact_cover_pattern()}: {next_setup.cover_data === null ? m.yes() : m.no()}</p>
-            <p>{m.lookup_credit()}: {next_setup.credit ? next_setup.credit : m.lookup_unknown()}</p>
-            {#if next_setup.solve_pattern}
-              <PathDownload setupid={next_setup.setup_id} />
-            {/if}
-            <!-- <p>Minimal Solves</p> -->
-            <!-- <p>Variants</p> -->
-          </div>
-          <!-- TODO solve percent not completely accurate -->
-          {#if oqb && !next_setup.solve_percent}
-            <a
-              class="flex min-w-20 justify-center items-center rounded-r-3xl transition-colors duration-500 ease-in-out bg-blue-100 hover:bg-blue-200"
-              href="/lookup/{next_setup.setup_id}+{submittedQueue.slice(
-                0,
-                next_setup.build.length
-              )}"
-            >
-              <ChevronRight size={32} />
-            </a>
-          {/if}
-        </div>
+        <SetupInfo setup={next_setup} submittedQueue={submittedQueue} baseUrl="/lookup/" />
       {/each}
     </div>
   {/if}

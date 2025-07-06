@@ -1,9 +1,7 @@
 <script lang="ts">
   import { enhance, applyAction } from '$app/forms';
   import { m } from '$lib/paraglide/messages.js';
-  import FumenRender from '$lib/components/FumenRender.svelte';
-  import PathDownload from '$lib/components/PathDownload.svelte';
-  import { ChevronRight } from '@lucide/svelte';
+  import SetupInfo from '$lib/components/SetupInfo.svelte';
 
   export let form;
 
@@ -106,37 +104,7 @@
 
   <div class="flex flex-col gap-4">
     {#each form?.setups ?? [] as setup (setup.setup_id)}
-      {@const oqb = setup.oqb_path !== null}
-      <div class="flex min-h-60 w-full rounded-3xl bg-white shadow-lg">
-        <div class="flex basis-1/2 items-center justify-center p-4 lg:basis-1/3 xl:basis-1/4">
-          <FumenRender fumen={setup.fumen} />
-        </div>
-        <div class="flex-1">
-          <h2 class="py-2 text-2xl">{setup.setup_id}</h2>
-          <!-- <h3 class="text-xl pb-2">Statistics</h3> -->
-          {#if setup.solve_percent}
-            <p>{m.lookup_solve_percent()}: {setup.solve_percent}%</p>
-          {/if}
-          <p>OQB: {oqb ? m.yes() : m.no()}</p>
-          {#if setup.cover_description}
-            <p>{m.cover_description()}: {setup.cover_description}</p>
-          {/if}
-          <p>{m.cover_pattern()}: {setup.cover_pattern}</p>
-          <p>{m.exact_cover_pattern()}: {setup.cover_data === null ? m.yes() : m.no()}</p>
-          <p>{m.lookup_credit()}: {setup.credit ? setup.credit : m.lookup_unknown()}</p>
-          {#if setup.solve_pattern}
-            <PathDownload setupid={setup.setup_id} />
-          {/if}
-          <!-- <p>Minimal Solves</p> -->
-          <!-- <p>Variants</p> -->
-        </div>
-        <a 
-          class="flex min-w-20 justify-center items-center rounded-r-3xl transition-colors duration-500 ease-in-out {(oqb) ? 'bg-blue-100 hover:bg-blue-200': 'hover:bg-gray-200'}"
-          href={`/lookup/${setup.setup_id}` + (oqb ? `+${submittedQueue}` : '')}
-        >
-            <ChevronRight size={32} />
-        </a>
-      </div>
+      <SetupInfo setup={setup} submittedQueue={submittedQueue} baseUrl="/lookup/" />
     {/each}
   </div>
 </div>
