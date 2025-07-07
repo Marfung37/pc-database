@@ -38,7 +38,7 @@ export const actions: Actions = {
     const pc = parseInt(pcStr) as number;
 
     let queue: Queue;
-    if (pc == 1 && queueStr.length == 6) {
+    if (pc == 1 && queueStr.length == 6 && new Set(queueStr).size == 6) {
       const bagValue = [...BAG].reduce((sum, c) => sum + c.charCodeAt(0), 0);
       const queueValue = [...queueStr].reduce((sum, c) => sum + c.charCodeAt(0), 0);
       queue = (queueStr + String.fromCharCode(bagValue - queueValue)) as Queue;
