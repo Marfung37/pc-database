@@ -90,7 +90,7 @@ BEGIN
       )::setup_saves_data ORDER BY sa.importance)
       FROM save_data sd
       JOIN saves sa ON sd.save_id = sa.save_id
-      WHERE sd.stat_id = st.stat_id
+      WHERE sd.stat_id = st.stat_id AND sd.status = 'completed'
     )
   FROM
     setups s
@@ -184,7 +184,7 @@ BEGIN
       )::setup_saves_data ORDER BY sa.importance)
       FROM save_data sd
       JOIN saves sa ON sd.save_id = sa.save_id
-      WHERE sd.stat_id = st.stat_id
+      WHERE sd.stat_id = st.stat_id AND sd.status = 'completed'
     )
   FROM
     setups s
@@ -274,10 +274,10 @@ BEGIN
         sd.priority_save_fraction,
         sd.all_solves,
         sd.minimal_solves
-      )::setup_save_data ORDER BY sa.importance)
+      )::setup_saves_data ORDER BY sa.importance)
       FROM save_data sd
       JOIN saves sa ON sd.save_id = sa.save_id
-      WHERE sd.stat_id = st.stat_id
+      WHERE sd.stat_id = st.stat_id AND sd.status = 'completed'
     )
   FROM
     setups s

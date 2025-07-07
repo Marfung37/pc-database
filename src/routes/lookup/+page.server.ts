@@ -1,5 +1,6 @@
 import { fail } from '@sveltejs/kit';
 import { isQueue } from '$lib/utils/queueUtils';
+import { BAG } from '$lib/constants';
 import { PCNUM2LONUM } from '$lib/utils/formulas';
 import { setupFinder } from '$lib/utils/setupFinder';
 import type { Actions, PageServerLoad } from './$types';
@@ -35,7 +36,15 @@ export const actions: Actions = {
     }
 
     const pc = parseInt(pcStr) as number;
-    const queue = queueStr as Queue;
+
+    let queue: Queue;
+    if (pc == 1 && queueStr.length == 6) {
+      const bagValue = [...BAG].reduce((sum, c) => sum + c.charCodeAt(0), 0);
+      const queueValue = [...queueStr].reduce((sum, c) => sum + c.charCodeAt(0), 0);
+      queue = (queueStr + String.fromCharCode(bagValue - queueValue)) as Queue;
+    } else {
+      queue = queueStr as Queue;
+    }
 
     if (queue.length < PCNUM2LONUM(pc)) {
       return fail(400, {
