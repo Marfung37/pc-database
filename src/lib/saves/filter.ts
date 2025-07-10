@@ -6,7 +6,7 @@ import { fumenCombine, fumenCombineComments } from '$lib/utils/fumenUtils';
 import type { Queue, Fumen } from '$lib/types';
 import type { pathRow } from './types';
 
-interface filterOutput {
+export interface FilterOutput {
   fractions: Fraction[],
   uniqueSolves?: Fumen,
   minimalSolves?: Fumen
@@ -22,7 +22,7 @@ export function filter(
   twoline: boolean = false,
   uniqueSolves: boolean = false, 
   minimalSolves: boolean = true, 
-): filterOutput {
+): FilterOutput {
   const saveableCounters: number[] = Array(wantedSaves.length).fill(0);
   const uniqueFumens: Set<Fumen> = new Set();
   let total = 0;

@@ -112,6 +112,7 @@ export function tokenize(text: string): Token[] {
   if (tokens.length === 0) {
     throw new Error(`Expression '${text}' could not be tokenized`);
   }
+
   return tokens;
 }
 
