@@ -31,7 +31,7 @@ jobs:
       run: pnpm install --frozen-lockfile # Use pnpm install for pnpm projects. --frozen-lockfile is similar to npm ci
 
     - name: Run populate saves
-      run: npm run populate_saves # Replace 'your-script-name' with the actual script name from your package.json
+      run: pnpm tsx utils/populateSaves.ts
       env:
         PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URLS }}
         PATH_UPLOAD_BUCKET: ${{ vars.PATH_UPLOAD_BUCKET }}
