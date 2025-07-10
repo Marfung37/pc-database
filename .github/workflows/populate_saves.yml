@@ -33,6 +33,6 @@ jobs:
     - name: Run populate saves
       run: pnpm tsx utils/populateSaves.ts
       env:
-        PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URLS }}
+        PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
         PATH_UPLOAD_BUCKET: ${{ vars.PATH_UPLOAD_BUCKET }}
         SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
