@@ -1,10 +1,9 @@
 name: Run Populate Saves
 
 on:
-  workflow_dispatch: # Allows you to run the workflow manually from the Actions tab
+  workflow_dispatch: 
   schedule:
-    # Runs every day at 3:00 AM UTC
-    - cron: '0 3 * * *'
+    - cron: '0 0,12 * * *' # run at midnight and 12
 
 jobs:
   run-script:
@@ -29,6 +28,13 @@ jobs:
 
     - name: Install dependencies
       run: pnpm install --frozen-lockfile # Use pnpm install for pnpm projects. --frozen-lockfile is similar to npm ci
+
+
+    - name: Set up JRE (Java Runtime Environment)
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
 
     - name: Run populate saves
       run: pnpm tsx utils/populateSaves.ts
