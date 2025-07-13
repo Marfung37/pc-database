@@ -95,7 +95,7 @@ async function generateSaveData(row): Promise<boolean> {
     priority_save_fraction: null,
     all_solves: data.uniqueSolves ?? null,
     minimal_solves: data.minimalSolves ?? null,
-    true_minimal: data.trueMinimal ?? null,
+    true_minimal: data.trueMinimal ?? null
   }
   if (percents.length == 1) {
     newRow.save_percent = percents[0];

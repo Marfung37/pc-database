@@ -78,7 +78,7 @@ export function filter(
     }
   }
 
-  const returnData: filterOutput = {
+  const returnData: FilterOutput = {
     fractions: saveableCounters.map((val) => new Fraction(val, total))
   }
 
@@ -139,7 +139,7 @@ function generateMinimalSet(patterns: pathRow[], total: number): Fumen {
     let largestIndex = -1;
     for (let j = 0; j < solutions.length; j++) {
       if (indiciesUsed.has(j)) continue;
-      const size = solutions[i].patterns.difference(queueCoveredSet).size;
+      const size = setDifference(solutions[i].patterns, queueCoveredSet).size;
       if (size > largestSize) {
         largestSize = size;
         largestIndex = j;
@@ -158,4 +158,14 @@ function generateMinimalSet(patterns: pathRow[], total: number): Fumen {
   })
 
   return fumenCombineComments(fumenOrder, labels);
+}
+
+function setDifference<T>(setA: Set<T>, setB: Set<T>): Set<T> {
+  const difference = new Set<T>();
+  for (const item of setA) {
+    if (!setB.has(item)) {
+      difference.add(item);
+    }
+  }
+  return difference;
 }
