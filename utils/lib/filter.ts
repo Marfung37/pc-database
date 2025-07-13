@@ -30,7 +30,7 @@ const pathFilterOutput = path.join(currentFileDir, 'tmp', 'output.txt');
 
 const execPromise = promisify(exec);
 
-const NODE_LIMIT_HEURISTIC = 300; // heurestic on number of nodes that is maximum to expect the true minimal program to complete in a reasonable amount of time
+const NODE_LIMIT_HEURISTIC = 360; // heurestic on number of nodes that is maximum to expect the true minimal program to complete in a reasonable amount of time
 const PATH_ITERATIONS = 3; // number of times path-filter is run to try to get a reasonable minimal set
 const MAX_PATH_ITERATIONS = 5; // number of times running path-filter before giving it an error instead
 const PATH_TIME_LIMIT = 30 * 60 * 1000; // 30 minute time limit
@@ -39,7 +39,13 @@ const MINIMAL_TIME_LIMIT = 10 * 60 * 1000; // 30 minute time limit
 export interface FilterOutput {
   fractions: Fraction[],
   uniqueSolves?: Fumen,
-  minimalSolves?: Fumen
+  minimalSolves?: Fumen,
+  trueMinimal?: boolean
+}
+
+interface MinimalOutput {
+  minimalSolves?: Fumen,
+  trueMinimal?: boolean
 }
 
 export async function filter(
@@ -115,21 +121,22 @@ export async function filter(
   if (uniqueSolves && uniqueFumens.size > 0)
     returnData.uniqueSolves = fumenCombine(uniqueFumens);
 
-  if (minimalSolves && patterns.length > 0) 
-    returnData.minimalSolves = await generateMinimalSet(patterns, total);
-  
+  if (minimalSolves && patterns.length > 0)  {
+    const minimalData = await generateMinimalSet(patterns, total)
+    returnData.minimalSolves = minimalData.minimalSolves;
+    returnData.trueMinimal = minimalData.trueMinimal;
+  }
+
   return returnData;
 }
 
-async function generateMinimalSet(patterns: pathRow[], total: number): Promise<Fumen> {
+async function generateMinimalSet(patterns: pathRow[], total: number): Promise<MinimalOutput> {
   const graph = patternsToGraph(patterns);
 
-  // DEBUG
   console.log(`Edges ${graph.edges.length}, Nodes ${graph.nodes.length}`);
 
   let minimalSet: Fumen[];
-
-
+  let trueMinimal: boolean = true;
   if (graph.nodes.length < NODE_LIMIT_HEURISTIC) {
     try {
       const {sets} = findMinimalNodes(graph.edges, MINIMAL_TIME_LIMIT);
@@ -140,9 +147,11 @@ async function generateMinimalSet(patterns: pathRow[], total: number): Promise<F
       minimalSet = set.map(n => n.key) as Fumen[];
     } catch (e) {
       minimalSet = await runPathFilter(patterns);
+      trueMinimal = false;
     }
   } else {
     minimalSet = await runPathFilter(patterns);
+    trueMinimal = false;
   }
 
   const solutionMap = new Map();
@@ -197,7 +206,7 @@ async function generateMinimalSet(patterns: pathRow[], total: number): Promise<F
     return `${percent.toFixed(2)}% (${f.numerator}/${f.denominator})`;
   })
 
-  return fumenCombineComments(fumenOrder, labels);
+  return {minimalSolves: fumenCombineComments(fumenOrder, labels), trueMinimal};
 }
 
 async function writeFilteredPath(filepath: string, patterns: pathRow[]): Promise<void> {

@@ -83,7 +83,6 @@ async function generateSaveData(row): Promise<boolean> {
     console.error(`Failed to generate data for ${saveDataID.save_data_id}:`, e);
     return false;
   }
-  console.log("Completed filter for", saveDataID.save_data_id);
 
   const percents = data.fractions.map((f: Fraction) => (f.numerator / f.denominator * 100));
   const newRow: SaveData = {
@@ -95,7 +94,8 @@ async function generateSaveData(row): Promise<boolean> {
     priority_save_percent: null,
     priority_save_fraction: null,
     all_solves: data.uniqueSolves ?? null,
-    minimal_solves: data.minimalSolves ?? null
+    minimal_solves: data.minimalSolves ?? null,
+    true_minimal: data.trueMinimal ?? null,
   }
   if (percents.length == 1) {
     newRow.save_percent = percents[0];
@@ -105,13 +105,11 @@ async function generateSaveData(row): Promise<boolean> {
     newRow.priority_save_fraction = data.fractions;
   }
 
-  console.log(newRow);
-
-  // const {error: updateError} = await supabaseAdmin.from('save_data').update(newRow).eq('save_data_id', saveDataID.save_data_id);
-  // if (updateError) {
-  //   console.error(`Failed to update ${saveDataID.save_data_id}:`, updateError);
-  //   return false;
-  // }
+  const {error: updateError} = await supabaseAdmin.from('save_data').update(newRow).eq('save_data_id', saveDataID.save_data_id);
+  if (updateError) {
+    console.error(`Failed to update ${saveDataID.save_data_id}:`, updateError);
+    return false;
+  }
   
   return true;
 }

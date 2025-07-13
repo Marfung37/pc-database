@@ -144,6 +144,7 @@ CREATE TABLE "save_data" (
   "priority_save_fraction" fraction[],
   "all_solves" fumen,
   "minimal_solves" fumen,
+  "true_minimal" bool,
   "status" status NOT NULL,
   UNIQUE ("stat_id", "save_id"),
   CHECK (
@@ -249,6 +250,8 @@ COMMENT ON COLUMN "save_data"."all_solves" IS 'All solves for save';
 
 COMMENT ON COLUMN "save_data"."minimal_solves" IS 'Minimal set of solves';
 
+COMMENT ON COLUMN "save_data"."minimal_solves" IS 'Whether algorithm for minimal gurantees minimality';
+
 COMMENT ON COLUMN "save_data"."status" IS 'Status of the populating data';
 
 COMMENT ON COLUMN "saves"."save" IS 'Pieces saved for next PC for sfinder-saves';
@@ -318,6 +321,6 @@ INSERT INTO
   schema_metadata (version, description)
 VALUES
   (
-    '1.3.2',
-    'Adds importance to saves to provide level of importance of the save.'
+    '1.3.3',
+    'Adds true_minimal to save data for whether minimality is guranteed.'
   );
