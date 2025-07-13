@@ -131,10 +131,12 @@ function setEqual(a: Set<any>, b: Set<any>): boolean {
   return true;
 }
 
-export function findMinimalNodes(edges: Edge[]): {count: number; sets: Node[][]} {
+export function findMinimalNodes(edges: Edge[], timeout: number = Infinity): {count: number; sets: Node[][]} {
   const currentNodes: Node[] = [];
   let resultCount = Infinity;
   const resultNodeSet: Node[][] = [];
+  const startTime = Date.now();
+
   digest(0);
   return {
     count: resultCount,
@@ -142,6 +144,10 @@ export function findMinimalNodes(edges: Edge[]): {count: number; sets: Node[][]}
   };
   
   function digest(index: number): void {
+    if (Date.now() - startTime >= timeout)
+      throw new Error("Timeout trying to find minimals")
+
+
     if (currentNodes.length > resultCount) {
       return;
     }

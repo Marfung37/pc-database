@@ -1,5 +1,5 @@
 import { is2Line } from './lib/fumenUtils';
-import { filter, type FilterOutput } from './lib/saves/filter';
+import { filter, type FilterOutput } from './lib/filter';
 import { Fraction } from './lib/saves/fraction';
 import { WANTED_SAVE_DELIMITER } from './lib/saves/constants';
 import type { SetupID, SaveData } from './lib/types';
@@ -18,6 +18,9 @@ if (process.env.PATH_UPLOAD_BUCKET === undefined) {
 async function generateSaveData(row): Promise<boolean> {
   // create save_data entry with processing
   const skeletonRow = {stat_id: row.stat_id, save_id: row.save_id, save_percent: 0, save_fraction: {numerator: 1, denominator: 1}, status: 'processing'};
+
+  console.log(`Processing stat_id: ${row.stat_id} and save_id: ${row.save_id}`);
+
   const { data: saveDataID, error: insertError } = await supabaseAdmin
     .from('save_data')
     .insert(skeletonRow)
@@ -75,11 +78,12 @@ async function generateSaveData(row): Promise<boolean> {
 
   let data: FilterOutput;
   try {
-    data = filter(row.save.split(WANTED_SAVE_DELIMITER), row.build, row.leftover, row.pc, null, decompressedFile, is2Line(row.fumen), row.gen_all_saves, row.gen_minimal);
+    data = await filter(row.save.split(WANTED_SAVE_DELIMITER), row.build, row.leftover, row.pc, null, decompressedFile, is2Line(row.fumen), row.gen_all_saves, row.gen_minimal);
   } catch (e) {
     console.error(`Failed to generate data for ${saveDataID.save_data_id}:`, e);
     return false;
   }
+  console.log("Completed filter for", saveDataID.save_data_id);
 
   const percents = data.fractions.map((f: Fraction) => (f.numerator / f.denominator * 100));
   const newRow: SaveData = {
@@ -101,11 +105,13 @@ async function generateSaveData(row): Promise<boolean> {
     newRow.priority_save_fraction = data.fractions;
   }
 
-  const {error: updateError} = await supabaseAdmin.from('save_data').update(newRow).eq('save_data_id', saveDataID.save_data_id);
-  if (updateError) {
-    console.error(`Failed to update ${saveDataID.save_data_id}:`, updateError);
-    return false;
-  }
+  console.log(newRow);
+
+  // const {error: updateError} = await supabaseAdmin.from('save_data').update(newRow).eq('save_data_id', saveDataID.save_data_id);
+  // if (updateError) {
+  //   console.error(`Failed to update ${saveDataID.save_data_id}:`, updateError);
+  //   return false;
+  // }
   
   return true;
 }
@@ -131,8 +137,6 @@ async function runUploads(batchSize: number = 1000) {
 
       if (!await generateSaveData(row)) return;
     }
-
-    console.log("Completed another 1000 entries");
   }
 }
 
