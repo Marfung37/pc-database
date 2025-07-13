@@ -25,8 +25,8 @@ const currentFilePath = fileURLToPath(import.meta.url);
 // Get the directory name from the file path
 const currentFileDir = path.dirname(currentFilePath);
 const pathFilterFilepath = path.join(currentFileDir, 'path-filter', 'path-filter.jar');
-const filteredPathFile = path.join(currentFileDir, 'tmp', 'path.csv');
-const pathFilterOutput = path.join(currentFileDir, 'tmp', 'output.txt');
+const filteredPathFile = path.join(currentFileDir, 'path-filter', 'path.csv');
+const pathFilterOutput = path.join(currentFileDir, 'path-filter', 'output.txt');
 
 const execPromise = promisify(exec);
 

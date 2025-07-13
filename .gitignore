@@ -31,7 +31,6 @@ data/init_db.sql
 
 # utils
 utils/tmp
-utils/lib/tmp
 output/
 utils/lib/path-filter/*.csv
 utils/lib/path-filter/output.txt
