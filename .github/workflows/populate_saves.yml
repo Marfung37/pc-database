@@ -2,8 +2,8 @@ name: Run Populate Saves
 
 on:
   workflow_dispatch: 
-  schedule:
-    - cron: '0 0,12 * * *' # run at midnight and 12
+  # schedule:
+  #   - cron: '0 0,12 * * *' # run at midnight and 12
 
 jobs:
   run-script:
