@@ -23,18 +23,16 @@ import type { pathRow } from './saves/types';
 const currentFilePath = fileURLToPath(import.meta.url);
 
 // Get the directory name from the file path
-const currentFileDir = path.dirname(currentFilePath);
-const pathFilterFilepath = path.join(currentFileDir, 'path-filter', 'path-filter.jar');
-const filteredPathFile = path.join(currentFileDir, 'path-filter', 'path.csv');
-const pathFilterOutput = path.join(currentFileDir, 'path-filter', 'output.txt');
+const pathFilterDir = path.join(path.dirname(currentFilePath), 'path-filter');
+const pathFilterFilepath = path.join(pathFilterDir, 'path-filter.jar');
 
 const execPromise = promisify(exec);
 
-const NODE_LIMIT_HEURISTIC = 360; // heurestic on number of nodes that is maximum to expect the true minimal program to complete in a reasonable amount of time
+const NODE_LIMIT_HEURISTIC = 450; // heurestic on number of nodes that is maximum to expect the true minimal program to complete in a reasonable amount of time
 const PATH_ITERATIONS = 3; // number of times path-filter is run to try to get a reasonable minimal set
 const MAX_PATH_ITERATIONS = 5; // number of times running path-filter before giving it an error instead
 const PATH_TIME_LIMIT = 30 * 60 * 1000; // 30 minute time limit
-const MINIMAL_TIME_LIMIT = 10 * 60 * 1000; // 30 minute time limit
+const MINIMAL_TIME_LIMIT = 30 * 60 * 1000; // 30 minute time limit
 
 export interface FilterOutput {
   fractions: Fraction[],
@@ -58,6 +56,7 @@ export async function filter(
   twoline: boolean = false,
   uniqueSolves: boolean = false, 
   minimalSolves: boolean = true, 
+  identifier: string = "path"
 ): Promise<FilterOutput> {
   const saveableCounters: number[] = Array(wantedSaves.length).fill(0);
   const uniqueFumens: Set<Fumen> = new Set();
@@ -122,7 +121,7 @@ export async function filter(
     returnData.uniqueSolves = fumenCombine(uniqueFumens);
 
   if (minimalSolves && patterns.length > 0)  {
-    const minimalData = await generateMinimalSet(patterns, total)
+    const minimalData = await generateMinimalSet(patterns, total, path.join(pathFilterDir, identifier + '.csv'), path.join(pathFilterDir, identifier + '.txt'))
     returnData.minimalSolves = minimalData.minimalSolves;
     returnData.trueMinimal = minimalData.trueMinimal;
   }
@@ -130,7 +129,7 @@ export async function filter(
   return returnData;
 }
 
-async function generateMinimalSet(patterns: pathRow[], total: number): Promise<MinimalOutput> {
+async function generateMinimalSet(patterns: pathRow[], total: number, filteredPathFile: string, pathFilterOutput: string): Promise<MinimalOutput> {
   const graph = patternsToGraph(patterns);
 
   console.log(`Edges ${graph.edges.length}, Nodes ${graph.nodes.length}`);
@@ -146,11 +145,11 @@ async function generateMinimalSet(patterns: pathRow[], total: number): Promise<M
 
       minimalSet = set.map(n => n.key) as Fumen[];
     } catch (e) {
-      minimalSet = await runPathFilter(patterns);
+      minimalSet = await runPathFilter(patterns, filteredPathFile, pathFilterOutput);
       trueMinimal = false;
     }
   } else {
-    minimalSet = await runPathFilter(patterns);
+    minimalSet = await runPathFilter(patterns, filteredPathFile, pathFilterOutput);
     trueMinimal = false;
   }
 
@@ -230,7 +229,7 @@ async function writeFilteredPath(filepath: string, patterns: pathRow[]): Promise
   await csvWriter.writeRecords(processedPatterns);
 }
 
-async function runPathFilter(patterns: pathRow[]): Promise<Fumen[]> {
+async function runPathFilter(patterns: pathRow[], filteredPathFile: string, pathFilterOutput: string): Promise<Fumen[]> {
   const cmd = `java -jar ${pathFilterFilepath} ${filteredPathFile} ${pathFilterOutput} 5.0 6.0 3.0 100000`;
   const verifyCmd = `java -jar ${pathFilterFilepath} verify ${filteredPathFile} ${pathFilterOutput}`;
   let minimalSet: Fumen[] = [];
@@ -250,20 +249,26 @@ async function runPathFilter(patterns: pathRow[]): Promise<Fumen[]> {
 
     if (pathFilterVerifyErr) throw pathFilterVerifyErr;
 
-    if (stdout.match(/OK/) !== null) completedIterationCount++;
+    if (stdout.match(/OK/) !== null) {
+      // read output
+      const data = (await fsPromises.readFile(pathFilterOutput)).toString().trim().split('\n');
+      console.log(`Finished iteration ${iterationCount} of path-filter with ${data.length} solves`);
+      if (minimalSet.length == 0 || data.length < minimalSet.length) 
+        minimalSet = data as Fumen[];
+
+      completedIterationCount++;
+    }
     iterationCount++;
 
-    // read output
-    const data = (await fsPromises.readFile(pathFilterOutput)).toString().trim().split('\n');
-    console.log(`Finished iteration ${iterationCount} of path-filter with ${data.length} solves`);
-    if (minimalSet.length == 0 || data.length < minimalSet.length) 
-      minimalSet = data as Fumen[];
-
   } while (completedIterationCount < PATH_ITERATIONS && iterationCount < MAX_PATH_ITERATIONS && Date.now() - startTime < PATH_TIME_LIMIT);
+
+  await fsPromises.unlink(filteredPathFile);
+  await fsPromises.unlink(pathFilterOutput);
 
   if (iterationCount >= MAX_PATH_ITERATIONS) {
     throw new Error("Exceeded expected number of iteration of running path-filter");
   }
+
 
   return minimalSet;
 }

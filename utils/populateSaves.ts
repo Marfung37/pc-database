@@ -78,7 +78,7 @@ async function generateSaveData(row): Promise<boolean> {
 
   let data: FilterOutput;
   try {
-    data = await filter(row.save.split(WANTED_SAVE_DELIMITER), row.build, row.leftover, row.pc, null, decompressedFile, is2Line(row.fumen), row.gen_all_saves, row.gen_minimal);
+    data = await filter(row.save.split(WANTED_SAVE_DELIMITER), row.build, row.leftover, row.pc, null, decompressedFile, is2Line(row.fumen), row.gen_all_saves, row.gen_minimal, saveDataID.save_data_id);
   } catch (e) {
     console.error(`Failed to generate data for ${saveDataID.save_data_id}:`, e);
     return false;
