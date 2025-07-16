@@ -6,7 +6,7 @@ import type { SetupID, SaveData } from './lib/types';
 import { decompressPath, generateBucketPathFilename } from './lib/compression';
 import { supabaseAdmin } from './lib/supabaseAdmin';
 
-const PLATFORM_HARD_TIMEOUT_MS = 6 * 60 * 60 * 1000; // 5 hours
+const PLATFORM_HARD_TIMEOUT_MS = Infinity; // 6 * 60 * 60 * 1000; // 5 hours
 const SAFETY_MARGIN_MS = 60 * 60 * 1000; // 1 hour
 const EFFECTIVE_MAX_RUNTIME_MS = PLATFORM_HARD_TIMEOUT_MS - SAFETY_MARGIN_MS;
 
@@ -19,8 +19,6 @@ async function generateSaveData(row): Promise<boolean> {
   // create save_data entry with processing
   const skeletonRow = {stat_id: row.stat_id, save_id: row.save_id, save_percent: 0, save_fraction: {numerator: 1, denominator: 1}, status: 'processing'};
 
-  console.log(`Processing stat_id: ${row.stat_id} and save_id: ${row.save_id}`);
-
   const { data: saveDataID, error: insertError } = await supabaseAdmin
     .from('save_data')
     .insert(skeletonRow)
@@ -30,13 +28,15 @@ async function generateSaveData(row): Promise<boolean> {
   if (insertError) {
     if (insertError.code == '23505') {
       // skips processing this row if already exist
-      return false;
+      return true;
     } else {
       // insert error
       console.error('Failed to insert skeleton row:', insertError);
       return false;
     }
   }
+
+  console.log(`Processing stat_id: ${row.stat_id} and save_id: ${row.save_id}`);
 
   const filename = generateBucketPathFilename(
     row.setup_id,
@@ -78,7 +78,7 @@ async function generateSaveData(row): Promise<boolean> {
 
   let data: FilterOutput;
   try {
-    data = await filter(row.save.split(WANTED_SAVE_DELIMITER), row.build, row.leftover, row.pc, null, decompressedFile, is2Line(row.fumen), row.gen_all_saves, row.gen_minimal);
+    data = await filter(row.save.split(WANTED_SAVE_DELIMITER), row.build, row.leftover, row.pc, null, decompressedFile, is2Line(row.fumen), row.gen_all_saves, row.gen_minimal, false, `${saveDataID.save_data_id}.csv`, `${saveDataID.save_data_id}.txt`);
   } catch (e) {
     console.error(`Failed to generate data for ${saveDataID.save_data_id}:`, e);
     return false;

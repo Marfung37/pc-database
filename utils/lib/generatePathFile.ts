@@ -1,5 +1,5 @@
 import { COLUMN_ORDER } from './compression';
-import { grayFumen } from './fumenUtils';
+import { grayFumen, fumenGetFirst } from './fumenUtils';
 import { createObjectCsvWriter } from 'csv-writer';
 import { Result } from './types';
 
@@ -21,7 +21,7 @@ export async function generatePCPath(
   });
 
   // make fumen grayed out
-  fumen = grayFumen(fumen);
+  fumen = fumenGetFirst(grayFumen(fumen));
 
   interface Record {
     queue: string;

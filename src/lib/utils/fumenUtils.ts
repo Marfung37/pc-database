@@ -108,3 +108,9 @@ export function fumenCombineComments(fumens: Fumen[], comments: string[]): Fumen
 
   return encoder.encode(pages) as Fumen;
 }
+
+export function fumenGetFirst(fumen: Fumen): Fumen {
+  const pages = decodeWrapper(fumen);
+
+  return encoder.encode(pages.slice(0, 1)) as Fumen;
+}

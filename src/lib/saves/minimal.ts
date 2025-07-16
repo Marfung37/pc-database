@@ -67,7 +67,7 @@ export function patternsToGraph(patterns: pathRow[]): Graph {
   
   for (const edge of edges) {
     if (edge.redundant) continue;
-    
+
     for (const siblingEdge of setFirst(edge.nodes).edges) {
       if (edge === siblingEdge) continue;
       
