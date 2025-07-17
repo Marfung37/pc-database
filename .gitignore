@@ -33,4 +33,4 @@ data/init_db.sql
 utils/tmp
 output/
 utils/lib/path-filter/*.csv
-utils/lib/path-filter/output.txt
+utils/lib/path-filter/*.txt
