@@ -240,7 +240,7 @@ export function evaluateAstAll(node: AST, saves: string[]): number[] {
   }
   if (node instanceof UnaryOp) {
     if (node.op === 'NOT') {
-      return (evaluateAstAll(node.expr, saves).length > 0) 
+      return evaluateAstAll(node.expr, saves).length > 0
         ? []
         : Array.from({ length: saves.length }, (_, i) => i);
     }

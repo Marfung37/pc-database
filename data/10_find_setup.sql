@@ -8,9 +8,9 @@ CREATE TYPE setup_variants_data AS (
 CREATE TYPE setup_saves_data AS (
   save varchar(255),
   description varchar(255),
-  save_percent decimal(5,2),
+  save_percent decimal(5, 2),
   save_fraction fraction,
-  priority_save_percent decimal(5,2)[],
+  priority_save_percent decimal(5, 2) [],
   priority_save_fraction fraction[],
   all_solves fumen,
   minimal_solves fumen,

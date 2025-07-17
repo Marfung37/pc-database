@@ -1,26 +1,29 @@
-<script lang='ts'>
+<script lang="ts">
   import FumenRender from '$lib/components/FumenRender.svelte';
   import { Fraction } from '$lib/saves/fraction';
   import { fumenSplit } from '$lib/utils/fumenUtils';
   import { Clipboard, ClipboardCheck } from '@lucide/svelte';
   import { m } from '$lib/paraglide/messages.js';
-	import { toast } from 'svelte-sonner';
+  import { toast } from 'svelte-sonner';
 
   export let save;
   export let isOpen = false;
 
   // TODO: handle priority percent
-  let header = `${save.description ?? save.save}: `
+  let header = `${save.description ?? save.save}: `;
   if (save.save_percent) {
-   header += `${save.save_percent?.toFixed(2)}% (${(new Fraction(save.save_fraction.numerator, save.save_fraction.denominator)).toString()})`;
+    header += `${save.save_percent?.toFixed(2)}% (${new Fraction(save.save_fraction.numerator, save.save_fraction.denominator).toString()})`;
   } else {
-   header += `${save.save_percent?.toFixed(2)}% (${(new Fraction(save.save_fraction.numerator, save.save_fraction.denominator)).toString()})`;
-        save.priority_save_fraction
-          .map((f) => `${(f.numerator / f.denominator).toFixed(2)}% (${new Fraction(f.numerator, f.denominator).toString()})`)
-          .join(', ')
+    header += `${save.save_percent?.toFixed(2)}% (${new Fraction(save.save_fraction.numerator, save.save_fraction.denominator).toString()})`;
+    save.priority_save_fraction
+      .map(
+        (f) =>
+          `${(f.numerator / f.denominator).toFixed(2)}% (${new Fraction(f.numerator, f.denominator).toString()})`
+      )
+      .join(', ');
   }
 
-  isOpen = (save.minimal_solves) ? false: isOpen;
+  isOpen = save.minimal_solves ? false : isOpen;
 
   /**
    * Copies the fumen string to the user's clipboard.
@@ -29,47 +32,49 @@
   async function copyContent(): Promise<void> {
     // Check if the Clipboard API is supported by the browser
     if (!navigator.clipboard || !navigator.clipboard.writeText) {
-      toast.error(m.copy_not_supported())
+      toast.error(m.copy_not_supported());
       console.warn('Clipboard API not supported.');
       return;
     }
 
     try {
       await navigator.clipboard.writeText(save.minimal_solves);
-      toast.success(m.fumen_copied())
+      toast.success(m.fumen_copied());
     } catch (err) {
-      toast.error(m.fumen_copy_failed())
+      toast.error(m.fumen_copy_failed());
       console.error('Failed to copy content:', err);
     }
   }
 </script>
 
-<div class="border border-gray-200 mb-2 rounded-md overflow-hidden shadow-sm">
+<div class="mb-2 overflow-hidden rounded-md border border-gray-200 shadow-sm">
   <button
-    class="w-full bg-gray-100 p-4 text-left border-none
-         flex justify-between items-center text-lg font-semibold
-         {(save.minimal_solves) ? 'hover:bg-gray-200 cursor-pointer': ''} focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-    on:click={() => isOpen = !isOpen}
+    class="flex w-full items-center justify-between border-none
+         bg-gray-100 p-4 text-left text-lg font-semibold
+         {save.minimal_solves
+      ? 'cursor-pointer hover:bg-gray-200'
+      : ''} focus:ring-opacity-50 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+    on:click={() => (isOpen = !isOpen)}
   >
     {header}
     {#if save.minimal_solves}
-    <span class="text-2xl transition-transform duration-300 transform"
-        class:rotate-180={isOpen}
-    >
-      {isOpen ? '−' : '+'}
-    </span>
+      <span class="transform text-2xl transition-transform duration-300" class:rotate-180={isOpen}>
+        {isOpen ? '−' : '+'}
+      </span>
     {/if}
   </button>
   {#if isOpen}
-    <div class="p-4 flex flex-col gap-2">
-      <button 
-        class="text-2xl text-left text-blue-500 hover:text-blue-700 hover:cursor-pointer"
+    <div class="flex flex-col gap-2 p-4">
+      <button
+        class="text-left text-2xl text-blue-500 hover:cursor-pointer hover:text-blue-700"
         on:click={copyContent}
-      > {m.copy_minimal()} </button>
-      <div class="grid grid-cols-2 text-sm md:grid-cols-4 xl:grid-cols-8 gap-2">
-      {#each fumenSplit(save.minimal_solves) as fumen (fumen)}
-        <FumenRender fumen={fumen} />
-      {/each}
+      >
+        {m.copy_minimal()}
+      </button>
+      <div class="grid grid-cols-2 gap-2 text-sm md:grid-cols-4 xl:grid-cols-8">
+        {#each fumenSplit(save.minimal_solves) as fumen (fumen)}
+          <FumenRender {fumen} />
+        {/each}
       </div>
     </div>
   {/if}

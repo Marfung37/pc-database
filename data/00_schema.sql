@@ -11,11 +11,7 @@ CREATE TYPE "kicktable" AS ENUM(
 
 CREATE TYPE "hold_type" AS ENUM('any', 'cyclic', 'none');
 
-CREATE TYPE "status" AS ENUM (
-  'processing',
-  'completed',
-  'failed'
-);
+CREATE TYPE "status" AS ENUM('processing', 'completed', 'failed');
 
 CREATE TYPE unsafe_fraction AS ("numerator" integer, "denominator" integer);
 

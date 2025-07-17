@@ -35,15 +35,15 @@ const PATH_TIME_LIMIT = 30 * 60 * 1000; // 30 minute time limit
 const MINIMAL_TIME_LIMIT = 30 * 60 * 1000; // 30 minute time limit
 
 export interface FilterOutput {
-  fractions: Fraction[],
-  uniqueSolves?: Fumen,
-  minimalSolves?: Fumen,
-  trueMinimal?: boolean
+  fractions: Fraction[];
+  uniqueSolves?: Fumen;
+  minimalSolves?: Fumen;
+  trueMinimal?: boolean;
 }
 
 interface MinimalOutput {
-  minimalSolves?: Fumen,
-  trueMinimal?: boolean
+  minimalSolves?: Fumen;
+  trueMinimal?: boolean;
 }
 
 export async function filter(
@@ -54,9 +54,9 @@ export async function filter(
   filepath: string | null = null,
   fileData: string | null = null,
   twoline: boolean = false,
-  uniqueSolves: boolean = false, 
-  minimalSolves: boolean = true, 
-  identifier: string = "path"
+  uniqueSolves: boolean = false,
+  minimalSolves: boolean = true,
+  identifier: string = 'path'
 ): Promise<FilterOutput> {
   const saveableCounters: number[] = Array(wantedSaves.length).fill(0);
   const uniqueFumens: Set<Fumen> = new Set();
@@ -80,8 +80,9 @@ export async function filter(
     total++;
 
     if (!row.solveable) continue; // skip rows not solveable
-    if (row.fumens === undefined) throw new Error("Expected fumens to be populated from save reader")
-    if (row.line === undefined) throw new Error("Expected line to be populated from save reader")
+    if (row.fumens === undefined)
+      throw new Error('Expected fumens to be populated from save reader');
+    if (row.line === undefined) throw new Error('Expected line to be populated from save reader');
 
     let indicies: number[] = [];
     let i = 0;
@@ -90,7 +91,7 @@ export async function filter(
       indicies = evaluateAstAll(ast, row.saves);
       if (indicies.length > 0) {
         saveableCounters[i]++;
-        break
+        break;
       }
       i++;
     }
@@ -101,27 +102,30 @@ export async function filter(
       newFumens.push(...row.fumens[i]);
     }
 
-    if (uniqueSolves)
-      unionInPlace(uniqueFumens, new Set(newFumens));
+    if (uniqueSolves) unionInPlace(uniqueFumens, new Set(newFumens));
 
     if (minimalSolves) {
       const newRow: pathRow = {
-        pattern: row.queue, 
+        pattern: row.queue,
         fumens: newFumens
-      }
+      };
       patterns.push(newRow);
     }
   }
 
   const returnData: FilterOutput = {
     fractions: saveableCounters.map((val) => new Fraction(val, total))
-  }
+  };
 
-  if (uniqueSolves && uniqueFumens.size > 0)
-    returnData.uniqueSolves = fumenCombine(uniqueFumens);
+  if (uniqueSolves && uniqueFumens.size > 0) returnData.uniqueSolves = fumenCombine(uniqueFumens);
 
-  if (minimalSolves && patterns.length > 0)  {
-    const minimalData = await generateMinimalSet(patterns, total, path.join(pathFilterDir, identifier + '.csv'), path.join(pathFilterDir, identifier + '.txt'))
+  if (minimalSolves && patterns.length > 0) {
+    const minimalData = await generateMinimalSet(
+      patterns,
+      total,
+      path.join(pathFilterDir, identifier + '.csv'),
+      path.join(pathFilterDir, identifier + '.txt')
+    );
     returnData.minimalSolves = minimalData.minimalSolves;
     returnData.trueMinimal = minimalData.trueMinimal;
   }
@@ -129,7 +133,12 @@ export async function filter(
   return returnData;
 }
 
-async function generateMinimalSet(patterns: pathRow[], total: number, filteredPathFile: string, pathFilterOutput: string): Promise<MinimalOutput> {
+async function generateMinimalSet(
+  patterns: pathRow[],
+  total: number,
+  filteredPathFile: string,
+  pathFilterOutput: string
+): Promise<MinimalOutput> {
   const graph = patternsToGraph(patterns);
 
   console.log(`Edges ${graph.edges.length}, Nodes ${graph.nodes.length}`);
@@ -138,12 +147,12 @@ async function generateMinimalSet(patterns: pathRow[], total: number, filteredPa
   let trueMinimal: boolean = true;
   if (graph.nodes.length < NODE_LIMIT_HEURISTIC) {
     try {
-      const {sets} = findMinimalNodes(graph.edges, MINIMAL_TIME_LIMIT);
+      const { sets } = findMinimalNodes(graph.edges, MINIMAL_TIME_LIMIT);
 
       // TODO: decide if something better than pick arbitarily first set
       const set = sets[0];
 
-      minimalSet = set.map(n => n.key) as Fumen[];
+      minimalSet = set.map((n) => n.key) as Fumen[];
     } catch (e) {
       minimalSet = await runPathFilter(patterns, filteredPathFile, pathFilterOutput);
       trueMinimal = false;
@@ -168,7 +177,7 @@ async function generateMinimalSet(patterns: pathRow[], total: number, filteredPa
     }
   }
 
-  const solutions = minimalSet.map(f => {
+  const solutions = minimalSet.map((f) => {
     const sol = solutionMap.get(f);
     return {
       fumen: sol.fumen,
@@ -201,35 +210,39 @@ async function generateMinimalSet(patterns: pathRow[], total: number, filteredPa
   }
 
   const labels = cumuFractions.map((f: Fraction) => {
-    const percent = f.numerator / f.denominator * 100;
+    const percent = (f.numerator / f.denominator) * 100;
     return `${percent.toFixed(2)}% (${f.numerator}/${f.denominator})`;
-  })
+  });
 
-  return {minimalSolves: fumenCombineComments(fumenOrder, labels), trueMinimal};
+  return { minimalSolves: fumenCombineComments(fumenOrder, labels), trueMinimal };
 }
 
 async function writeFilteredPath(filepath: string, patterns: pathRow[]): Promise<void> {
   const csvWriter = createCsvWriter({
     path: filepath,
     header: [
-      {id: 'pattern', title: COLUMN_QUEUE},
-      {id: 'solutionCount', title: COLUMN_FUMEN_COUNT},
-      {id: 'solutions', title: COLUMN_USED_PIECES},
-      {id: 'unusedMinos', title: COLUMN_UNUSED_PIECES},
-      {id: 'fumens', title: COLUMN_FUMENS}
+      { id: 'pattern', title: COLUMN_QUEUE },
+      { id: 'solutionCount', title: COLUMN_FUMEN_COUNT },
+      { id: 'solutions', title: COLUMN_USED_PIECES },
+      { id: 'unusedMinos', title: COLUMN_UNUSED_PIECES },
+      { id: 'fumens', title: COLUMN_FUMENS }
     ]
-  }); 
+  });
 
-  const processedPatterns = patterns.map(record => ({
+  const processedPatterns = patterns.map((record) => ({
     ...record,
     solutionCount: record.fumens.length,
     fumens: record.fumens.join(COLUMN_FUMENS_DELIMITER)
-  }))
+  }));
 
   await csvWriter.writeRecords(processedPatterns);
 }
 
-async function runPathFilter(patterns: pathRow[], filteredPathFile: string, pathFilterOutput: string): Promise<Fumen[]> {
+async function runPathFilter(
+  patterns: pathRow[],
+  filteredPathFile: string,
+  pathFilterOutput: string
+): Promise<Fumen[]> {
   const cmd = `java -jar ${pathFilterFilepath} ${filteredPathFile} ${pathFilterOutput} 5.0 6.0 3.0 100000`;
   const verifyCmd = `java -jar ${pathFilterFilepath} verify ${filteredPathFile} ${pathFilterOutput}`;
   let minimalSet: Fumen[] = [];
@@ -253,22 +266,23 @@ async function runPathFilter(patterns: pathRow[], filteredPathFile: string, path
       // read output
       const data = (await fsPromises.readFile(pathFilterOutput)).toString().trim().split('\n');
       console.log(`Finished iteration ${iterationCount} of path-filter with ${data.length} solves`);
-      if (minimalSet.length == 0 || data.length < minimalSet.length) 
-        minimalSet = data as Fumen[];
+      if (minimalSet.length == 0 || data.length < minimalSet.length) minimalSet = data as Fumen[];
 
       completedIterationCount++;
     }
     iterationCount++;
-
-  } while (completedIterationCount < PATH_ITERATIONS && iterationCount < MAX_PATH_ITERATIONS && Date.now() - startTime < PATH_TIME_LIMIT);
+  } while (
+    completedIterationCount < PATH_ITERATIONS &&
+    iterationCount < MAX_PATH_ITERATIONS &&
+    Date.now() - startTime < PATH_TIME_LIMIT
+  );
 
   await fsPromises.unlink(filteredPathFile);
   await fsPromises.unlink(pathFilterOutput);
 
   if (iterationCount >= MAX_PATH_ITERATIONS) {
-    throw new Error("Exceeded expected number of iteration of running path-filter");
+    throw new Error('Exceeded expected number of iteration of running path-filter');
   }
-
 
   return minimalSet;
 }

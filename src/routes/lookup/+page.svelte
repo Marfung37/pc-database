@@ -104,7 +104,7 @@
 
   <div class="flex flex-col gap-4">
     {#each form?.setups ?? [] as setup (setup.setup_id)}
-      <SetupInfo setup={setup} submittedQueue={submittedQueue} baseUrl="/lookup/" />
+      <SetupInfo {setup} {submittedQueue} baseUrl="/lookup/" />
     {/each}
   </div>
 </div>

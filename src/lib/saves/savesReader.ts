@@ -130,7 +130,6 @@ export class SavesReader {
         );
       }
 
-
       const unseenLastBagPart = new Set(
         [...this.unusedLastBag].filter((p) => !fullQueue.slice(this.leadingSize).includes(p))
       );
@@ -150,7 +149,8 @@ export class SavesReader {
               fumenLabels[fumen as Fumen] = [...comment].reduce((s, c) => s + c.charCodeAt(0), 0);
             }
             const commentValue = fumenLabels[fumen as Fumen];
-            const fumenUnusedPiece = (queueValue - commentValue > 0) ? String.fromCharCode(queueValue - commentValue): '';
+            const fumenUnusedPiece =
+              queueValue - commentValue > 0 ? String.fromCharCode(queueValue - commentValue) : '';
             if (unusedPiece === fumenUnusedPiece) {
               currSaveFumens.push(fumen as Fumen);
             }

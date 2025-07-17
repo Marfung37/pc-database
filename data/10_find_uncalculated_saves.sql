@@ -1,7 +1,4 @@
-CREATE OR REPLACE FUNCTION public.find_uncalculated_saves (
-  max_rows smallint DEFAULT 1
-)
-RETURNS TABLE (
+CREATE OR REPLACE FUNCTION public.find_uncalculated_saves (max_rows smallint DEFAULT 1) RETURNS TABLE (
   setup_id setupid,
   pc smallint,
   leftover queue,
@@ -19,8 +16,7 @@ RETURNS TABLE (
   gen_all_solves bool
 )
 SET
-  search_path = public
-SECURITY INVOKER AS $$
+  search_path = public SECURITY INVOKER AS $$
 BEGIN
   RETURN QUERY
   SELECT

@@ -75,7 +75,7 @@
         loading = false;
       }
     })();
-  };
+  }
 
   // Crucial: Revoke the Object URL when the component is destroyed
   onDestroy(() => {

@@ -55,8 +55,7 @@
 
 <div class="container mx-auto flex flex-col gap-2 p-2 text-left">
   <h1 class="py-2 text-3xl">{m.lookup_current_setup()}</h1>
-  <SetupInfo setup={setup} submittedQueue={subbuild} baseUrl="" next={false} />
-
+  <SetupInfo {setup} submittedQueue={subbuild} baseUrl="" next={false} />
 
   {#if setup.solve_pattern}
     <form
@@ -96,13 +95,13 @@
       </div>
     {/if}
     <p>
-      {m.lookup_save_percent()}: 
+      {m.lookup_save_percent()}:
       {#if form?.fractions}
-      {loading
-        ? m.loading()
-        : (form?.fractions
-            .map((f) => `${((f.split('/')[0] / f.split('/')[1]) * 100).toFixed(2)}% (${f})`)
-            .join(', ') ?? '')}
+        {loading
+          ? m.loading()
+          : (form?.fractions
+              .map((f) => `${((f.split('/')[0] / f.split('/')[1]) * 100).toFixed(2)}% (${f})`)
+              .join(', ') ?? '')}
       {/if}
     </p>
   {/if}
@@ -156,15 +155,15 @@
 
     <div class="flex flex-col gap-4">
       {#each form?.setups ?? [] as next_setup (next_setup.setup_id)}
-        <SetupInfo setup={next_setup} submittedQueue={submittedQueue} baseUrl="/lookup/" />
+        <SetupInfo setup={next_setup} {submittedQueue} baseUrl="/lookup/" />
       {/each}
     </div>
   {/if}
 
   <div>
-    <h1 class="py-2 text-3xl"> {m.lookup_saves()} </h1>
+    <h1 class="py-2 text-3xl">{m.lookup_saves()}</h1>
     {#each setup.saves as save (save.save)}
-      <SaveAccordian save={save} />
+      <SaveAccordian {save} />
     {/each}
   </div>
 </div>

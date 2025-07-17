@@ -4,27 +4,27 @@ import { parse } from 'csv-parse/sync';
 import type { pathRow } from './types';
 
 interface Node {
-  key: string,
-  edges: Set<Edge>,
-  color: number,
-  alter: Node[],
-  redundant?: boolean
+  key: string;
+  edges: Set<Edge>;
+  color: number;
+  alter: Node[];
+  redundant?: boolean;
 }
 
 interface Edge {
-  nodes: Set<Node>,
-  color: number,
-  redundant?: boolean
+  nodes: Set<Node>;
+  color: number;
+  redundant?: boolean;
 }
 
 interface Graph {
-  edges: Edge[],
-  nodes: Node[]
+  edges: Edge[];
+  nodes: Node[];
 }
 
 export function csvToPatterns(data: string) {
   const patterns = parse(data, {
-    cast: (value, {index}) => {
+    cast: (value, { index }) => {
       if (index === 1) {
         return Number(value);
       }
@@ -32,18 +32,16 @@ export function csvToPatterns(data: string) {
         if (!value) {
           return [];
         }
-        return value.split(";");
+        return value.split(';');
       }
       return value;
     },
     from: 2,
-    columns: [
-      "pattern", "solutionCount", "solutions", "unusedMinos", "fumens"
-    ]
+    columns: ['pattern', 'solutionCount', 'solutions', 'unusedMinos', 'fumens']
   });
-  
+
   // https://github.com/knewjade/solution-finder/issues/3
-  const map: Map<string, pathRow> = new Map;
+  const map: Map<string, pathRow> = new Map();
   for (const p of patterns) {
     map.set(p.pattern, p);
   }
@@ -54,7 +52,7 @@ export function patternsToGraph(patterns: pathRow[]): Graph {
   const fumenStore = createFumenStore();
   const edges: Edge[] = patterns.map((p: pathRow) => ({
     nodes: new Set(p.fumens.map(fumenStore.fumenToNode)),
-    color: 0,
+    color: 0
     // visit: 0,
     // groupId: 0
   }));
@@ -64,22 +62,22 @@ export function patternsToGraph(patterns: pathRow[]): Graph {
     }
   }
   edges.sort((a, b) => a.nodes.size - b.nodes.size);
-  
+
   for (const edge of edges) {
     if (edge.redundant) continue;
-    
+
     for (const siblingEdge of setFirst(edge.nodes).edges) {
       if (edge === siblingEdge) continue;
-      
+
       if (setContain(siblingEdge.nodes, edge.nodes)) {
         siblingEdge.redundant = true;
       }
     }
   }
-  
-  const cleanEdges = edges.filter(e => !e.redundant);
+
+  const cleanEdges = edges.filter((e) => !e.redundant);
   const nodes = [...fumenStore.getNodes()];
-  
+
   for (const node of nodes) {
     for (const edge of node.edges) {
       if (edge.redundant) {
@@ -87,24 +85,24 @@ export function patternsToGraph(patterns: pathRow[]): Graph {
       }
     }
   }
-  
-  const cleanNodes = nodes.filter(n => n.edges.size);
-  
+
+  const cleanNodes = nodes.filter((n) => n.edges.size);
+
   cleanNodes.sort((a, b) => a.edges.size - b.edges.size);
-  
+
   for (const node of cleanNodes) {
     if (node.redundant) continue;
-    
+
     for (const siblingNode of setFirst(node.edges).nodes) {
       if (siblingNode === node) continue;
-      
+
       if (setEqual(node.edges, siblingNode.edges)) {
         siblingNode.redundant = true;
         node.alter.push(siblingNode);
       }
     }
   }
-  
+
   for (const edge of cleanEdges) {
     for (const node of edge.nodes) {
       if (node.redundant) {
@@ -112,10 +110,10 @@ export function patternsToGraph(patterns: pathRow[]): Graph {
       }
     }
   }
-  
+
   return {
     edges: cleanEdges,
-    nodes: cleanNodes.filter(n => !n.redundant)
+    nodes: cleanNodes.filter((n) => !n.redundant)
   };
 }
 
@@ -131,7 +129,10 @@ function setEqual(a: Set<any>, b: Set<any>): boolean {
   return true;
 }
 
-export function findMinimalNodes(edges: Edge[], timeout: number = Infinity): {count: number; sets: Node[][]} {
+export function findMinimalNodes(
+  edges: Edge[],
+  timeout: number = Infinity
+): { count: number; sets: Node[][] } {
   const currentNodes: Node[] = [];
   let resultCount = Infinity;
   const resultNodeSet: Node[][] = [];
@@ -142,16 +143,14 @@ export function findMinimalNodes(edges: Edge[], timeout: number = Infinity): {co
     count: resultCount,
     sets: resultNodeSet
   };
-  
-  function digest(index: number): void {
-    if (Date.now() - startTime >= timeout)
-      throw new Error("Timeout trying to find minimals")
 
+  function digest(index: number): void {
+    if (Date.now() - startTime >= timeout) throw new Error('Timeout trying to find minimals');
 
     if (currentNodes.length > resultCount) {
       return;
     }
-    
+
     if (index >= edges.length) {
       if (currentNodes.length < resultCount) {
         resultCount = currentNodes.length;
@@ -160,18 +159,18 @@ export function findMinimalNodes(edges: Edge[], timeout: number = Infinity): {co
       resultNodeSet.push(currentNodes.slice());
       return;
     }
-    
+
     const edge = edges[index];
-    
+
     if (edge.color) {
       digest(index + 1);
       return;
     }
-    
+
     for (const node of edge.nodes) {
       node.color++;
       if (node.color > 1) continue; // the node has been tried by other edges
-      
+
       currentNodes.push(node);
       for (const siblingEdge of node.edges) {
         siblingEdge.color++;
@@ -202,19 +201,19 @@ function setFirst(s: Set<any>) {
 }
 
 function createFumenStore() {
-  const fumenMap = new Map;
+  const fumenMap = new Map();
   return {
     fumenToNode,
     getNodes: () => fumenMap.values()
   };
-  
+
   function fumenToNode(fumen: string) {
     if (fumenMap.has(fumen)) {
       return fumenMap.get(fumen);
     }
     const node = {
       key: fumen,
-      edges: new Set,
+      edges: new Set(),
       color: 0,
       alter: []
       // groupId: 0,

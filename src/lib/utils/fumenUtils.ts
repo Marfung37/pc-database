@@ -91,8 +91,7 @@ export function fumenGetComments(fumen: Fumen): string[] {
 
 export function fumenCombine(fumens: Iterable<Fumen>): Fumen {
   const pages: Page[] = [];
-  for (let fumen of fumens)
-    pages.concat(decodeWrapper(fumen));
+  for (let fumen of fumens) pages.concat(decodeWrapper(fumen));
 
   return encoder.encode(pages) as Fumen;
 }

@@ -7,9 +7,9 @@ import type { Queue, Fumen } from '$lib/types';
 import type { pathRow } from './types';
 
 export interface FilterOutput {
-  fractions: Fraction[],
-  uniqueSolves?: Fumen,
-  minimalSolves?: Fumen
+  fractions: Fraction[];
+  uniqueSolves?: Fumen;
+  minimalSolves?: Fumen;
 }
 
 export function filter(
@@ -20,8 +20,8 @@ export function filter(
   filepath: string | null = null,
   fileData: string | null = null,
   twoline: boolean = false,
-  uniqueSolves: boolean = false, 
-  minimalSolves: boolean = true, 
+  uniqueSolves: boolean = false,
+  minimalSolves: boolean = true
 ): FilterOutput {
   const saveableCounters: number[] = Array(wantedSaves.length).fill(0);
   const uniqueFumens: Set<Fumen> = new Set();
@@ -45,8 +45,9 @@ export function filter(
     total++;
 
     if (!row.solveable) continue; // skip rows not solveable
-    if (row.fumens === undefined) throw new Error("Expected fumens to be populated from save reader")
-    if (row.line === undefined) throw new Error("Expected line to be populated from save reader")
+    if (row.fumens === undefined)
+      throw new Error('Expected fumens to be populated from save reader');
+    if (row.line === undefined) throw new Error('Expected line to be populated from save reader');
 
     let indicies: number[] = [];
     let i = 0;
@@ -55,7 +56,7 @@ export function filter(
       indicies = evaluateAstAll(ast, row.saves);
       if (indicies.length > 0) {
         saveableCounters[i]++;
-        break
+        break;
       }
       i++;
     }
@@ -66,28 +67,26 @@ export function filter(
       newFumens.push(...row.fumens[i]);
     }
 
-    if (uniqueSolves)
-      uniqueFumens.union(new Set(newFumens))
+    if (uniqueSolves) uniqueFumens.union(new Set(newFumens));
 
     if (minimalSolves) {
       const newRow: pathRow = {
-        pattern: row.queue, 
+        pattern: row.queue,
         fumens: newFumens
-      }
+      };
       patterns.push(newRow);
     }
   }
 
   const returnData: FilterOutput = {
     fractions: saveableCounters.map((val) => new Fraction(val, total))
-  }
+  };
 
-  if (uniqueSolves && uniqueFumens.size > 0)
-    returnData.uniqueSolves = fumenCombine(uniqueFumens);
+  if (uniqueSolves && uniqueFumens.size > 0) returnData.uniqueSolves = fumenCombine(uniqueFumens);
 
-  if (minimalSolves && patterns.length > 0) 
+  if (minimalSolves && patterns.length > 0)
     returnData.minimalSolves = generateMinimalSet(patterns, total);
-  
+
   return returnData;
 }
 
@@ -100,7 +99,7 @@ function unionInPlace<T>(target: Set<T>, other: Set<T>): void {
 function generateMinimalSet(patterns: pathRow[], total: number): Fumen {
   const graph = patternsToGraph(patterns);
 
-  const {sets} = findMinimalNodes(graph.edges);
+  const { sets } = findMinimalNodes(graph.edges);
 
   // TODO: decide if something better than pick arbitarily first set
   const set = sets[0];
@@ -120,7 +119,7 @@ function generateMinimalSet(patterns: pathRow[], total: number): Fumen {
     }
   }
 
-  const solutions = set.map(n => {
+  const solutions = set.map((n) => {
     const sol = solutionMap.get(n.key);
     return {
       fumen: sol.fumen,
@@ -153,9 +152,9 @@ function generateMinimalSet(patterns: pathRow[], total: number): Fumen {
   }
 
   const labels = cumuFractions.map((f: Fraction) => {
-    const percent = f.numerator / f.denominator * 100;
+    const percent = (f.numerator / f.denominator) * 100;
     return `${percent.toFixed(2)}% (${f.numerator}/${f.denominator})`;
-  })
+  });
 
   return fumenCombineComments(fumenOrder, labels);
 }
