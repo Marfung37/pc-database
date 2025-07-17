@@ -34,7 +34,7 @@
 
     try {
       await navigator.clipboard.writeText(fumen);
-      feedbackMessage = 'Copied to clipboard!';
+      feedbackMessage = 'Copied fumen!';
       showFeedback = true;
     } catch (err) {
       console.error('Failed to copy content:', err);
@@ -61,7 +61,7 @@
         if (mirror) params.append('mirror', String(mirror));
         if (loop) params.append('loop', String(loop));
         if (delay) params.append('delay', String(delay));
-        const url = `/render?${params.toString()}`;
+        const url = `/api/render?${params.toString()}`;
 
         const response = await fetch(url);
         const data = await response.blob();

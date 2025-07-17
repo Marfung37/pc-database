@@ -5,6 +5,7 @@
   import { m } from '$lib/paraglide/messages.js';
   import { onMount } from 'svelte';
   import SetupInfo from '$lib/components/SetupInfo.svelte';
+  import SaveAccordian from '$lib/components/SaveAccordian.svelte';
 
   export let data;
   export let form;
@@ -159,4 +160,11 @@
       {/each}
     </div>
   {/if}
+
+  <div>
+    <h1 class="py-2 text-3xl">Saves</h1>
+    {#each setup.saves as save (save.save)}
+      <SaveAccordian save={save} />
+    {/each}
+  </div>
 </div>

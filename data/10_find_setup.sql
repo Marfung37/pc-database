@@ -13,7 +13,8 @@ CREATE TYPE setup_saves_data AS (
   priority_save_percent decimal(5,2)[],
   priority_save_fraction fraction[],
   all_solves fumen,
-  minimal_solves fumen
+  minimal_solves fumen,
+  true_miniaml boolean
 );
 
 -- find a setup for solving using leftover
@@ -86,7 +87,8 @@ BEGIN
         sd.priority_save_percent,
         sd.priority_save_fraction,
         sd.all_solves,
-        sd.minimal_solves
+        sd.minimal_solves,
+        sd.true_minimal
       )::setup_saves_data ORDER BY sa.importance)
       FROM save_data sd
       JOIN saves sa ON sd.save_id = sa.save_id
@@ -180,7 +182,8 @@ BEGIN
         sd.priority_save_percent,
         sd.priority_save_fraction,
         sd.all_solves,
-        sd.minimal_solves
+        sd.minimal_solves,
+        sd.true_minimal
       )::setup_saves_data ORDER BY sa.importance)
       FROM save_data sd
       JOIN saves sa ON sd.save_id = sa.save_id
@@ -273,7 +276,8 @@ BEGIN
         sd.priority_save_percent,
         sd.priority_save_fraction,
         sd.all_solves,
-        sd.minimal_solves
+        sd.minimal_solves,
+        sd.true_minimal
       )::setup_saves_data ORDER BY sa.importance)
       FROM save_data sd
       JOIN saves sa ON sd.save_id = sa.save_id

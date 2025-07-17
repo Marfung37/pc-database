@@ -108,3 +108,14 @@ export function fumenCombineComments(fumens: Fumen[], comments: string[]): Fumen
 
   return encoder.encode(pages) as Fumen;
 }
+
+export function fumenSplit(fumen: Fumen): Fumen[] {
+  const pages = decodeWrapper(fumen);
+  const fumens: Fumen[] = [];
+
+  for (let page of pages) {
+    fumens.push(encoder.encode([page]) as Fumen);
+  }
+
+  return fumens;
+}

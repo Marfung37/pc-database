@@ -5,6 +5,7 @@
   import { onMount } from 'svelte';
   import LocaleSwitcher from '$lib/components/LocaleSwitcher.svelte';
   import { User } from '@lucide/svelte';
+  import { Toaster } from 'svelte-sonner';
 
   export let data;
 
@@ -26,6 +27,8 @@
   <title>{m.website_name()}</title>
   <meta name="description" content={m.website_description()} />
 </svelte:head>
+
+<Toaster position="top-right" closeButton />
 
 <div class="navbar bg-base-100 container mx-auto">
   <div class="flex flex-1 items-center">

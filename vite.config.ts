@@ -37,5 +37,11 @@ export default defineConfig({
         }
       }
     ]
+  },
+  server: {
+    watch: {
+      // Add your 'utils' directory to ignore it from the watcher
+      ignored: ['**/utils/**']
+    }
   }
 });
