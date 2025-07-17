@@ -12,9 +12,12 @@
   "btn_save": "Save",
   "btn_submit": "Submit",
   "loading": "Loading...",
+  "error": "Error",
+  "loading_image": "Loading image...",
   "processing": "Processing...",
   "yes": "Yes",
   "no": "No",
+  "fumen": "Fumen",
   "email_address": "Email Address",
   "password": "Password",
   "username": "Username",
@@ -25,6 +28,10 @@
   "cover_pattern": "Cover Pattern",
   "solve_pattern": "Solve Pattern",
   "cover_description": "Cover Description",
+  "fumen_copied": "Copied fumen!",
+  "fumen_copy_failed": "Failed to copy",
+  "copy_not_supported": "Clipboard API not supported",
+  "copy_minimal": "Copy Minimal Fumen",
   "lookup_pc_number": "PC Number",
   "lookup_queue": "Queue",
   "lookup_solve_percent": "Solve Percent",
@@ -34,5 +41,6 @@
   "lookup_next_setup": "Next Setup",
   "lookup_download_path": "Download Path File",
   "lookup_wanted_saves": "Wanted Save",
-  "lookup_save_percent": "Save Percent"
+  "lookup_save_percent": "Save Percent",
+  "lookup_saves": "Saves"
 }

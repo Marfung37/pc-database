@@ -3,6 +3,7 @@
   import { Fraction } from '$lib/saves/fraction';
   import { fumenSplit } from '$lib/utils/fumenUtils';
   import { Clipboard, ClipboardCheck } from '@lucide/svelte';
+  import { m } from '$lib/paraglide/messages.js';
 	import { toast } from 'svelte-sonner';
 
   export let save;
@@ -28,16 +29,16 @@
   async function copyContent(): Promise<void> {
     // Check if the Clipboard API is supported by the browser
     if (!navigator.clipboard || !navigator.clipboard.writeText) {
-      toast.error('Clipboard API not supported by your browser.')
+      toast.error(m.copy_not_supported())
       console.warn('Clipboard API not supported.');
       return;
     }
 
     try {
       await navigator.clipboard.writeText(save.minimal_solves);
-      toast.success('Copied fumen!')
+      toast.success(m.fumen_copied())
     } catch (err) {
-      toast.error('Failed to copy to clipboard.')
+      toast.error(m.fumen_copy_failed())
       console.error('Failed to copy content:', err);
     }
   }
@@ -64,7 +65,7 @@
       <button 
         class="text-2xl text-left text-blue-500 hover:text-blue-700 hover:cursor-pointer"
         on:click={copyContent}
-      > Copy Minimal Fumen </button>
+      > {m.copy_minimal()} </button>
       <div class="grid grid-cols-2 text-sm md:grid-cols-4 xl:grid-cols-8 gap-2">
       {#each fumenSplit(save.minimal_solves) as fumen (fumen)}
         <FumenRender fumen={fumen} />

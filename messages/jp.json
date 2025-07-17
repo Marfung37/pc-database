@@ -11,10 +11,13 @@
   "nav_logout": "ログアウト",
   "btn_save": "保存",
   "btn_submit": "送信",
-  "loading": "処理中...",
+  "loading": "ローリング...",
+  "error": "エラー",
+  "loading_image": "イメージローリング...",
   "processing": "処理...",
   "yes": "はい",
   "no": "いいえ",
+  "fumen": "fumen",
   "email_address": "メールアドレス",
   "password": "パスワード",
   "username": "ユーザー名",
@@ -23,6 +26,10 @@
   "database_docs": "ドキュメンテーション",
   "exact_cover_pattern": "正確なカバーパターン",
   "cover_pattern": "カバーパターン",
+  "fumen_copied": "fumenコピーした!",
+  "fumen_copy_failed": "コピー失敗",
+  "copy_not_supported": "クリップボードAPIはサポートされていません",
+  "copy_minimal": "コピーミニマムfumen",
   "lookup_solve_pattern": "パフェパータン",
   "cover_description": "カバー記述",
   "lookup_pc_number": "PC番号",
@@ -34,5 +41,6 @@
   "lookup_next_setup": "次の組み方",
   "lookup_download_path": "ダウンロード・パス・ファイル",
   "lookup_wanted_saves": "ウォンテッド・セーブ",
-  "lookup_save_percent": "セーブ率"
+  "lookup_save_percent": "セーブ率",
+  "lookup_saves": "Saves"
 }

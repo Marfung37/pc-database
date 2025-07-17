@@ -2,6 +2,7 @@
   import { browser } from '$app/environment';
   import { onMount, onDestroy } from 'svelte';
   import { Clipboard, ClipboardCheck } from '@lucide/svelte';
+  import { m } from '$lib/paraglide/messages.js';
 
   export let fumen: string = null;
   export let scale: number = null;
@@ -26,7 +27,7 @@
   async function copyContent(): Promise<void> {
     // Check if the Clipboard API is supported by the browser
     if (!navigator.clipboard || !navigator.clipboard.writeText) {
-      feedbackMessage = 'Clipboard API not supported by your browser.';
+      feedbackMessage = m.copy_not_supported();
       showFeedback = true;
       console.warn('Clipboard API not supported.');
       return;
@@ -34,11 +35,11 @@
 
     try {
       await navigator.clipboard.writeText(fumen);
-      feedbackMessage = 'Copied fumen!';
+      feedbackMessage = m.fumen_copied();
       showFeedback = true;
     } catch (err) {
       console.error('Failed to copy content:', err);
-      feedbackMessage = 'Failed to copy to clipboard.';
+      feedbackMessage = m.fumen_copy_failed();
       showFeedback = true;
     } finally {
       // Hide the feedback message after a short delay
@@ -86,9 +87,9 @@
 </script>
 
 {#if loading}
-  <p>Loading image...</p>
+  <p>{m.loading_image()}</p>
 {:else if error}
-  <p>Error: {error}</p>
+  <p>{m.error()}: {error}</p>
 {:else if imageSrc}
   <div class="group relative h-auto w-full rounded-md border border-gray-200 bg-gray-200 pt-4">
     <img class="h-auto w-full" src={imageSrc} alt={fumen} />

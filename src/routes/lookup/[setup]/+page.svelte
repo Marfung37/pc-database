@@ -162,7 +162,7 @@
   {/if}
 
   <div>
-    <h1 class="py-2 text-3xl">Saves</h1>
+    <h1 class="py-2 text-3xl"> {m.lookup_saves()} </h1>
     {#each setup.saves as save (save.save)}
       <SaveAccordian save={save} />
     {/each}
