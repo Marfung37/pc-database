@@ -49,8 +49,12 @@ const is180: Record<string, boolean> = {
   none: false
 };
 
-async function generateSetupID(row: InputSetup, oqb: boolean, build: Queue): Promise<SetupID> {
+// TODO: need to consider setupid already set using this in this process
+async function generateSetupID(row: InputSetup, prefixCount: Map<string, number>, oqb: boolean, build: Queue): Promise<SetupID> {
   const prefix = generateSetupIDPrefix(row.pc, oqb, row.leftover, build, row.cover_pattern, row.fumen);
+
+  const currentCount = prefixCount.get(prefix) || 0;
+  prefixCount.set(prefix, currentCount + 1);
 
   const {data: setupids, error: setupidErr} = await supabaseAdmin
     .from('setups')
@@ -59,10 +63,10 @@ async function generateSetupID(row: InputSetup, oqb: boolean, build: Queue): Pro
 
   if (setupidErr) throw setupidErr;
 
-  return (prefix + (0xff - setupids.length).toString(16)) as SetupID;
+  return (prefix + (0xff - setupids.length - currentCount).toString(16)) as SetupID;
 }
 
-async function generateSetupEntry(row: InputSetup, oqb: boolean, mirror: SetupID | null, see: number, hold: number): Setup {
+async function generateSetupEntry(row: InputSetup, prefixCount: Map<string, number>, oqb: boolean, mirror: SetupID | null, see: number, hold: number): Setup {
   // compute the build
   const gluedFumens = glueFumen(row.fumen, 1);
 
@@ -73,7 +77,7 @@ async function generateSetupEntry(row: InputSetup, oqb: boolean, mirror: SetupID
   const build = sortQueue(buildTmp as Queue);
 
   // compute the setupid
-  let setup_id = await generateSetupID(row, oqb, build);
+  let setup_id = await generateSetupID(row, prefixCount, oqb, build);
 
   return {
     setup_id,
@@ -120,20 +124,26 @@ async function generateStatEntry(setup: Setup, kicktable: Kicktable, holdtype: H
   await fsPromises.unlink(output);
 
   // converts the data in the cover file to a byte array
-  const coverData = new Uint8Array((csvContent.length + 7) / 8);
+  let coverData: Uint8Array | null = new Uint8Array((csvContent.length + 7) / 8);
   let bitToByte: number = 0;
+  let anyFails: boolean = false;
   for (let i = 0; i < csvContent.length; i++) {
-    bitToByte |= csvContent[i].slice(1).includes('O') << (7 - (i % 8));
+    const covered = csvContent[i].slice(1).includes('O');
+    if (!covered) anyFails = true;
+    bitToByte |= covered << (7 - (i % 8));
     // once a full byte is completed
     if (i % 8 == 7) {
       coverData[(i - 7) / 8] = bitToByte;
       bitToByte = 0;
     }
   }
-  // fill last space if a full byte isn't fully filled
-  if (bitToByte > 0) {
+  if (!anyFails) {
+    coverData = null;
+  } else if (bitToByte > 0) {
+    // fill last space if a full byte isn't fully filled
     coverData[coverData.length - 1] = bitToByte
   }
+  
 
   if (setup.solve_pattern === null) {
     return {
@@ -208,11 +218,13 @@ async function parseSetupInput(filepath: string, see: number = 7, hold: number =
       return value ? value: null;
     }
   });
+
   const setups: Setup[] = [];
   const setupLinks: SetupOQBLink[] = [];
   const stats: Statistic[] = [];
 
   const idMap: (SetupID | null)[] = Array.from({ length: csvData.length}, () => null);
+  const prefixCount: Map<string, number> = new Map();
 
   let childrenCountDown: number[] = [];
   const childrenStack: SetupID[] = [];
@@ -220,7 +232,7 @@ async function parseSetupInput(filepath: string, see: number = 7, hold: number =
     const parent = row.children !== null && row.children > 0;
     const child = childrenCountDown.length > 0;
     const oqb = parent || child;
-    const setup = await generateSetupEntry(row, oqb, null, see, hold);
+    const setup = await generateSetupEntry(row, prefixCount, oqb, null, see, hold);
     idMap[row.id] = setup.setup_id;
 
     if (child) {
@@ -248,7 +260,7 @@ async function parseSetupInput(filepath: string, see: number = 7, hold: number =
   }
 
   for (let i = 0; i < csvData.length; i++) {
-    if ('mirror' in csvData[i]) {
+    if (csvData[i].mirror !== null) {
       setups[i].mirror = idMap[csvData[i].mirror];
     }
 
