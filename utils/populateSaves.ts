@@ -6,7 +6,7 @@ import type { SetupID, SaveData } from './lib/types';
 import { decompressPath, generateBucketPathFilename } from './lib/compression';
 import { supabaseAdmin } from './lib/supabaseAdmin';
 
-const PLATFORM_HARD_TIMEOUT_MS = 6 * 60 * 60 * 1000; // 5 hours
+const PLATFORM_HARD_TIMEOUT_MS = Infinity; // 6 * 60 * 60 * 1000; // 5 hours
 const SAFETY_MARGIN_MS = 60 * 60 * 1000; // 1 hour
 const EFFECTIVE_MAX_RUNTIME_MS = PLATFORM_HARD_TIMEOUT_MS - SAFETY_MARGIN_MS;
 

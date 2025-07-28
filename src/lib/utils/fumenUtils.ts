@@ -1,4 +1,4 @@
-import { decoder, encoder, Field, type Page } from 'tetris-fumen';
+import { decoder, encoder, Field, type Page, type Mino } from 'tetris-fumen';
 import type { Fumen } from '$lib/types';
 
 function getFieldHeight(field: Field): number {
@@ -117,4 +117,15 @@ export function fumenSplit(fumen: Fumen): Fumen[] {
   }
 
   return fumens;
+}
+
+export function fumenGetMinos(fumen: Fumen): Mino[] {
+  const pages = decodeWrapper(fumen);
+  const minos: Mino[] = [];
+
+  for (let page of pages) {
+    minos.push(page.mino());
+  }
+
+  return minos;
 }
