@@ -1,7 +1,7 @@
 import fsPromises from 'fs/promises';
 import { supabaseAdmin } from './lib/supabaseAdmin';
 import { extendPieces } from './lib/pieces';
-import { fumenGetMinos } from './lib/fumenUtils';
+import { fumenGetMinos, isCongruentFumen } from './lib/fumenUtils';
 import { sortQueue } from './lib/queueUtils';
 import glueFumenModule from './lib/GluingFumens/src/lib/glueFumen';
 import { generateSetupIDPrefix } from './lib/id';
@@ -49,7 +49,84 @@ const is180: Record<string, boolean> = {
   none: false
 };
 
-// TODO: need to consider setupid already set using this in this process
+function getPrefix(setupid: SetupID): string {
+  return setupid.slice(0, -2);
+}
+
+/**
+ * Checks if two already sorted arrays contain exactly the same elements.
+ *
+ * @param arr1 The first sorted array.
+ * @param arr2 The second sorted array.
+ * @returns True if both arrays contain the exact same elements in the same order, false otherwise.
+ */
+function areSortedArraysEqual<T>(arr1: T[], arr2: T[]): boolean {
+  if (arr1.length !== arr2.length) {
+    return false;
+  }
+
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i] !== arr2[i]) {
+      return false; // Found a mismatch
+    }
+  }
+
+  return true;
+}
+
+// TODO: duplicate detection
+async function checkDuplicate(setup: Setup, stat: Statistic, otherSetups: Setup[], otherStats: Statistic[], kicktable: Kicktable, holdtype: HoldType): Promise<SetupID | null> {
+  if (otherSetups.length !== otherStats.length)
+    throw new Error("Differing length of setups and stats passed to checkDuplicate")
+
+  const prefix = getPrefix(setup.setup_id);
+
+  const {data, error: setupErr} = await supabaseAdmin
+    .from('setups')
+    .select('setup_id, cover_pattern, fumen, solve_pattern, statistics!inner (solve_fraction)')
+    .like('setup_id', prefix + '__')
+    .eq('statistics.kicktable', kicktable)
+    .eq('statistics.hold_type', holdtype)
+
+  if (setupErr) throw setupErr;
+
+  for (let i = 0; i < otherSetups.length; i++) {
+    // check if same prefix
+    if (prefix === getPrefix(otherSetups[i].setup_id)) {
+      data.push({
+        ...otherSetups[i],
+        statistics: [otherStats[i]]
+      })
+    }
+  }
+  if (data.length == 0) return null;
+
+  const coverQueues: Queue[] = extendPieces(setup.cover_pattern) as Queue[];
+  const solveQueues: Queue[] | null = (setup.solve_pattern) ? extendPieces(setup.solve_pattern) as Queue[]: null;
+  for (let row of data) {
+    // congruent fumen up to shifts
+    if (!isCongruentFumen(setup.fumen, row.fumen, 1)) continue;
+    // exactly same solve queues
+    if (solveQueues === null && row.solve_pattern !== null) continue;
+    if (solveQueues !== null && !areSortedArraysEqual(solveQueues, extendPieces(row.solve_pattern))) continue;
+    // same solve fraction
+    if (stat.solve_fraction === null && row.statistics[0].solve_fraction !== null) continue;
+    if (stat.solve_fraction !== null &&
+       !(stat.solve_fraction.numerator === row.statistics[0].solve_fraction.numerator && 
+       stat.solve_fraction.denominator === row.statistics[0].solve_fraction.denominator))
+      continue;
+
+    // check the cover queues to note
+    if (!areSortedArraysEqual(coverQueues, extendPieces(row.cover_pattern))) {
+      // TODO: consider how to note better
+      console.log(`Differing cover patterns but otherwise same setup: ${setup.setup_id} & ${row.setup_id}`);
+    }
+    return row.setup_id;
+  }
+
+  return null;
+}
+
 async function generateSetupID(row: InputSetup, prefixCount: Map<string, number>, oqb: boolean, build: Queue): Promise<SetupID> {
   const prefix = generateSetupIDPrefix(row.pc, oqb, row.leftover, build, row.cover_pattern, row.fumen);
 
@@ -144,19 +221,20 @@ async function generateStatEntry(setup: Setup, kicktable: Kicktable, holdtype: H
     coverData[coverData.length - 1] = bitToByte
   }
   
-
+  // if no solve pattern then don't calculate solve percent
   if (setup.solve_pattern === null) {
     return {
       setup_id: setup.setup_id,
       kicktable,
       hold_type: holdtype,
       cover_data: coverData,
+      solve_percent: null,
+      solve_fraction: null,
       all_solves: null,
       minimal_solves: null,
       path_file: false
     }
   }
-
 
   // run percent
   await fsPromises.writeFile(patternPath, extendPieces(setup.solve_pattern).join('\n'));
@@ -233,9 +311,22 @@ async function parseSetupInput(filepath: string, see: number = 7, hold: number =
     const child = childrenCountDown.length > 0;
     const oqb = parent || child;
     const setup = await generateSetupEntry(row, prefixCount, oqb, null, see, hold);
-    idMap[row.id] = setup.setup_id;
 
-    if (child) {
+    // compute the stats
+    const stat = await generateStatEntry(setup, kicktable, holdtype);
+
+    const duplicateSetupid = await checkDuplicate(setup, stat, setups, stats, kicktable, holdtype)
+    if (duplicateSetupid === null) {
+      idMap[row.id] = setup.setup_id;
+      setups.push(setup);
+      stats.push(stat);
+    } else {
+      console.log(`Setup ${row.id} is a duplicate of ${duplicateSetupid}`)
+      setup.setup_id = duplicateSetupid; // kept in case child isn't duplicate so link is made with existing setup
+    }
+
+    // child and not a duplicate setup
+    if (child && duplicateSetupid === null) {
       const link = {
         child_id: setup.setup_id,
         parent_id: childrenStack[childrenStack.length - 1]
@@ -255,18 +346,14 @@ async function parseSetupInput(filepath: string, see: number = 7, hold: number =
       childrenCountDown.push(row.children);
       childrenStack.push(setup.setup_id);
     }
-
-    setups.push(setup);
   }
 
-  for (let i = 0; i < csvData.length; i++) {
-    if (csvData[i].mirror !== null) {
-      setups[i].mirror = idMap[csvData[i].mirror];
-    }
-
-    const stat = await generateStatEntry(setups[i], kicktable, holdtype);
-    stats.push(stat);
-  }
+  // DEBUG
+  // for (let i = 0; i < csvData.length; i++) {
+  //   if (csvData[i].mirror !== null) {
+  //     setups[i].mirror = idMap[csvData[i].mirror];
+  //   }
+  // }
 
   console.log(setups, setupLinks, stats);
 }
