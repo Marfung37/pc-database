@@ -53,6 +53,15 @@ function getPrefix(setupid: SetupID): string {
   return setupid.slice(0, -2);
 }
 
+function getNoHashPrefix(setupid: SetupID): string {
+  return setupid.slice(0, -4);
+}
+
+function getNoHashPrefixRegex(setupid: SetupID): string {
+  const lastPart = parseInt(setupid[setupid.length - 4], 16) & 0b1100;
+  return '^' + getNoHashPrefix(setupid) + `[${lastPart.toString(16)}-${(lastPart + 3).toString(16)}]`
+}
+
 /**
  * Checks if two already sorted arrays contain exactly the same elements.
  *
@@ -79,20 +88,23 @@ async function checkDuplicate(setup: Setup, stat: Statistic, otherSetups: Setup[
   if (otherSetups.length !== otherStats.length)
     throw new Error("Differing length of setups and stats passed to checkDuplicate")
 
-  const prefix = getPrefix(setup.setup_id);
+  const prefix = getNoHashPrefix(setup.setup_id);
+  const regexStr = getNoHashPrefixRegex(setup.setup_id)
+  const regex = new RegExp(regexStr);
 
   const {data, error: setupErr} = await supabaseAdmin
     .from('setups')
     .select('setup_id, cover_pattern, fumen, solve_pattern, statistics!inner (solve_fraction)')
-    .like('setup_id', prefix + '__')
+    .like('setup_id', prefix + '____')
     .eq('statistics.kicktable', kicktable)
     .eq('statistics.hold_type', holdtype)
+    .filter('setup_id', 'match', regexStr)
 
   if (setupErr) throw setupErr;
 
   for (let i = 0; i < otherSetups.length; i++) {
     // check if same prefix
-    if (prefix === getPrefix(otherSetups[i].setup_id)) {
+    if (otherSetups[i].setup_id.match(regex)) {
       data.push({
         ...otherSetups[i],
         statistics: [otherStats[i]]
@@ -306,6 +318,7 @@ async function parseSetupInput(filepath: string, see: number = 7, hold: number =
 
   let childrenCountDown: number[] = [];
   const childrenStack: SetupID[] = [];
+  const setupsAdded: Set<number> = new Set();
   for (let row of csvData) {
     const parent = row.children !== null && row.children > 0;
     const child = childrenCountDown.length > 0;
@@ -320,6 +333,7 @@ async function parseSetupInput(filepath: string, see: number = 7, hold: number =
       idMap[row.id] = setup.setup_id;
       setups.push(setup);
       stats.push(stat);
+      setupsAdded.add(row.id);
     } else {
       console.log(`Setup ${row.id} is a duplicate of ${duplicateSetupid}`)
       setup.setup_id = duplicateSetupid; // kept in case child isn't duplicate so link is made with existing setup
@@ -348,12 +362,11 @@ async function parseSetupInput(filepath: string, see: number = 7, hold: number =
     }
   }
 
-  // DEBUG
-  // for (let i = 0; i < csvData.length; i++) {
-  //   if (csvData[i].mirror !== null) {
-  //     setups[i].mirror = idMap[csvData[i].mirror];
-  //   }
-  // }
+  for (let i of setupsAdded) {
+    if (csvData[i].mirror !== null && idMap[csvData[i].mirror] !== null) {
+      setups[i].mirror = idMap[csvData[i].mirror];
+    }
+  }
 
   console.log(setups, setupLinks, stats);
 }

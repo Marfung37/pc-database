@@ -141,8 +141,8 @@ export function isCongruentFumen(fumen1: Fumen, fumen2: Fumen, maxPage: number =
   if (maxPage === Infinity && pages1.length !== pages2.length) return false;
   
   for (let i = 0; i < Math.min(pages1.length, pages2.length, maxPage); i++) {
-    const field1 = pages1[i].field.str({ reduced: true, separator: '\n' }).split('\n');
-    const field2 = pages2[i].field.str({ reduced: true, separator: '\n' }).split('\n');
+    const field1 = pages1[i].field.str({ reduced: true, garbage: false, separator: '\n' }).split('\n');
+    const field2 = pages2[i].field.str({ reduced: true, garbage: false, separator: '\n' }).split('\n');
 
     if (field1.length !== field2.length) return false;
 
@@ -152,14 +152,16 @@ export function isCongruentFumen(fumen1: Fumen, fumen2: Fumen, maxPage: number =
     let trailingSize = PCSIZE;
     for (let j = 0; j < field1.length; j++) {
       // check if row2 of substring of row1 + row1
-      const row2 = field2[j].replaceAll(/[TILJSZOX]/g, '[TILJSZOX]')
-      const shiftSize = (field1[j] + field1[j]).search(new RegExp(row2))
+      const row2 = field2[j].replaceAll(/[TILJSZOX]/g, '[TILJSZOX]');
+      let shiftSize = (field1[j] + field1[j]).search(new RegExp(row2));
+      if (shiftSize > PCSIZE / 2) shiftSize = -(shiftSize - PCSIZE);
+
 
       if (shiftSize == -1) return false;
 
       // check if shift is same between row
       if (j === 0) fullShiftSize = shiftSize;
-      else if (shiftSize !== fullShiftSize) return false;
+      else if (shiftSize !== 0 && shiftSize !== fullShiftSize) return false;
 
       const rowLeading = field1[j].indexOf('_');
       if (rowLeading === -1) continue;
