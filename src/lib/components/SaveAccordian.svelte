@@ -11,14 +11,13 @@
 
   // TODO: handle priority percent
   let header = `${save.description ?? save.save}: `;
-  if (save.save_percent) {
+  if (save.save_percent !== null) {
     header += `${save.save_percent?.toFixed(2)}% (${new Fraction(save.save_fraction.numerator, save.save_fraction.denominator).toString()})`;
   } else {
-    header += `${save.save_percent?.toFixed(2)}% (${new Fraction(save.save_fraction.numerator, save.save_fraction.denominator).toString()})`;
-    save.priority_save_fraction
+    header += save.priority_save_fraction
       .map(
         (f) =>
-          `${(f.numerator / f.denominator).toFixed(2)}% (${new Fraction(f.numerator, f.denominator).toString()})`
+          `${(f.numerator / f.denominator * 100).toFixed(2)}% (${new Fraction(f.numerator, f.denominator).toString()})`
       )
       .join(', ');
   }
