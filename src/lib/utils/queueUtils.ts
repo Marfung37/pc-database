@@ -1,5 +1,5 @@
 import type { Queue } from '$lib/types';
-import { BAG, PIECEVAL } from '$lib/constants';
+import { BAG, PIECEVAL, mirrorPieces } from '$lib/constants';
 
 const queueRegex = new RegExp(`^[${BAG}]+$`);
 
@@ -13,4 +13,16 @@ export function sortQueue(queue: Queue): Queue {
   pieces.sort((a, b) => PIECEVAL[a] - PIECEVAL[b]);
 
   return pieces.join('') as Queue;
+}
+
+export function mirrorQueue(queue: Queue): Queue {
+  let mirror = '';
+  for (let piece of queue) {
+    if (piece in mirrorPieces) {
+      mirror += mirrorPieces[piece];
+    } else {
+      mirror += piece;
+    }
+  }
+  return mirror as Queue;
 }

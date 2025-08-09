@@ -142,6 +142,7 @@ async function runUploads(batchSize: number = 1000) {
       console.error('Failed to get save data to calculate');
       return;
     }
+    if (data.length === 0) break;
 
     for (let row of data) {
       const elapsedTime = Date.now() - startTime;

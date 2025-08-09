@@ -10,7 +10,7 @@ import type {
 } from '$lib/types';
 import { PCNUM2LONUM } from '$lib/utils/formulas';
 import { sortQueue } from '$lib/utils/queueUtils';
-import { piecesContains } from '$lib/utils/piecesContains';
+import { piecesContains } from '$lib/utils/piecesUtils';
 import { supabase } from '$lib/supabaseClient';
 import { PUBLIC_DEFAULT_KICKTABLE, PUBLIC_DEFAULT_HOLDTYPE } from '$env/static/public';
 

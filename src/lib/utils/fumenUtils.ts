@@ -1,6 +1,6 @@
 import { decoder, encoder, Field, type Page, type Mino } from 'tetris-fumen';
 import type { Fumen } from '$lib/types';
-import { PCSIZE } from '$lib/constants';
+import { PCSIZE, mirrorPieces } from '$lib/constants';
 
 function getFieldHeight(field: Field): number {
   return field.str({ reduced: true, garbage: false }).split('\n').length;
@@ -178,4 +178,27 @@ export function isCongruentFumen(fumen1: Fumen, fumen2: Fumen, maxPage: number =
   }
 
   return true;
+}
+
+export function fumenMirror(fumen: Fumen): Fumen {
+  const pages = decodeWrapper(fumen);
+
+  for (let page of pages) {
+    const fieldStr = page.field.str({ reduced: true, separator: '\n'}).split('\n');
+    let newFieldStr: string[] = [];
+    for (let line of fieldStr) {
+      const reversedLine = line.split('').reverse().join('')
+      let mirrorLine = '';
+      for (let mino of reversedLine) {
+        if (mino in mirrorPieces)
+          mirrorLine += mirrorPieces[mino];
+        else
+          mirrorLine += mino;
+      }
+      newFieldStr.push(mirrorLine)
+    }
+    page.field = Field.create(newFieldStr.slice(0, -1).join(''), newFieldStr[newFieldStr.length - 1]);
+  }
+
+  return encoder.encode(pages) as Fumen;
 }

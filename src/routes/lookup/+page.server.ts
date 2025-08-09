@@ -46,7 +46,7 @@ export const actions: Actions = {
       queue = queueStr as Queue;
     }
 
-    if (queue.length < PCNUM2LONUM(pc)) {
+    if (pc !== 1 && queue.length < PCNUM2LONUM(pc)) {
       return fail(400, {
         success: false,
         ...returnData,
@@ -72,6 +72,7 @@ export const actions: Actions = {
         message: 'No setups found'
       };
     }
+    console.log(setups);
 
     setups.sort((a, b) => {
       if (a.solve_percent === null) {

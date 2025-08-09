@@ -102,3 +102,16 @@ export function hashCoverPattern(coverPattern: string, bits: number = 2): number
 
   return xor & ((1 << bits) - 1);
 }
+
+export function getPrefix(setupid: SetupID): string {
+  return setupid.slice(0, -2);
+}
+
+export function getNoHashPrefix(setupid: SetupID): string {
+  return setupid.slice(0, -4);
+}
+
+export function getNoHashPrefixRegex(setupid: SetupID): string {
+  const lastPart = parseInt(setupid[setupid.length - 4], 16) & 0b1100;
+  return '^' + getNoHashPrefix(setupid) + `[${lastPart.toString(16)}-${(lastPart + 3).toString(16)}]`
+}
