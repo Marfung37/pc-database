@@ -11,7 +11,8 @@
   // You might want a mapping for display names if your locale codes are not user-friendly
   const LOCALE_DISPLAY_NAMES: Record<string, string> = {
     en: 'English',
-    jp: '日本語'
+    jp: '日本語',
+    kr: '한국인'
     // Add all your configured locales here
   };
 
