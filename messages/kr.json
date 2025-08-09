@@ -34,7 +34,7 @@
   "copy_not_supported": "클립보드 API가 지원되지 않습니다",
   "copy_minimal": "최소 집합 복사",
   "lookup_pc_number": "PC 회차",
-  "lookup_queue": "Queue",
+  "lookup_queue": "블럭",
   "lookup_solve_percent": "푸는 퍼센트",
   "lookup_unknown": "알 수 없음",
   "lookup_credit": "출처",
