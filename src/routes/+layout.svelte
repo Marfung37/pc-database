@@ -39,11 +39,11 @@
       <li class="md:mx-2"><a href="/database">{m.nav_database()}</a></li>
       <li class="md:mx-2"><a href="/lookup">{m.nav_lookup()}</a></li>
       <li class="md:mx-2"><a href="/about">{m.nav_about()}</a></li>
-      <li class="md:mx-2"><a href="/account"><User /></a></li>
+      <!-- <li class="md:mx-2"><a href="/account"><User /></a></li> -->
       <li class="md:mx-2"><LocaleSwitcher /></li>
     </ul>
     <div class="menu menu-horizontal flex items-center px-1 text-lg font-bold sm:hidden">
-      <a class="btn btn-ghost btn-circle" href="/account"><User /></a>
+      <!-- <a class="btn btn-ghost btn-circle" href="/account"><User /></a> -->
       <div class="dropdown dropdown-end mx-2">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
