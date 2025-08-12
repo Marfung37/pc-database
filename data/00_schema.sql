@@ -13,6 +13,12 @@ CREATE TYPE "hold_type" AS ENUM('any', 'cyclic', 'none');
 
 CREATE TYPE "status" AS ENUM('processing', 'completed', 'failed');
 
+CREATE TYPE "setup_type" AS ENUM (
+  'regular',
+  'qb',
+  'oqb'
+);
+
 CREATE TYPE unsafe_fraction AS ("numerator" integer, "denominator" integer);
 
 CREATE DOMAIN fraction AS unsafe_fraction CHECK (
@@ -65,17 +71,7 @@ CREATE TABLE "setups" (
   "leftover" queue NOT NULL CHECK (LENGTH(leftover) <= 7), -- enforce tetris pieces
   "build" queue NOT NULL CHECK (LENGTH(build) <= 10), -- enforce tetris pieces
   "cover_pattern" varchar(255) NOT NULL, -- difficult to constrain
-  "oqb_path" ltree CHECK (
-    oqb_path IS NULL
-    OR oqb_path::text ~ '^[1-9][0-9a-f]{11}(\.[1-9][0-9a-f]{11})*$'
-  ),
-  "oqb_depth" smallint GENERATED ALWAYS AS (
-    CASE
-      WHEN oqb_path IS NULL THEN NULL
-      ELSE nlevel (oqb_path)
-    END
-  ) STORED,
-  "cover_description" varchar(255),
+  "type" setup_type NOT NULL DEFAULT 'regular',
   "fumen" fumen NOT NULL, -- enforce fumen structure with version 115
   "solve_pattern" varchar(100), -- difficult to constrain
   "mirror" setupid,
@@ -86,18 +82,33 @@ CREATE TABLE "setups" (
   CONSTRAINT no_solve_oqb_setup CHECK (
     (
       solve_pattern IS NULL
-      AND oqb_path IS NOT NULL
+      AND type = 'oqb'::setup_type
     )
     OR (solve_pattern IS NOT NULL)
   ),
   FOREIGN KEY (mirror) REFERENCES setups (setup_id) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
-CREATE TABLE setup_oqb_links (
-  child_id setupid PRIMARY KEY,
-  parent_id setupid NOT NULL,
-  FOREIGN KEY (child_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (parent_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
+CREATE TABLE "setup_translations" (
+  "setup_id" setupid,
+  "language_code" varchar(10) NOT NULL DEFAULT 'en',
+  "cover_description" varchar(255) NOT NULL,
+  FOREIGN KEY (setup_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE "setup_oqb_paths" (
+  "setup_id" setupid PRIMARY KEY,
+  "oqb_path" ltree CHECK (
+    oqb_path::text ~ '^[1-9][0-9a-f]{11}(\.[1-9][0-9a-f]{11})*$'
+    AND array_length(ARRAY(SELECT DISTINCT unnest(string_to_array(oqb_path::text, '.'))), 1) = nlevel(oqb_path) -- not allow cycles
+  ),
+  "oqb_depth" smallint GENERATED ALWAYS AS (
+    CASE
+      WHEN oqb_path IS NULL THEN NULL
+      ELSE nlevel (oqb_path)
+    END
+  ) STORED,
+  FOREIGN KEY (setup_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE "setup_variants" (
@@ -108,6 +119,43 @@ CREATE TABLE "setup_variants" (
   "solve_pattern" varchar(100),
   PRIMARY KEY (setup_id, variant_number),
   FOREIGN KEY (setup_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE "sets" (
+  "set_id" SERIAL PRIMARY KEY,
+  "category" varchar(50)
+);
+
+CREATE TABLE "setup_sets" (
+  "setup_id" setupid NOT NULL,
+  "set_id" int NOT NULL,
+  FOREIGN KEY (set_id) REFERENCES sets (set_id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (set_id) REFERENCES sets (set_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE "set_translations" (
+  "set_id" int,
+  "language_code" varchar(10) NOT NULL DEFAULT 'en',
+  "name" varchar(100) NOT NULL,
+  "description" varchar(255) NOT NULL,
+  FOREIGN KEY (set_id) REFERENCES sets (set_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE "set_paths" (
+  "set_id" int,
+  "set_path" ltree NOT NULL,
+  "set_depth" smallint,
+  "set_path" ltree CHECK (
+    set_path::text ~ '^\d+(\.\d+)*$'
+    AND array_length(ARRAY(SELECT DISTINCT unnest(string_to_array(set_path::text, '.'))), 1) = nlevel(set_path) -- not allow cycles
+  ),
+  "set_depth" smallint GENERATED ALWAYS AS (
+    CASE
+      WHEN set_path IS NULL THEN NULL
+      ELSE nlevel (set_path)
+    END
+  ) STORED,
+  FOREIGN KEY (set_id) REFERENCES sets (set_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE "statistics" (
@@ -123,8 +171,20 @@ CREATE TABLE "statistics" (
   "solve_fraction" fraction,
   "all_solves" fumen,
   "minimal_solves" fumen,
+  "true_minimal" bool,
   "path_file" bool NOT NULL DEFAULT FALSE,
-  UNIQUE ("setup_id", "kicktable", "hold_type")
+  UNIQUE ("setup_id", "kicktable", "hold_type"),
+  FOREIGN KEY (setup_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE "saves" (
+  "save_id" uuid PRIMARY KEY DEFAULT (gen_random_uuid ()),
+  "save" varchar(255) NOT NULL,
+  "pc" smallint NOT NULL,
+  "importance" smallint NOT NULL,
+  "auto_populate" bool NOT NULL DEFAULT false,
+  "gen_minimal" bool NOT NULL DEFAULT false,
+  "gen_all_solves" bool NOT NULL DEFAULT false
 );
 
 CREATE TABLE "save_data" (
@@ -164,18 +224,16 @@ CREATE TABLE "save_data" (
       AND priority_save_percent IS NOT NULL
       AND priority_save_fraction IS NOT NULL
     )
-  )
+  ),
+  FOREIGN KEY (stat_id) REFERENCES statistics (stat_id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (save_id) REFERENCES saves (save_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE "saves" (
-  "save_id" uuid PRIMARY KEY DEFAULT (gen_random_uuid ()),
-  "save" varchar(255) NOT NULL,
-  "description" varchar(255),
-  "pc" smallint NOT NULL,
-  "importance" smallint NOT NULL,
-  "auto_populate" bool NOT NULL DEFAULT false,
-  "gen_minimal" bool NOT NULL DEFAULT false,
-  "gen_all_solves" bool NOT NULL DEFAULT false
+CREATE TABLE "save_translations" (
+  "save_id" uuid,
+  "language_code" varchar(2) NOT NULL DEFAULT 'en',
+  "name" varchar(100),
+  FOREIGN KEY (save_id) REFERENCES saves (save_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 COMMENT ON COLUMN "setups"."setup_id" IS '12 hexdigits';
@@ -188,15 +246,11 @@ COMMENT ON COLUMN "setups"."build" IS 'Pieces used in setup. Only TILJSZO allowe
 
 COMMENT ON COLUMN "setups"."cover_pattern" IS 'Extended pieces notation for when setup is covered. Need not be perfect';
 
-COMMENT ON COLUMN "setups"."oqb_path" IS 'Materialized path of ids to this setup. NULL if not oqb and set to setup_id if oqb initially and populated from setup_oqb_links';
-
-COMMENT ON COLUMN "setups"."oqb_depth" IS 'Setup oqb tree depth';
-
-COMMENT ON COLUMN "setups"."cover_description" IS 'Description for when to use this setup';
+COMMENT ON COLUMN "setups"."type" IS 'Type of setup for regular, qb, or oqb';
 
 COMMENT ON COLUMN "setups"."fumen" IS 'Fumen of the setup';
 
-COMMENT ON COLUMN "setups"."solve_pattern" IS 'Extended pieces notation for solving. NULL if internal node in oqb';
+COMMENT ON COLUMN "setups"."solve_pattern" IS 'Extended pieces notation used for solving. NULL if internal node in oqb';
 
 COMMENT ON COLUMN "setups"."mirror" IS 'References a setup_id for mirror setup';
 
@@ -205,6 +259,12 @@ COMMENT ON COLUMN "setups"."see" IS 'Number of pieces that can be seen';
 COMMENT ON COLUMN "setups"."hold" IS 'Number of pieces that can be held';
 
 COMMENT ON COLUMN "setups"."credit" IS 'Credit for founder of setup';
+
+COMMENT ON COLUMN "setup_translations"."cover_description" IS 'Description for when to use this setup';
+
+COMMENT ON COLUMN "setup_oqb_paths"."oqb_path" IS 'Materialized path of ids to this setup';
+
+COMMENT ON COLUMN "setup_oqb_paths"."oqb_depth" IS 'Setup oqb tree depth';
 
 COMMENT ON TABLE "setup_variants" IS 'Setups where other pieces can be placed without affecting statistics';
 
@@ -216,7 +276,17 @@ COMMENT ON COLUMN "setup_variants"."build" IS 'Pieces used in setup. Only TILJSZ
 
 COMMENT ON COLUMN "setup_variants"."fumen" IS 'Fumen of the setup';
 
-COMMENT ON COLUMN "setup_variants"."solve_pattern" IS 'Extended pieces notation for solving. NULL if internal node in oqb';
+COMMENT ON COLUMN "setup_variants"."solve_pattern" IS 'Extended pieces notation used for solving. NULL if internal node in oqb';
+
+COMMENT ON COLUMN "sets"."category" IS 'Overarching set category';
+
+COMMENT ON COLUMN "set_translations"."name" IS 'Name of the set';
+
+COMMENT ON COLUMN "set_translations"."description" IS 'Description about the set';
+
+COMMENT ON COLUMN "set_paths"."set_path" IS 'Materialized path of ids to this set';
+
+COMMENT ON COLUMN "set_paths"."set_depth" IS 'Set tree depth';
 
 COMMENT ON COLUMN "statistics"."setup_id" IS '12 hexdigits';
 
@@ -232,6 +302,8 @@ COMMENT ON COLUMN "statistics"."all_solves" IS 'All solves for the setup';
 
 COMMENT ON COLUMN "statistics"."minimal_solves" IS 'Minimal set of solves. NULL if not created';
 
+COMMENT ON COLUMN "statistics"."true_minimal" IS 'Whether algorithm for minimal gurantees minimality';
+
 COMMENT ON COLUMN "statistics"."path_file" IS 'Whether path file exist. Follows [setup-id]-[kicktable].csvd.xz format';
 
 COMMENT ON COLUMN "save_data"."save_percent" IS 'Save percent. NULL if multiple saves';
@@ -244,15 +316,13 @@ COMMENT ON COLUMN "save_data"."priority_save_fraction" IS 'Array of fraction for
 
 COMMENT ON COLUMN "save_data"."all_solves" IS 'All solves for save';
 
-COMMENT ON COLUMN "save_data"."minimal_solves" IS 'Minimal set of solves';
+COMMENT ON COLUMN "save_data"."minimal_solves" IS 'Minimal set of solves for save';
 
-COMMENT ON COLUMN "save_data"."minimal_solves" IS 'Whether algorithm for minimal gurantees minimality';
+COMMENT ON COLUMN "save_data"."true_minimal" IS 'Whether algorithm for minimal gurantees minimality';
 
 COMMENT ON COLUMN "save_data"."status" IS 'Status of the populating data';
 
 COMMENT ON COLUMN "saves"."save" IS 'Pieces saved for next PC for sfinder-saves';
-
-COMMENT ON COLUMN "saves"."description" IS 'Description of the save. Ex: One T or Two LJ';
 
 COMMENT ON COLUMN "saves"."pc" IS 'PC Number for 1-9';
 
@@ -264,23 +334,13 @@ COMMENT ON COLUMN "saves"."gen_minimal" IS 'When automatically populating, popul
 
 COMMENT ON COLUMN "saves"."gen_all_solves" IS 'When automatically populating, populate all solves';
 
-ALTER TABLE "statistics"
-ADD FOREIGN KEY ("setup_id") REFERENCES "setups" ("setup_id") ON DELETE CASCADE ON UPDATE CASCADE;
-
-ALTER TABLE "save_data"
-ADD FOREIGN KEY ("stat_id") REFERENCES "statistics" ("stat_id") ON DELETE CASCADE ON UPDATE CASCADE;
-
-ALTER TABLE "save_data"
-ADD FOREIGN KEY ("save_id") REFERENCES "saves" ("save_id") ON DELETE CASCADE ON UPDATE CASCADE;
-
-ALTER TABLE "setup_variants"
-ADD FOREIGN KEY ("setup_id") REFERENCES "setups" ("setup_id") ON DELETE CASCADE ON UPDATE CASCADE;
+COMMENT ON COLUMN "save_translations"."name" IS 'Name of the save. Ex: One T or Two LJ';
 
 CREATE INDEX idx_setups_leftover ON setups (leftover);
 
-CREATE INDEX idx_gist_setups_oqb_path ON setups USING GIST (oqb_path);
+CREATE INDEX idx_gist_setups_oqb_path ON setup_oqb_paths USING GIST (oqb_path);
 
-CREATE INDEX idx_setups_oqb_links_parent_id ON setup_oqb_links (parent_id);
+CREATE INDEX idx_gist_sets_path ON set_paths USING GIST (set_path);
 
 CREATE INDEX idx_variants_setup_id ON setup_variants (setup_id);
 
@@ -299,7 +359,7 @@ $$;
 
 -- prevent directly affecting auto generated columns
 REVOKE INSERT (oqb_depth),
-UPDATE (oqb_path, oqb_depth) ON setups
+UPDATE (oqb_path, oqb_depth) ON setup_oqb_paths
 FROM
   PUBLIC,
   authenticated,
@@ -317,6 +377,6 @@ INSERT INTO
   schema_metadata (version, description)
 VALUES
   (
-    '1.3.3',
-    'Adds true_minimal to save data for whether minimality is guranteed.'
+    '2.0.0',
+    'Change how oqb_paths works to enable DAG instead of tree structure. Adds sets to group together setups and translation tables to provide translations for text in database.'
   );
