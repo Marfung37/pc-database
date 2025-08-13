@@ -18,7 +18,8 @@
     "test": "npm run test:unit -- --run && npm run test:e2e",
     "test:e2e": "playwright test",
     "upload_paths": "DOTENV_CONFIG_PATH=./.env.local tsx -r dotenv/config utils/populatePathFiles.ts",
-    "populate_saves": "DOTENV_CONFIG_PATH=./.env.local tsx -r dotenv/config utils/populateSaves.ts"
+    "populate_saves": "DOTENV_CONFIG_PATH=./.env.local tsx -r dotenv/config utils/populateSaves.ts",
+    "add_setups": "DOTENV_CONFIG_PATH=./.env.local tsx -r dotenv/config utils/addSetups.ts"
   },
   "devDependencies": {
     "@eslint/compat": "^1.2.5",

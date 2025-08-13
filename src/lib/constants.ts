@@ -11,6 +11,13 @@ export const PIECEVAL: { [key: string]: number } = {
   O: 7
 };
 
+export const mirrorPieces: Record<string, string> = {
+  L: 'J',
+  J: 'L',
+  S: 'Z',
+  Z: 'S'
+};
+
 export const COLUMN_QUEUE = 'ツモ';
 export const COLUMN_FUMEN_COUNT = '対応地形数';
 export const COLUMN_USED_PIECES = '使用ミノ';
