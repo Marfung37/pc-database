@@ -39,7 +39,7 @@
     </div>
     {#if setup.saves}
       <div
-        class="flex h-60 w-full flex-col flex-wrap gap-x-2 p-4 lg:w-auto lg:p-0 lg:py-12 lg:pl-8"
+        class="flex h-60 w-full flex-col flex-wrap gap-x-2 p-4 xl:w-auto xl:p-0 xl:py-12 xl:pl-8"
       >
         {#each setup.saves as save (save.save)}
           {#if save.save_fraction}

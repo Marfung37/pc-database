@@ -6,7 +6,7 @@ import type { SetupID, SaveData } from './lib/types';
 import { decompressPath, generateBucketPathFilename } from './lib/compression';
 import { supabaseAdmin } from './lib/supabaseAdmin';
 
-const PLATFORM_HARD_TIMEOUT_MS = 6 * 60 * 60 * 1000; // 5 hours
+const PLATFORM_HARD_TIMEOUT_MS = Infinity; // 6 * 60 * 60 * 1000; // 5 hours
 const SAFETY_MARGIN_MS = 60 * 60 * 1000; // 1 hour
 const EFFECTIVE_MAX_RUNTIME_MS = PLATFORM_HARD_TIMEOUT_MS - SAFETY_MARGIN_MS;
 
@@ -36,7 +36,8 @@ async function generateSaveData(row): Promise<boolean> {
   if (insertError) {
     if (insertError.code == '23505') {
       // skips processing this row if already exist
-      return false;
+      console.log("Row is processing from some other process")
+      return true;
     } else {
       // insert error
       console.error('Failed to insert skeleton row:', insertError);
@@ -141,6 +142,7 @@ async function runUploads(batchSize: number = 1000) {
       console.error('Failed to get save data to calculate');
       return;
     }
+    if (data.length === 0) break;
 
     for (let row of data) {
       const elapsedTime = Date.now() - startTime;

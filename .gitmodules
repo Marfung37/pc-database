@@ -1,0 +1,3 @@
+[submodule "utils/lib/GluingFumens"]
+	path = utils/lib/GluingFumens
+	url = git@github.com:Marfung37/GluingFumens.git
