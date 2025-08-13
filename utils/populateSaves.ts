@@ -36,7 +36,7 @@ async function generateSaveData(row): Promise<boolean> {
   if (insertError) {
     if (insertError.code == '23505') {
       // skips processing this row if already exist
-      console.log("Row is processing from some other process")
+      console.log('Row is processing from some other process');
       return true;
     } else {
       // insert error

@@ -10,7 +10,17 @@ import { PIECEVAL } from './lib/constants';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { parse } from 'csv-parse/sync';
-import type { Setup, Statistic, SetupOQBLink, SetupVariant, SetupID, Kicktable, HoldType, Queue, Fumen } from './lib/types';
+import type {
+  Setup,
+  Statistic,
+  SetupOQBLink,
+  SetupVariant,
+  SetupID,
+  Kicktable,
+  HoldType,
+  Queue,
+  Fumen
+} from './lib/types';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -25,21 +35,21 @@ const outputPath = path.join(currentFileDir, 'tmp');
 const execPromise = promisify(exec);
 
 // regex for sfinder percent command to get solve chance
-const percentRegex = /^success = (\d+\.\d+)% \((\d+)\/(\d+)\)/m
+const percentRegex = /^success = (\d+\.\d+)% \((\d+)\/(\d+)\)/m;
 
 interface InputSetup {
-  id: number,
-  pc: number,
-  leftover: Queue,
-  cover_pattern: string,
-  cover_description: string | null,
-  fumen: Fumen,
-  solve_pattern: string | null,
-  children: number | null,
-  parent_id?: number | null,
-  mirror?: number | null,
-  credit: string | null,
-  variants: Fumen | null
+  id: number;
+  pc: number;
+  leftover: Queue;
+  cover_pattern: string;
+  cover_description: string | null;
+  fumen: Fumen;
+  solve_pattern: string | null;
+  children: number | null;
+  parent_id?: number | null;
+  mirror?: number | null;
+  credit: string | null;
+  variants: Fumen | null;
 }
 
 const is180: Record<string, boolean> = {
@@ -109,7 +119,7 @@ function multisetDifferenceSortedQueues(q1: Queue, q2: Queue): Queue {
     i++;
   }
 
-  return result.join("") as Queue;
+  return result.join('') as Queue;
 }
 
 /**
@@ -124,7 +134,7 @@ function multisetDifferenceSortedQueues(q1: Queue, q2: Queue): Queue {
 function setDifference<T>(set1: Set<T>, set2: Set<T>): T[] {
   // Use a simple filter on the first Set to find elements not present in the second.
   // We first convert the Set to an array to use the filter method.
-  return [...set1].filter(item => !set2.has(item));
+  return [...set1].filter((item) => !set2.has(item));
 }
 
 // TODO: possibly have setup on mirror if only adds coverage accept without mirror setup
@@ -133,7 +143,11 @@ function mirrorInputSetup(row: InputSetup, id: number): InputSetup | null {
   const fumen = fumenMirror(row.fumen);
   const cover_pattern = piecesMirror(row.cover_pattern);
 
-  if (leftover === row.leftover && isCongruentFumen(fumen, row.fumen) && areSortedArraysEqual(extendPieces(cover_pattern), extendPieces(row.cover_pattern)))
+  if (
+    leftover === row.leftover &&
+    isCongruentFumen(fumen, row.fumen) &&
+    areSortedArraysEqual(extendPieces(cover_pattern), extendPieces(row.cover_pattern))
+  )
     return null;
 
   return {
@@ -141,31 +155,38 @@ function mirrorInputSetup(row: InputSetup, id: number): InputSetup | null {
     pc: row.pc,
     leftover,
     cover_pattern: piecesMirror(row.cover_pattern),
-    cover_description: (row.cover_description !== null) ? piecesMirror(row.cover_description): null,
+    cover_description: row.cover_description !== null ? piecesMirror(row.cover_description) : null,
     fumen,
-    solve_pattern: (row.solve_pattern !== null) ? piecesMirror(row.solve_pattern): null,
+    solve_pattern: row.solve_pattern !== null ? piecesMirror(row.solve_pattern) : null,
     children: row.children,
     mirror: row.id,
     credit: row.credit,
-    variants: (row.variants !== null) ? fumenMirror(row.variants): null,
-  }
+    variants: row.variants !== null ? fumenMirror(row.variants) : null
+  };
 }
 
-async function checkDuplicate(setup: Setup, stat: Statistic, otherSetups: Setup[], otherStats: Statistic[], kicktable: Kicktable, holdtype: HoldType): Promise<SetupID | null> {
+async function checkDuplicate(
+  setup: Setup,
+  stat: Statistic,
+  otherSetups: Setup[],
+  otherStats: Statistic[],
+  kicktable: Kicktable,
+  holdtype: HoldType
+): Promise<SetupID | null> {
   if (otherSetups.length !== otherStats.length)
-    throw new Error("Differing length of setups and stats passed to checkDuplicate")
+    throw new Error('Differing length of setups and stats passed to checkDuplicate');
 
   const prefix = getNoHashPrefix(setup.setup_id);
-  const regexStr = getNoHashPrefixRegex(setup.setup_id)
+  const regexStr = getNoHashPrefixRegex(setup.setup_id);
   const regex = new RegExp(regexStr);
 
-  const {data, error: setupErr} = await supabaseAdmin
+  const { data, error: setupErr } = await supabaseAdmin
     .from('setups')
     .select('setup_id, cover_pattern, fumen, solve_pattern, statistics!inner (solve_fraction)')
     .like('setup_id', prefix + '____')
     .eq('statistics.kicktable', kicktable)
     .eq('statistics.hold_type', holdtype)
-    .filter('setup_id', 'match', regexStr)
+    .filter('setup_id', 'match', regexStr);
 
   if (setupErr) throw setupErr;
 
@@ -175,30 +196,43 @@ async function checkDuplicate(setup: Setup, stat: Statistic, otherSetups: Setup[
       data.push({
         ...otherSetups[i],
         statistics: [otherStats[i]]
-      })
+      });
     }
   }
   if (data.length == 0) return null;
 
   const coverQueues: Set<Queue> = new Set(extendPieces(setup.cover_pattern) as Queue[]);
-  const solveQueues: Queue[] | null = (setup.solve_pattern) ? extendPieces(setup.solve_pattern) as Queue[]: null;
+  const solveQueues: Queue[] | null = setup.solve_pattern
+    ? (extendPieces(setup.solve_pattern) as Queue[])
+    : null;
   for (let row of data) {
     // congruent fumen up to shifts
     if (!isCongruentFumen(setup.fumen, row.fumen, 1)) continue;
     // exactly same solve queues
     if (solveQueues === null && row.solve_pattern !== null) continue;
-    if (solveQueues !== null && !areSortedArraysEqual(solveQueues, extendPieces(row.solve_pattern))) continue;
+    if (solveQueues !== null && !areSortedArraysEqual(solveQueues, extendPieces(row.solve_pattern)))
+      continue;
     // same solve fraction
     if (stat.solve_fraction === null && row.statistics[0].solve_fraction !== null) continue;
-    if (stat.solve_fraction !== null &&
-       !(stat.solve_fraction.numerator === row.statistics[0].solve_fraction.numerator && 
-       stat.solve_fraction.denominator === row.statistics[0].solve_fraction.denominator))
+    if (
+      stat.solve_fraction !== null &&
+      !(
+        stat.solve_fraction.numerator === row.statistics[0].solve_fraction.numerator &&
+        stat.solve_fraction.denominator === row.statistics[0].solve_fraction.denominator
+      )
+    )
       continue;
 
     const otherCoverQueues: Set<Queue> = new Set(extendPieces(row.cover_pattern) as Queue[]);
 
     // check if one of the sets is a subset of other
-    if (!(setDifference(coverQueues, otherCoverQueues).length === 0 || setDifference(otherCoverQueues, coverQueues).length === 0)) continue;
+    if (
+      !(
+        setDifference(coverQueues, otherCoverQueues).length === 0 ||
+        setDifference(otherCoverQueues, coverQueues).length === 0
+      )
+    )
+      continue;
 
     return row.setup_id;
   }
@@ -206,29 +240,48 @@ async function checkDuplicate(setup: Setup, stat: Statistic, otherSetups: Setup[
   return null;
 }
 
-async function generateSetupID(row: Omit<InputSetup, 'id'>, prefixCount: Map<string, number>, oqb: boolean, build: Queue): Promise<SetupID> {
-  const prefix = generateSetupIDPrefix(row.pc, oqb, row.leftover, build, row.cover_pattern, row.fumen);
+async function generateSetupID(
+  row: Omit<InputSetup, 'id'>,
+  prefixCount: Map<string, number>,
+  oqb: boolean,
+  build: Queue
+): Promise<SetupID> {
+  const prefix = generateSetupIDPrefix(
+    row.pc,
+    oqb,
+    row.leftover,
+    build,
+    row.cover_pattern,
+    row.fumen
+  );
 
   const currentCount = prefixCount.get(prefix) || 0;
   prefixCount.set(prefix, currentCount + 1);
 
-  const {data: setupids, error: setupidErr} = await supabaseAdmin
+  const { data: setupids, error: setupidErr } = await supabaseAdmin
     .from('setups')
     .select('setup_id')
-    .like('setup_id', prefix + '__')
+    .like('setup_id', prefix + '__');
 
   if (setupidErr) throw setupidErr;
 
   return (prefix + (0xff - setupids.length - currentCount).toString(16)) as SetupID;
 }
 
-async function generateSetupEntry(row: InputSetup, prefixCount: Map<string, number>, oqb: boolean, mirror: SetupID | null, see: number, hold: number): Setup {
+async function generateSetupEntry(
+  row: InputSetup,
+  prefixCount: Map<string, number>,
+  oqb: boolean,
+  mirror: SetupID | null,
+  see: number,
+  hold: number
+): Setup {
   // compute the build
   const gluedFumens = glueFumen(row.fumen, 1);
 
   let buildTmp = '';
   for (let mino of fumenGetMinos(gluedFumens[0])) {
-    buildTmp += mino.type
+    buildTmp += mino.type;
   }
   const build = sortQueue(buildTmp as Queue);
 
@@ -242,14 +295,14 @@ async function generateSetupEntry(row: InputSetup, prefixCount: Map<string, numb
     build,
     cover_pattern: row.cover_pattern,
     cover_description: row.cover_description,
-    oqb_path: (oqb) ? setup_id: null,
+    oqb_path: oqb ? setup_id : null,
     fumen: row.fumen,
     solve_pattern: row.solve_pattern,
     mirror,
     see,
     hold,
     credit: row.credit
-  }
+  };
 }
 
 function generateVariantEntry(setup: Setup, variantsFumen: Fumen): SetupVariant[] {
@@ -260,15 +313,20 @@ function generateVariantEntry(setup: Setup, variantsFumen: Fumen): SetupVariant[
 
     let buildTmp = '';
     for (let mino of fumenGetMinos(gluedFumen)) {
-      buildTmp += mino.type
+      buildTmp += mino.type;
     }
     const build = sortQueue(buildTmp as Queue);
 
-    const regex = /(?<=\[\^)([TILJSZO]+)(?=\](?:!|p\d)$)/; 
+    const regex = /(?<=\[\^)([TILJSZO]+)(?=\](?:!|p\d)$)/;
     const matchObj = setup.solve_pattern.match(regex);
-    if (matchObj === null) throw new Error(`Solve pattern for ${setup.setup_id} doesn't end in the expected way for variants`)
+    if (matchObj === null)
+      throw new Error(
+        `Solve pattern for ${setup.setup_id} doesn't end in the expected way for variants`
+      );
 
-    const newPiecesUsed = sortQueue(matchObj[1] + multisetDifferenceSortedQueues(build, setup.build));
+    const newPiecesUsed = sortQueue(
+      matchObj[1] + multisetDifferenceSortedQueues(build, setup.build)
+    );
 
     const solve_pattern = setup.solve_pattern.replace(regex, newPiecesUsed);
 
@@ -277,33 +335,39 @@ function generateVariantEntry(setup: Setup, variantsFumen: Fumen): SetupVariant[
       build,
       fumen,
       solve_pattern
-    })
+    });
   }
 
   return variants;
 }
 
-async function generateStatEntry(setup: Setup, variants: SetupVariant[], kicktable: Kicktable, holdtype: HoldType): Promise<Statistic> {
+async function generateStatEntry(
+  setup: Setup,
+  variants: SetupVariant[],
+  kicktable: Kicktable,
+  holdtype: HoldType
+): Promise<Statistic> {
   const coverFilename = setup.setup_id + '.csv';
   const patternFilename = setup.setup_id + '.txt';
   const kickFilename = path.join(kicksPath, kicktable + '.properties');
   const drop = is180[kicktable] ? '180' : 'soft';
   const output = path.join(outputPath, coverFilename);
   const patternPath = path.join(outputPath, patternFilename);
-  const cmdBase = (cmd: string) => `java -jar ${sfinderPath} ${cmd} -pp ${patternPath} -K ${kickFilename} -d ${drop}`;
+  const cmdBase = (cmd: string) =>
+    `java -jar ${sfinderPath} ${cmd} -pp ${patternPath} -K ${kickFilename} -d ${drop}`;
 
   // run cover
   await fsPromises.writeFile(patternPath, extendPieces(setup.cover_pattern).join('\n'));
 
-  const fumens = [setup.fumen, ...variants.map((v: SetupVariant) => v.fumen)]
+  const fumens = [setup.fumen, ...variants.map((v: SetupVariant) => v.fumen)];
   const glueFumens = glueFumen(fumens).join(' ');
 
-  const coverCmd = cmdBase('cover') + ` -t ${glueFumens} -o ${output}`
+  const coverCmd = cmdBase('cover') + ` -t ${glueFumens} -o ${output}`;
 
   const { stderr: coverErr } = await execPromise(coverCmd);
 
-  if (coverErr) throw coverErr
-  
+  if (coverErr) throw coverErr;
+
   const coverContent = await fsPromises.readFile(output, { encoding: 'utf8' });
   const csvContent = parse(coverContent, {
     columns: false,
@@ -329,9 +393,9 @@ async function generateStatEntry(setup: Setup, variants: SetupVariant[], kicktab
     coverData = null;
   } else if (bitToByte > 0) {
     // fill last space if a full byte isn't fully filled
-    coverData[coverData.length - 1] = bitToByte
+    coverData[coverData.length - 1] = bitToByte;
   }
-  
+
   // if no solve pattern then don't calculate solve percent
   if (setup.solve_pattern === null) {
     return {
@@ -344,13 +408,13 @@ async function generateStatEntry(setup: Setup, variants: SetupVariant[], kicktab
       all_solves: null,
       minimal_solves: null,
       path_file: false
-    }
+    };
   }
 
   // run percent
   await fsPromises.writeFile(patternPath, extendPieces(setup.solve_pattern).join('\n'));
 
-  const percentCmd = cmdBase('percent') + ` -t ${setup.fumen}`
+  const percentCmd = cmdBase('percent') + ` -t ${setup.fumen}`;
 
   const { stdout: percentOut, stderr: percentErr } = await execPromise(percentCmd);
 
@@ -378,10 +442,16 @@ async function generateStatEntry(setup: Setup, variants: SetupVariant[], kicktab
     all_solves: null,
     minimal_solves: null,
     path_file: false
-  }
+  };
 }
 
-async function parseSetupInput(filepath: string, see: number = 7, hold: number = 1, kicktable: Kicktable = 'srs180', holdtype: HoldType = 'any') {
+async function parseSetupInput(
+  filepath: string,
+  see: number = 7,
+  hold: number = 1,
+  kicktable: Kicktable = 'srs180',
+  holdtype: HoldType = 'any'
+) {
   const data = await fsPromises.readFile(filepath, { encoding: 'utf8' });
   const csvData = parse(data, {
     columns: true,
@@ -395,7 +465,8 @@ async function parseSetupInput(filepath: string, see: number = 7, hold: number =
         return parseInt(value);
       }
       if (column === 'leftover') {
-        if (value === '') throw new Error(`Parse error: 'leftover' column is empty in row ${lines}`);
+        if (value === '')
+          throw new Error(`Parse error: 'leftover' column is empty in row ${lines}`);
         return value as Queue;
       }
       if (column === 'cover_pattern' && value === '') {
@@ -406,23 +477,23 @@ async function parseSetupInput(filepath: string, see: number = 7, hold: number =
         return value as Fumen;
       }
       if (column === 'children') {
-        return value ? parseInt(value): null;
+        return value ? parseInt(value) : null;
       }
       if (column === 'mirror') {
         if (value === 'null') return null;
-        return value ? parseInt(value): undefined;
+        return value ? parseInt(value) : undefined;
       }
       if (column === 'variants') {
-        return value ? value as Fumen: null;
+        return value ? (value as Fumen) : null;
       }
       if (column === 'parent_id') {
         throw new Error(`Parse error: 'parent_id' column does not exist`);
       }
-      return value ? value: null;
+      return value ? value : null;
     }
   });
 
-  const idMap: (SetupID | null)[] = Array.from({ length: csvData.length}, () => null);
+  const idMap: (SetupID | null)[] = Array.from({ length: csvData.length }, () => null);
 
   let childrenCountDown: number[] = [];
   const childrenRowStack: InputSetup[] = [];
@@ -446,8 +517,7 @@ async function parseSetupInput(filepath: string, see: number = 7, hold: number =
         if (child) {
           if (childrenRowStack[childrenRowStack.length - 1].mirror === null)
             mirrorRow.parent_id = childrenRowStack[childrenRowStack.length - 1].id;
-          else
-            mirrorRow.parent_id = childrenRowStack[childrenRowStack.length - 1].mirror;
+          else mirrorRow.parent_id = childrenRowStack[childrenRowStack.length - 1].mirror;
         } else {
           mirrorRow.parent_id = null;
         }
@@ -467,7 +537,7 @@ async function parseSetupInput(filepath: string, see: number = 7, hold: number =
     // add the count of children of this current setup
     if (parent) {
       childrenCountDown.push(row.children);
-      childrenRowStack.push(row)
+      childrenRowStack.push(row);
     }
   }
 
@@ -494,11 +564,13 @@ async function parseSetupInput(filepath: string, see: number = 7, hold: number =
     const stat = await generateStatEntry(setup, variants, kicktable, holdtype);
 
     // DEBUG
-    if (stat.cover_data !== null) console.log(`Row ${row.id} does not have full coverage`)
+    if (stat.cover_data !== null) console.log(`Row ${row.id} does not have full coverage`);
 
-    const duplicateSetupid = await checkDuplicate(setup, stat, setups, stats, kicktable, holdtype)
+    const duplicateSetupid = await checkDuplicate(setup, stat, setups, stats, kicktable, holdtype);
     if (duplicateSetupid !== null) {
-      console.log(`Setup ${row.id} is a duplicate of ${duplicateSetupid} with possibly different cover pattern`)
+      console.log(
+        `Setup ${row.id} is a duplicate of ${duplicateSetupid} with possibly different cover pattern`
+      );
       setup.setup_id = duplicateSetupid; // kept in case child isn't duplicate so link is made with existing setup
       setupsDuplicate.add(setup.setup_id);
     }
@@ -511,7 +583,7 @@ async function parseSetupInput(filepath: string, see: number = 7, hold: number =
       const link = {
         child_id: setup.setup_id,
         parent_id: idMap[row.parent_id]
-      }
+      };
 
       setupLinks.push(link);
     }

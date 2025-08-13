@@ -12,12 +12,11 @@ export const PIECEVAL: { [key: string]: number } = {
 };
 
 export const mirrorPieces: Record<string, string> = {
-  'L': 'J',
-  'J': 'L',
-  'S': 'Z',
-  'Z': 'S'
+  L: 'J',
+  J: 'L',
+  S: 'Z',
+  Z: 'S'
 };
-
 
 export const COLUMN_QUEUE = 'ツモ';
 export const COLUMN_FUMEN_COUNT = '対応地形数';

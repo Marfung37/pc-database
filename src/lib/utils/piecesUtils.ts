@@ -1,10 +1,10 @@
-import { extendPieces } from './pieces'; 
+import { extendPieces } from './pieces';
 import { sortQueue, mirrorQueue } from './queueUtils';
 import { BAG } from '$lib/constants';
 import type { Queue } from '$lib/types';
 
 // match with TILJSZO in string is isn't beginning of a word (lowercase afterwards)
-const piecesRegex = new RegExp(`[${BAG}]+(?=[^a-z]|$)`, 'g')
+const piecesRegex = new RegExp(`[${BAG}]+(?=[^a-z]|$)`, 'g');
 
 /**
  * Determines if a queue is 'less than' another queue based on the specific TILJSZO order.
@@ -130,5 +130,5 @@ export function piecesMirror(pattern: string): string {
   // replace all sequences of TILJSZO with mirror version
   return pattern.replace(piecesRegex, (match: string) => {
     return sortQueue(mirrorQueue(match as Queue));
-  })
+  });
 }

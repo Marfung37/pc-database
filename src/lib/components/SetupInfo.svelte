@@ -43,15 +43,17 @@
       >
         {#each setup.saves as save (save.save)}
           {#if save.save_fraction}
-          <p>
-            {save.description ?? save.save}: {save.save_percent.toFixed(2)}% ({save.save_fraction.numerator}/{save.save_fraction.denominator})
-          </p>
+            <p>
+              {save.description ?? save.save}: {save.save_percent.toFixed(2)}% ({save.save_fraction
+                .numerator}/{save.save_fraction.denominator})
+            </p>
           {:else}
             <div>
               <p>Priority Saves</p>
               {#each save.priority_save_percent as save_percent, index}
                 {@const save_fraction = save.priority_save_fraction[index]}
-                {@const description = save.description?.split(', ')[index] ?? save.save.split(',')[index]}
+                {@const description =
+                  save.description?.split(', ')[index] ?? save.save.split(',')[index]}
                 <p class="pl-2">
                   {description}: {save_percent.toFixed(2)}% ({save_fraction.numerator}/{save_fraction.denominator})
                 </p>

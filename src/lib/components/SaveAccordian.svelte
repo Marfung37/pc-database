@@ -17,7 +17,7 @@
     header += save.priority_save_fraction
       .map(
         (f) =>
-          `${(f.numerator / f.denominator * 100).toFixed(2)}% (${new Fraction(f.numerator, f.denominator).toString()})`
+          `${((f.numerator / f.denominator) * 100).toFixed(2)}% (${new Fraction(f.numerator, f.denominator).toString()})`
       )
       .join(', ');
   }

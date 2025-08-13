@@ -15,3 +15,6 @@ yarn.lock
 # Database
 data/init_db.sql
 data/backup/*
+
+# Submodules
+utils/lib/GluingFumens

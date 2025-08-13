@@ -131,7 +131,11 @@ export function fumenGetMinos(fumen: Fumen): Mino[] {
   return minos;
 }
 
-export function isCongruentFumen(fumen1: Fumen, fumen2: Fumen, maxPage: number = Infinity): boolean {
+export function isCongruentFumen(
+  fumen1: Fumen,
+  fumen2: Fumen,
+  maxPage: number = Infinity
+): boolean {
   if (fumen1 === fumen2) return true;
 
   // whether two fumens are congruent under shifts
@@ -139,10 +143,14 @@ export function isCongruentFumen(fumen1: Fumen, fumen2: Fumen, maxPage: number =
   const pages2 = decodeWrapper(fumen2);
 
   if (maxPage === Infinity && pages1.length !== pages2.length) return false;
-  
+
   for (let i = 0; i < Math.min(pages1.length, pages2.length, maxPage); i++) {
-    const field1 = pages1[i].field.str({ reduced: true, garbage: false, separator: '\n' }).split('\n');
-    const field2 = pages2[i].field.str({ reduced: true, garbage: false, separator: '\n' }).split('\n');
+    const field1 = pages1[i].field
+      .str({ reduced: true, garbage: false, separator: '\n' })
+      .split('\n');
+    const field2 = pages2[i].field
+      .str({ reduced: true, garbage: false, separator: '\n' })
+      .split('\n');
 
     if (field1.length !== field2.length) return false;
 
@@ -155,7 +163,6 @@ export function isCongruentFumen(fumen1: Fumen, fumen2: Fumen, maxPage: number =
       const row2 = field2[j].replaceAll(/[TILJSZOX]/g, '[TILJSZOX]');
       let shiftSize = (field1[j] + field1[j]).search(new RegExp(row2));
       if (shiftSize > PCSIZE / 2) shiftSize = -(shiftSize - PCSIZE);
-
 
       if (shiftSize == -1) return false;
 
@@ -172,9 +179,9 @@ export function isCongruentFumen(fumen1: Fumen, fumen2: Fumen, maxPage: number =
       if (rowLeading < leadingSize) leadingSize = rowLeading;
       if (PCSIZE - rowTrailing - 1 < trailingSize) trailingSize = PCSIZE - rowTrailing - 1;
     }
-    
+
     // if shift is more than number of full columns that could be shifted
-    if (fullShiftSize > (leadingSize + trailingSize)) return false;
+    if (fullShiftSize > leadingSize + trailingSize) return false;
   }
 
   return true;
@@ -184,20 +191,21 @@ export function fumenMirror(fumen: Fumen): Fumen {
   const pages = decodeWrapper(fumen);
 
   for (let page of pages) {
-    const fieldStr = page.field.str({ reduced: true, separator: '\n'}).split('\n');
+    const fieldStr = page.field.str({ reduced: true, separator: '\n' }).split('\n');
     let newFieldStr: string[] = [];
     for (let line of fieldStr) {
-      const reversedLine = line.split('').reverse().join('')
+      const reversedLine = line.split('').reverse().join('');
       let mirrorLine = '';
       for (let mino of reversedLine) {
-        if (mino in mirrorPieces)
-          mirrorLine += mirrorPieces[mino];
-        else
-          mirrorLine += mino;
+        if (mino in mirrorPieces) mirrorLine += mirrorPieces[mino];
+        else mirrorLine += mino;
       }
-      newFieldStr.push(mirrorLine)
+      newFieldStr.push(mirrorLine);
     }
-    page.field = Field.create(newFieldStr.slice(0, -1).join(''), newFieldStr[newFieldStr.length - 1]);
+    page.field = Field.create(
+      newFieldStr.slice(0, -1).join(''),
+      newFieldStr[newFieldStr.length - 1]
+    );
   }
 
   return encoder.encode(pages) as Fumen;
