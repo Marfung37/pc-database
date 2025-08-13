@@ -90,7 +90,7 @@ CREATE TABLE "setups" (
 );
 
 CREATE TABLE "setup_translations" (
-  "setup_id" setupid,
+  "setup_id" setupid NOT NULL,
   "language_code" varchar(10) NOT NULL DEFAULT 'en',
   "cover_description" varchar(255) NOT NULL,
   FOREIGN KEY (setup_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
@@ -98,17 +98,12 @@ CREATE TABLE "setup_translations" (
 
 CREATE TABLE "setup_oqb_paths" (
   "setup_id" setupid PRIMARY KEY,
+  "parent_id" setupid,
   "oqb_path" ltree CHECK (
     oqb_path::text ~ '^[1-9][0-9a-f]{11}(\.[1-9][0-9a-f]{11})*$'
-    AND array_length(ARRAY(SELECT DISTINCT unnest(string_to_array(oqb_path::text, '.'))), 1) = nlevel(oqb_path) -- not allow cycles
   ),
-  "oqb_depth" smallint GENERATED ALWAYS AS (
-    CASE
-      WHEN oqb_path IS NULL THEN NULL
-      ELSE nlevel (oqb_path)
-    END
-  ) STORED,
-  FOREIGN KEY (setup_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (setup_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (parent_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE "setup_variants" (
@@ -134,7 +129,7 @@ CREATE TABLE "setup_sets" (
 );
 
 CREATE TABLE "set_translations" (
-  "set_id" int,
+  "set_id" int NOT NULL,
   "language_code" varchar(10) NOT NULL DEFAULT 'en',
   "name" varchar(100) NOT NULL,
   "description" varchar(255) NOT NULL,
@@ -142,20 +137,13 @@ CREATE TABLE "set_translations" (
 );
 
 CREATE TABLE "set_paths" (
-  "set_id" int,
-  "set_path" ltree NOT NULL,
-  "set_depth" smallint,
+  "set_id" int NOT NULL,
+  "parent_id" int,
   "set_path" ltree CHECK (
     set_path::text ~ '^\d+(\.\d+)*$'
-    AND array_length(ARRAY(SELECT DISTINCT unnest(string_to_array(set_path::text, '.'))), 1) = nlevel(set_path) -- not allow cycles
   ),
-  "set_depth" smallint GENERATED ALWAYS AS (
-    CASE
-      WHEN set_path IS NULL THEN NULL
-      ELSE nlevel (set_path)
-    END
-  ) STORED,
-  FOREIGN KEY (set_id) REFERENCES sets (set_id) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (set_id) REFERENCES sets (set_id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (parent_id) REFERENCES sets (set_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE "statistics" (
@@ -230,9 +218,9 @@ CREATE TABLE "save_data" (
 );
 
 CREATE TABLE "save_translations" (
-  "save_id" uuid,
+  "save_id" uuid NOT NULL,
   "language_code" varchar(2) NOT NULL DEFAULT 'en',
-  "name" varchar(100),
+  "name" varchar(100) NOT NULL,
   FOREIGN KEY (save_id) REFERENCES saves (save_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -264,8 +252,6 @@ COMMENT ON COLUMN "setup_translations"."cover_description" IS 'Description for w
 
 COMMENT ON COLUMN "setup_oqb_paths"."oqb_path" IS 'Materialized path of ids to this setup';
 
-COMMENT ON COLUMN "setup_oqb_paths"."oqb_depth" IS 'Setup oqb tree depth';
-
 COMMENT ON TABLE "setup_variants" IS 'Setups where other pieces can be placed without affecting statistics';
 
 COMMENT ON COLUMN "setup_variants"."variant_number" IS 'Variant number 1 indexed. Variant 0 is the entry in setups';
@@ -285,8 +271,6 @@ COMMENT ON COLUMN "set_translations"."name" IS 'Name of the set';
 COMMENT ON COLUMN "set_translations"."description" IS 'Description about the set';
 
 COMMENT ON COLUMN "set_paths"."set_path" IS 'Materialized path of ids to this set';
-
-COMMENT ON COLUMN "set_paths"."set_depth" IS 'Set tree depth';
 
 COMMENT ON COLUMN "statistics"."setup_id" IS '12 hexdigits';
 
@@ -357,9 +341,16 @@ BEGIN
 END
 $$;
 
--- prevent directly affecting auto generated columns
-REVOKE INSERT (oqb_depth),
-UPDATE (oqb_path, oqb_depth) ON setup_oqb_paths
+-- prevent directly affecting generated columns
+REVOKE INSERT (oqb_path),
+UPDATE (oqb_path) ON setup_oqb_paths
+FROM
+  PUBLIC,
+  authenticated,
+  anon;
+
+REVOKE INSERT (set_path),
+UPDATE (set_path) ON set_paths
 FROM
   PUBLIC,
   authenticated,
