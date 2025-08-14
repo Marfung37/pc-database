@@ -251,7 +251,7 @@ ON setups FOR EACH ROW
 EXECUTE FUNCTION private.delete_oqb_tree_node ();
 
 -- Trigger to delete nodes
-CREATE TRIGGER trigger_delete_oqb_tree_node
+CREATE TRIGGER trigger_update_oqb_setup_id
 AFTER UPDATE OF setup_id
 ON setup_oqb_paths FOR EACH ROW
 EXECUTE FUNCTION private.update_oqb_setup_id ();

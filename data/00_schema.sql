@@ -86,7 +86,7 @@ CREATE TABLE "setups" (
     )
     OR (solve_pattern IS NOT NULL)
   ),
-  FOREIGN KEY (mirror) REFERENCES setups (setup_id) ON DELETE SET NULL ON UPDATE CASCADE
+  FOREIGN KEY (mirror) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE "setup_translations" (
@@ -340,15 +340,13 @@ END
 $$;
 
 -- prevent directly affecting generated columns
-REVOKE INSERT (oqb_path),
-UPDATE (oqb_path) ON setup_oqb_paths
+REVOKE ALL ON setup_oqb_paths
 FROM
   PUBLIC,
   authenticated,
   anon;
 
-REVOKE INSERT (set_path),
-UPDATE (set_path) ON set_paths
+REVOKE ALL ON set_paths
 FROM
   PUBLIC,
   authenticated,
