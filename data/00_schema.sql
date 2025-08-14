@@ -340,13 +340,13 @@ END
 $$;
 
 -- prevent directly affecting generated columns
-REVOKE ALL ON setup_oqb_paths
+REVOKE INSERT, UPDATE, DELETE ON setup_oqb_paths
 FROM
   PUBLIC,
   authenticated,
   anon;
 
-REVOKE ALL ON set_paths
+REVOKE INSERT, UPDATE, DELETE ON set_paths
 FROM
   PUBLIC,
   authenticated,

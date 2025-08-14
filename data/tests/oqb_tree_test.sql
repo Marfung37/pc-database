@@ -148,12 +148,127 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Function to update path when node delete
+CREATE OR REPLACE FUNCTION test_delete_setup_node (node_id setupid) 
+RETURNS void
+SECURITY DEFINER -- Runs with owner's privileges
+SET
+  search_path = public,
+  extensions AS $$
+BEGIN
+    -- Check if node is NULL which is nonsensical
+    IF node_id IS NULL THEN
+        RAISE EXCEPTION 'Cannot delete node: node cannot be NULL';
+    END IF;
+
+    -- remove the node and update the paths appropriately
+    BEGIN
+        -- don't check uniqueness as going to have duplicate rows
+        SET CONSTRAINTS test_oqb_path_unique DEFERRED;
+
+        -- removes for all descendants of the node all ancestors including this node and above
+        -- this creates duplicates on oqb_path
+        UPDATE test_setup_oqb_paths
+        SET oqb_path = subpath(oqb_path, index(oqb_path, node_id::ltree) + 1)
+        WHERE oqb_path ~ ('*.' || node_id || '.*{1,}')::lquery;
+
+        -- remove duplicates
+        DELETE FROM test_setup_oqb_paths a
+        USING test_setup_oqb_paths b
+        WHERE a.ctid < b.ctid
+          AND a.setup_id = b.setup_id
+          AND a.oqb_path = b.oqb_path;
+
+        -- Remove the node
+        DELETE FROM test_setup_oqb_paths s
+        WHERE setup_id = node_id;
+
+    EXCEPTION WHEN OTHERS THEN
+        RAISE NOTICE 'Tree path update aborted: %', SQLERRM;
+    END;
+
+    SET CONSTRAINTS test_oqb_path_unique IMMEDIATE;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to initialize oqb setups as root nodes
+CREATE OR REPLACE FUNCTION test_initialize_oqb_tree_paths () RETURNS TRIGGER SECURITY DEFINER -- Runs with owner's privileges
+SET
+  search_path = public,
+  extensions AS $$
+BEGIN
+    IF TG_OP = 'UPDATE' AND OLD.type <> NEW.type AND OLD.type = 'oqb' THEN
+      PERFORM test_delete_setup_node(OLD.setup_id);
+    ELSE 
+        IF NEW.type = 'oqb' THEN
+            INSERT INTO test_setup_oqb_paths (setup_id, oqb_path)
+            VALUES (NEW.setup_id, NEW.setup_id::ltree);
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to delete node
+CREATE OR REPLACE FUNCTION test_delete_oqb_tree_node () RETURNS TRIGGER SECURITY DEFINER -- Runs with owner's privileges
+SET
+  search_path = public,
+  extensions AS $$
+BEGIN
+    IF OLD.type = 'oqb' THEN
+      PERFORM test_delete_setup_node(OLD.setup_id);
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to handle updates to setup id
+CREATE OR REPLACE FUNCTION test_update_oqb_setup_id () RETURNS TRIGGER SECURITY DEFINER -- Runs with owner's privileges
+SET
+  search_path = public,
+  extensions AS $$
+BEGIN
+    -- Update all descendents
+    UPDATE test_setup_oqb_paths s
+    SET oqb_path = 
+      subpath(OLD.oqb_path, 0, -1) 
+      || NEW.setup_id::ltree 
+      || CASE
+          WHEN nlevel(OLD.oqb_path) < nlevel(s.oqb_path)
+          THEN subpath(s.oqb_path, index(s.oqb_path, OLD.setup_id::ltree) + 1)
+          ELSE ''::ltree
+         END
+    WHERE oqb_path <@ OLD.oqb_path;
+
+    -- Update node also
+    UPDATE test_setup_oqb_paths s
+    SET oqb_path = subpath(OLD.oqb_path, 0, -1) || NEW.setup_id::ltree
+    WHERE oqb_path = OLD.oqb_path;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Trigger to handle path updates
-CREATE TRIGGER trigger_initialize_tree_path
+CREATE TRIGGER trigger_test_initialize_tree_path
 AFTER INSERT
 OR
 UPDATE OF type ON test_setups FOR EACH ROW
 EXECUTE FUNCTION test_initialize_tree_paths ();
+
+-- Trigger to delete nodes
+CREATE TRIGGER trigger_test_delete_oqb_tree_node
+AFTER DELETE
+ON test_setups FOR EACH ROW
+EXECUTE FUNCTION test_delete_oqb_tree_node ();
+
+-- Trigger to delete nodes
+CREATE TRIGGER trigger_test_update_oqb_setup_id
+AFTER UPDATE OF setup_id
+ON test_setup_oqb_paths FOR EACH ROW
+EXECUTE FUNCTION test_update_oqb_setup_id ();
 
 -- Debug function to print out the graph
 CREATE OR REPLACE FUNCTION test_print_oqb_as_dot(start_path ltree DEFAULT NULL)
@@ -731,7 +846,84 @@ BEGIN
         -- Verify full path
         IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = setup2_id AND oqb_path = setup2_id::ltree)
         THEN
-            RAISE EXCEPTION 'Test % failed: Incorrect setup1 path after deleting edge', test_count;
+            RAISE EXCEPTION 'Test % failed: Incorrect setup2 path after deleting edge', test_count;
+        END IF;
+
+        -- Verify full path
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = grandsetup1_id AND oqb_path = (setup2_id || '.' || grandsetup1_id)::ltree)
+        THEN
+            RAISE EXCEPTION 'Test % failed: Incorrect grandsetup1 path after deleting edge', test_count;
+        END IF;
+
+        -- Verify full path
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = grandsetup2_id AND oqb_path = (setup2_id || '.' || grandsetup2_id)::ltree)
+        THEN
+            RAISE EXCEPTION 'Test % failed: Incorrect grandsetup2 path after deleting edge', test_count;
+        END IF;
+
+        -- Verify full path
+        IF (SELECT COUNT(*) FROM test_setup_oqb_paths WHERE setup_id = setup2_id) > 1
+        THEN
+            RAISE EXCEPTION 'Test % failed: More paths to child than expected', test_count;
+        END IF;
+
+        -- Verify full path
+        IF (SELECT COUNT(*) FROM test_setup_oqb_paths WHERE setup_id = grandsetup1_id) > 1
+        THEN
+            RAISE EXCEPTION 'Test % failed: More paths to grandchild than expected', test_count;
+        END IF;
+
+        -- Verify full path
+        IF (SELECT COUNT(*) FROM test_setup_oqb_paths WHERE setup_id = grandsetup2_id) > 1
+        THEN
+            RAISE EXCEPTION 'Test % failed: More paths to grandchild than expected', test_count;
+        END IF;
+
+        RAISE NOTICE 'Test % passed: Correctly delete later edge', test_count;
+        passed_count := passed_count + 1;
+    END;
+
+    -- Test 14: Deleting a node
+    BEGIN
+        test_count := test_count + 1;
+        
+        -- Clear previous data
+        DELETE FROM test_setup_oqb_paths;
+        DELETE FROM test_setups;
+        
+        -- Insert some nodes
+        INSERT INTO test_setups (setup_id, pc, leftover, build, cover_pattern, fumen, type) VALUES
+            (root1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
+            (root2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
+            (setup1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
+            (setup2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
+            (grandsetup1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
+            (grandsetup2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb');
+
+        PERFORM test_add_setup_edge(root1_id, setup1_id);
+        PERFORM test_add_setup_edge(root2_id, setup1_id);
+        PERFORM test_add_setup_edge(setup1_id, setup2_id);
+        PERFORM test_add_setup_edge(setup2_id, grandsetup1_id);
+        PERFORM test_add_setup_edge(setup2_id, grandsetup2_id);
+
+        DELETE FROM test_setups WHERE setup_id = setup1_id;
+
+        -- Verify full path
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = root1_id AND oqb_path = root1_id::ltree)
+        THEN
+            RAISE EXCEPTION 'Test % failed: Incorrect root1 path after deleting node', test_count;
+        END IF;
+
+        -- Verify full path
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = root2_id AND oqb_path = root2_id::ltree)
+        THEN
+            RAISE EXCEPTION 'Test % failed: Incorrect root2 path after deleting node', test_count;
+        END IF;
+
+        -- Verify full path
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = setup2_id AND oqb_path = setup2_id::ltree)
+        THEN
+            RAISE EXCEPTION 'Test % failed: Incorrect setup2 path after deleting edge', test_count;
         END IF;
 
         -- Verify full path
