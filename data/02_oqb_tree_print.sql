@@ -23,7 +23,7 @@ WITH RECURSIVE edges AS (
 ),
 pairs AS (
   SELECT
-    subpath(c.oqb_path, 0, nlevel(c.oqb_path)-1) AS parent_id,
+    subpath(c.oqb_path, -2, -1) AS parent_id,
     c.setup_id AS child_id
   FROM edges e
   JOIN setup_oqb_paths c ON e.oqb_path = c.oqb_path
