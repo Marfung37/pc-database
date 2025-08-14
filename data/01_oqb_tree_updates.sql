@@ -42,6 +42,11 @@ BEGIN
         RETURN;
     END IF;
 
+    -- Check if parent exists
+    IF NOT EXISTS (SELECT 1 FROM setups s WHERE s.setup_id = parent_id AND s.type = 'oqb') THEN
+        RAISE EXCEPTION 'Cannot create edge: parent does not exist';
+    END IF;
+
     -- Check for setup and parent set to same value
     IF child_id = parent_id THEN
         RAISE EXCEPTION 'Cannot create edge: parent is the same as the child';
