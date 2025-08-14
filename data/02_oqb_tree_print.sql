@@ -22,7 +22,7 @@ WITH RECURSIVE edges AS (
     ON child.oqb_path ~ (edges.oqb_path::text || '.*{1}')::lquery
 ),
 pairs AS (
-  SELECT
+  SELECT DISTINCT
     subpath(c.oqb_path, -2, -1) AS parent_id,
     c.setup_id AS child_id
   FROM edges e

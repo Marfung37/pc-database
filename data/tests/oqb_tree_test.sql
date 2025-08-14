@@ -14,6 +14,14 @@ ADD CONSTRAINT test_setup_oqb_paths_setup
 FOREIGN KEY (setup_id)
 REFERENCES test_setups(setup_id);
 
+ALTER TABLE test_setup_oqb_paths
+DROP CONSTRAINT test_setup_oqb_paths_oqb_path_key;
+
+ALTER TABLE test_setup_oqb_paths
+ADD CONSTRAINT test_oqb_path_unique
+UNIQUE (oqb_path)
+DEFERRABLE INITIALLY IMMEDIATE;
+
 -- Function to initialize oqb setups as root nodes
 CREATE OR REPLACE FUNCTION test_initialize_tree_paths () RETURNS TRIGGER SECURITY DEFINER -- Runs with owner's privileges
 SET
@@ -107,7 +115,7 @@ SET
 BEGIN
     BEGIN
         -- don't check uniqueness as going to have duplicate rows
-        SET CONSTRAINTS oqb_path_unique DEFERRED;
+        SET CONSTRAINTS test_oqb_path_unique DEFERRED;
 
         -- remove everything above the child lot_id in the path
         -- this creates duplicates on path and lot_id
@@ -116,20 +124,16 @@ BEGIN
         WHERE oqb_path ~ ('*.' || parent_id || '.' || child_id || '.*')::lquery;
 
         -- remove duplicates
-        DELETE FROM test_setup_oqb_paths s
-        USING (
-            SELECT setup_id, oqb_path
-            FROM test_setup_oqb_paths
-            GROUP BY setup_id, oqb_path
-            HAVING COUNT(*) > 1
-        ) dup
-        WHERE s.setup_id = dup.setup_id
-          AND s.oqb_path = dup.oqb_path;
+        DELETE FROM test_setup_oqb_paths a
+        USING test_setup_oqb_paths b
+        WHERE a.ctid < b.ctid
+          AND a.setup_id = b.setup_id
+          AND a.oqb_path = b.oqb_path;
     EXCEPTION WHEN OTHERS THEN
         RAISE NOTICE 'Tree path update aborted: %', SQLERRM;
     END;
 
-    SET CONSTRAINTS oqb_path_unique IMMEDIATE;
+    SET CONSTRAINTS test_oqb_path_unique IMMEDIATE;
 
     -- After the update the one of the paths of the child will be
     -- containing only the child.
@@ -150,6 +154,47 @@ AFTER INSERT
 OR
 UPDATE OF type ON test_setups FOR EACH ROW
 EXECUTE FUNCTION test_initialize_tree_paths ();
+
+-- Debug function to print out the graph
+CREATE OR REPLACE FUNCTION test_print_oqb_as_dot(start_path ltree DEFAULT NULL)
+RETURNS text
+LANGUAGE sql AS $$
+WITH RECURSIVE edges AS (
+  -- starting points
+  SELECT oqb_path
+  FROM test_setup_oqb_paths
+  WHERE (
+    start_path IS NULL
+    AND nlevel(oqb_path) = 1
+  )
+  OR (
+    start_path IS NOT NULL
+    AND oqb_path = start_path
+  )
+  
+  UNION ALL
+  
+  SELECT child.oqb_path
+  FROM edges
+  JOIN test_setup_oqb_paths child
+    ON child.oqb_path ~ (edges.oqb_path::text || '.*{1}')::lquery
+),
+pairs AS (
+  SELECT DISTINCT
+    subpath(c.oqb_path, -2, -1) AS parent_id,
+    c.setup_id AS child_id
+  FROM edges e
+  JOIN test_setup_oqb_paths c ON e.oqb_path = c.oqb_path
+  WHERE nlevel(c.oqb_path) > 1
+)
+SELECT 'digraph G {' || E'\n' ||
+   string_agg(
+    '"' || parent_id::text || '" -> "' || child_id::text || '"',
+    E'\n'
+   )
+   || E'\n}'
+FROM pairs;
+$$;
 
 -- 4. Test Cases with Unusual Insertion Orders
 DO $$
@@ -599,10 +644,12 @@ BEGIN
         INSERT INTO test_setups (setup_id, pc, leftover, build, cover_pattern, fumen, type) VALUES
             (root1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
             (setup1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
-            (grandsetup1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb');
+            (grandsetup1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
+            (root2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb');
 
         PERFORM test_add_setup_edge(root1_id, setup1_id);
         PERFORM test_add_setup_edge(setup1_id, grandsetup1_id);
+        PERFORM test_add_setup_edge(grandsetup1_id, root2_id);
         PERFORM test_delete_setup_edge(setup1_id, grandsetup1_id);
 
         -- Verify full path
@@ -619,6 +666,12 @@ BEGIN
 
         -- Verify full path
         IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = grandsetup1_id AND oqb_path = grandsetup1_id::ltree)
+        THEN
+            RAISE EXCEPTION 'Test % failed: Incorrect path after deleting edge', test_count;
+        END IF;
+
+        -- Verify full path
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = root2_id AND oqb_path = (grandsetup1_id || '.' || root2_id)::ltree)
         THEN
             RAISE EXCEPTION 'Test % failed: Incorrect path after deleting edge', test_count;
         END IF;
@@ -640,12 +693,16 @@ BEGIN
             (root1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
             (root2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
             (setup1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
-            (grandsetup1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb');
+            (setup2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
+            (grandsetup1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
+            (grandsetup2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb');
 
         PERFORM test_add_setup_edge(root1_id, setup1_id);
         PERFORM test_add_setup_edge(root2_id, setup1_id);
-        PERFORM test_add_setup_edge(setup1_id, grandsetup1_id);
-        PERFORM test_delete_setup_edge(root1_id, setup1_id);
+        PERFORM test_add_setup_edge(setup1_id, setup2_id);
+        PERFORM test_add_setup_edge(setup2_id, grandsetup1_id);
+        PERFORM test_add_setup_edge(setup2_id, grandsetup2_id);
+        PERFORM test_delete_setup_edge(setup1_id, setup2_id);
 
         -- Verify full path
         IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = root1_id AND oqb_path = root1_id::ltree)
@@ -660,25 +717,49 @@ BEGIN
         END IF;
 
         -- Verify full path
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = setup1_id AND oqb_path = (root1_id || '.' || setup1_id)::ltree)
+        THEN
+            RAISE EXCEPTION 'Test % failed: Incorrect setup1 path after deleting edge', test_count;
+        END IF;
+
+        -- Verify full path
         IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = setup1_id AND oqb_path = (root2_id || '.' || setup1_id)::ltree)
         THEN
             RAISE EXCEPTION 'Test % failed: Incorrect setup1 path after deleting edge', test_count;
         END IF;
 
         -- Verify full path
-        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = grandsetup1_id AND oqb_path = (root2_id || '.' || setup1_id || '.' || grandsetup1_id)::ltree)
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = setup2_id AND oqb_path = setup2_id::ltree)
+        THEN
+            RAISE EXCEPTION 'Test % failed: Incorrect setup1 path after deleting edge', test_count;
+        END IF;
+
+        -- Verify full path
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = grandsetup1_id AND oqb_path = (setup2_id || '.' || grandsetup1_id)::ltree)
         THEN
             RAISE EXCEPTION 'Test % failed: Incorrect grandsetup1 path after deleting edge', test_count;
         END IF;
 
         -- Verify full path
-        IF (SELECT COUNT(*) FROM test_setup_oqb_paths WHERE setup_id = setup1_id) > 1
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = grandsetup2_id AND oqb_path = (setup2_id || '.' || grandsetup2_id)::ltree)
+        THEN
+            RAISE EXCEPTION 'Test % failed: Incorrect grandsetup1 path after deleting edge', test_count;
+        END IF;
+
+        -- Verify full path
+        IF (SELECT COUNT(*) FROM test_setup_oqb_paths WHERE setup_id = setup2_id) > 1
         THEN
             RAISE EXCEPTION 'Test % failed: More paths to child than expected', test_count;
         END IF;
 
         -- Verify full path
         IF (SELECT COUNT(*) FROM test_setup_oqb_paths WHERE setup_id = grandsetup1_id) > 1
+        THEN
+            RAISE EXCEPTION 'Test % failed: More paths to grandchild than expected', test_count;
+        END IF;
+
+        -- Verify full path
+        IF (SELECT COUNT(*) FROM test_setup_oqb_paths WHERE setup_id = grandsetup2_id) > 1
         THEN
             RAISE EXCEPTION 'Test % failed: More paths to grandchild than expected', test_count;
         END IF;
