@@ -97,13 +97,12 @@ CREATE TABLE "setup_translations" (
 );
 
 CREATE TABLE "setup_oqb_paths" (
-  "setup_id" setupid PRIMARY KEY,
-  "parent_id" setupid,
+  "setup_id" setupid NOT NULL,
   "oqb_path" ltree CHECK (
     oqb_path::text ~ '^[1-9][0-9a-f]{11}(\.[1-9][0-9a-f]{11})*$'
   ),
-  FOREIGN KEY (setup_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (parent_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT oqb_path_unique UNIQUE (oqb_path) DEFERRABLE INITIALLY IMMEDIATE,
+  FOREIGN KEY (setup_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE "setup_variants" (
@@ -138,12 +137,11 @@ CREATE TABLE "set_translations" (
 
 CREATE TABLE "set_paths" (
   "set_id" int NOT NULL,
-  "parent_id" int,
   "set_path" ltree CHECK (
     set_path::text ~ '^\d+(\.\d+)*$'
   ),
-  FOREIGN KEY (set_id) REFERENCES sets (set_id) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (parent_id) REFERENCES sets (set_id) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT set_path_unique UNIQUE (set_path) DEFERRABLE INITIALLY IMMEDIATE,
+  FOREIGN KEY (set_id) REFERENCES sets (set_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE "statistics" (
