@@ -12,7 +12,7 @@ DROP;
 ALTER TABLE test_setup_oqb_paths
 ADD CONSTRAINT test_setup_oqb_paths_setup
 FOREIGN KEY (setup_id)
-REFERENCES test_setups(setup_id);
+REFERENCES test_setups(setup_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE test_setup_oqb_paths
 DROP CONSTRAINT test_setup_oqb_paths_oqb_path_key;
@@ -620,7 +620,7 @@ BEGIN
         RAISE NOTICE 'Test % failed: %', test_count, SQLERRM;
     END;
 
-    -- Test 7: Simple circular reference
+    -- Test 8: Simple circular reference
     BEGIN
         test_count := test_count + 1;
         
@@ -879,7 +879,7 @@ BEGIN
             RAISE EXCEPTION 'Test % failed: More paths to grandchild than expected', test_count;
         END IF;
 
-        RAISE NOTICE 'Test % passed: Correctly delete later edge', test_count;
+        RAISE NOTICE 'Test % passed: Correctly delete edge with multiple parents', test_count;
         passed_count := passed_count + 1;
     END;
 
@@ -956,7 +956,72 @@ BEGIN
             RAISE EXCEPTION 'Test % failed: More paths to grandchild than expected', test_count;
         END IF;
 
-        RAISE NOTICE 'Test % passed: Correctly delete later edge', test_count;
+        RAISE NOTICE 'Test % passed: Correctly delete node', test_count;
+        passed_count := passed_count + 1;
+    END;
+
+    -- Test 15: Updating a node
+    BEGIN
+        test_count := test_count + 1;
+        
+        -- Clear previous data
+        DELETE FROM test_setup_oqb_paths;
+        DELETE FROM test_setups;
+        
+        -- Insert some nodes
+        INSERT INTO test_setups (setup_id, pc, leftover, build, cover_pattern, fumen, type) VALUES
+            (root1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
+            (root2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
+            (setup1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
+            (setup2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
+            (grandsetup1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
+            (grandsetup2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb');
+
+        PERFORM test_add_setup_edge(root1_id, setup1_id);
+        PERFORM test_add_setup_edge(root2_id, setup1_id);
+        PERFORM test_add_setup_edge(setup1_id, setup2_id);
+        PERFORM test_add_setup_edge(setup2_id, grandsetup1_id);
+        PERFORM test_add_setup_edge(setup2_id, grandsetup2_id);
+
+        UPDATE test_setups SET setup_id = '100000000001' WHERE setup_id = setup1_id;
+
+        -- Verify full path
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = root1_id AND oqb_path = root1_id::ltree)
+        THEN
+            RAISE EXCEPTION 'Test % failed: Incorrect root1 path after updating node', test_count;
+        END IF;
+
+        -- Verify full path
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = root2_id AND oqb_path = root2_id::ltree)
+        THEN
+            RAISE EXCEPTION 'Test % failed: Incorrect root2 path after updating node', test_count;
+        END IF;
+
+        -- Verify full path
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = '100000000001' AND oqb_path = (root1_id || '.100000000001')::ltree)
+        THEN
+            RAISE EXCEPTION 'Test % failed: Incorrect setup1 path after updating edge', test_count;
+        END IF;
+
+        -- Verify full path
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = setup2_id AND oqb_path = (root1_id || '.100000000001' || '.' || setup2_id)::ltree)
+        THEN
+            RAISE EXCEPTION 'Test % failed: Incorrect setup2 path after updating edge', test_count;
+        END IF;
+
+        -- Verify full path
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = grandsetup1_id AND oqb_path = (root1_id || '.100000000001' || '.' || setup2_id || '.' || grandsetup1_id)::ltree)
+        THEN
+            RAISE EXCEPTION 'Test % failed: Incorrect grandsetup1 path after updating edge', test_count;
+        END IF;
+
+        -- Verify full path
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = grandsetup2_id AND oqb_path = (root1_id || '.100000000001' || '.' || setup2_id || '.' || grandsetup2_id)::ltree)
+        THEN
+            RAISE EXCEPTION 'Test % failed: Incorrect grandsetup2 path after updating edge', test_count;
+        END IF;
+
+        RAISE NOTICE 'Test % passed: Correctly update node cascade', test_count;
         passed_count := passed_count + 1;
     END;
 
