@@ -142,11 +142,6 @@ BEGIN
         RAISE EXCEPTION 'Cannot delete node: node cannot be NULL';
     END IF;
 
-    -- Check if node exists
-    IF NOT EXISTS (SELECT 1 FROM setup_oqb_paths s WHERE s.setup_id = node_id) THEN
-        RAISE EXCEPTION 'Cannot delete node: node does not exist as oqb';
-    END IF;
-
     -- remove the node and update the paths appropriately
     BEGIN
         -- don't check uniqueness as going to have duplicate rows
