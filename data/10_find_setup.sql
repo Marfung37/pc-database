@@ -7,7 +7,7 @@ CREATE TYPE setup_variants_data AS (
 
 CREATE TYPE setup_saves_data AS (
   save varchar(255),
-  description varchar(255),
+  name varchar(255),
   save_percent decimal(5, 2),
   save_fraction fraction,
   priority_save_percent decimal(5, 2) [],
@@ -21,15 +21,15 @@ CREATE TYPE setup_saves_data AS (
 CREATE OR REPLACE FUNCTION public.find_setup_leftover (
   p_leftover queue,
   kicktable kicktable DEFAULT 'srs180',
-  hold_type hold_type DEFAULT 'any'
+  hold_type hold_type DEFAULT 'any',
+  language  varchar(10) DEFAULT 'en'
 ) RETURNS TABLE (
   setup_id setupid,
   pc smallint,
   leftover queue,
   build queue,
+  type setup_type,
   cover_pattern varchar(255),
-  oqb_path ltree,
-  oqb_depth smallint,
   cover_description varchar(255),
   fumen fumen,
   solve_pattern varchar(100),
@@ -54,10 +54,9 @@ BEGIN
     s.pc,
     s.leftover,
     s.build,
+    s.type,
     s.cover_pattern,
-    s.oqb_path,
-    s.oqb_depth,
-    s.cover_description,
+    sl.cover_description,
     s.fumen,
     s.solve_pattern,
     s.mirror,
@@ -81,7 +80,7 @@ BEGIN
     (
       SELECT ARRAY_AGG(ROW(
         sa.save,
-        sa.description,
+        sal.name,
         sd.save_percent,
         sd.save_fraction,
         sd.priority_save_percent,
@@ -92,6 +91,7 @@ BEGIN
       )::setup_saves_data ORDER BY sa.importance)
       FROM save_data sd
       JOIN saves sa ON sd.save_id = sa.save_id
+      LEFT JOIN save_translations sal ON sd.save_id = sal.save_id AND sal.language_code = language
       WHERE sd.stat_id = st.stat_id AND sd.status = 'completed'
     )
   FROM
@@ -102,10 +102,14 @@ BEGIN
     AND st.hold_type = find_setup_leftover.hold_type
   LEFT JOIN setup_variants v ON
     s.setup_id = v.setup_id
+  LEFT JOIN setup_translations sl ON
+    s.setup_id = sl.setup_id AND sl.language_code = language
+  LEFT JOIN setup_oqb_paths sop ON
+    s.setup_id = sop.setup_id
   WHERE
     s.leftover = find_setup_leftover.p_leftover AND
     (
-      s.oqb_depth IS NULL OR s.oqb_depth = 1
+      s.type = 'oqb' AND sop.oqb_path = s.setup_id::ltree -- if oqb then only the root node
     )
   ORDER BY
     s.setup_id;
@@ -116,15 +120,15 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION public.find_setup_parent_id (
   parent_id setupid,
   kicktable kicktable DEFAULT 'srs180',
-  hold_type hold_type DEFAULT 'any'
+  hold_type hold_type DEFAULT 'any',
+  language varchar(10) DEFAULT 'en'
 ) RETURNS TABLE (
   setup_id setupid,
   pc smallint,
   leftover queue,
   build queue,
+  type setup_type,
   cover_pattern varchar(255),
-  oqb_path ltree,
-  oqb_depth smallint,
   cover_description varchar(255),
   fumen fumen,
   solve_pattern varchar(100),
@@ -150,9 +154,8 @@ BEGIN
     s.leftover,
     s.build,
     s.cover_pattern,
-    s.oqb_path,
-    s.oqb_depth,
-    s.cover_description,
+    s.type,
+    sl.cover_description,
     s.fumen,
     s.solve_pattern,
     s.mirror,
@@ -176,7 +179,7 @@ BEGIN
     (
       SELECT ARRAY_AGG(ROW(
         sa.save,
-        sa.description,
+        sal.name,
         sd.save_percent,
         sd.save_fraction,
         sd.priority_save_percent,
@@ -187,6 +190,7 @@ BEGIN
       )::setup_saves_data ORDER BY sa.importance)
       FROM save_data sd
       JOIN saves sa ON sd.save_id = sa.save_id
+      LEFT JOIN save_translations sal ON sd.save_id = sal.save_id AND sal.language_code = language
       WHERE sd.stat_id = st.stat_id AND sd.status = 'completed'
     )
   FROM
@@ -195,11 +199,13 @@ BEGIN
     s.setup_id = st.setup_id
     AND st.kicktable = find_setup_parent_id.kicktable
     AND st.hold_type = find_setup_parent_id.hold_type
-  JOIN setup_oqb_links l ON
-    find_setup_parent_id.parent_id = l.parent_id AND
-    s.setup_id = l.child_id
+  JOIN setup_oqb_paths sop ON
+    s.setup_id = sop.setup_id AND
+    sop.oqb_path ~ (find_setup_parent_id.parent_id::text || '.*{1}')::lquery
   LEFT JOIN setup_variants v ON
     s.setup_id = v.setup_id
+  LEFT JOIN setup_translations sl ON
+    s.setup_id = sl.setup_id AND sl.language_code = language
   ORDER BY
     s.setup_id;
 END;
@@ -215,9 +221,8 @@ CREATE OR REPLACE FUNCTION public.find_setup_setup_id (
   pc smallint,
   leftover queue,
   build queue,
+  type setup_type,
   cover_pattern varchar(255),
-  oqb_path ltree,
-  oqb_depth smallint,
   cover_description varchar(255),
   fumen fumen,
   solve_pattern varchar(100),
@@ -242,10 +247,9 @@ BEGIN
     s.pc,
     s.leftover,
     s.build,
+    s.type,
     s.cover_pattern,
-    s.oqb_path,
-    s.oqb_depth,
-    s.cover_description,
+    sl.cover_description,
     s.fumen,
     s.solve_pattern,
     s.mirror,
@@ -270,7 +274,7 @@ BEGIN
     (
       SELECT ARRAY_AGG(ROW(
         sa.save,
-        sa.description,
+        sal.name,
         sd.save_percent,
         sd.save_fraction,
         sd.priority_save_percent,
@@ -281,6 +285,7 @@ BEGIN
       )::setup_saves_data ORDER BY sa.importance)
       FROM save_data sd
       JOIN saves sa ON sd.save_id = sa.save_id
+      LEFT JOIN save_translations sal ON sd.save_id = sal.save_id AND sal.language_code = language
       WHERE sd.stat_id = st.stat_id AND sd.status = 'completed'
     )
   FROM
@@ -291,6 +296,8 @@ BEGIN
     AND st.hold_type = find_setup_setup_id.hold_type
   LEFT JOIN setup_variants v ON
     s.setup_id = v.setup_id
+  LEFT JOIN setup_translations sl ON
+    s.setup_id = sl.setup_id AND sl.language_code = language
   WHERE
     s.setup_id = find_setup_setup_id.p_setup_id
   ORDER BY

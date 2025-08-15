@@ -10,7 +10,6 @@ CREATE OR REPLACE FUNCTION public.find_uncalculated_saves (max_rows smallint DEF
   hold_type hold_type,
   save_id uuid,
   save varchar(255),
-  description varchar(255),
   auto_populate bool,
   gen_minimal bool,
   gen_all_solves bool
@@ -31,7 +30,6 @@ BEGIN
     st.hold_type,
     sa.save_id,
     sa.save,
-    sa.description,
     sa.auto_populate,
     sa.gen_minimal,
     sa.gen_all_solves
