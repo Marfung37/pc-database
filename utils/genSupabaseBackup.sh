@@ -36,4 +36,4 @@ else
     echo "Warning: .env.local not found at $ENV_FILE. Proceeding without it."
 fi
 
-pg_dump $POSTGRES_URL_NON_POOLING --data-only --disable-triggers > $1
+pg_dump $POSTGRES_URL_NON_POOLING --disable-triggers > $1
