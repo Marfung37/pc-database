@@ -52,7 +52,7 @@ export function getHeight(fumen: string): number {
   return height;
 }
 
-function decodeWrapper(fumen: Fumen): Page[] {
+export function decodeWrapper(fumen: Fumen): Page[] {
   let pages: Page[];
   try {
     pages = decoder.decode(fumen);

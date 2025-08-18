@@ -1,5 +1,6 @@
 import type { Queue, SetupID, Fumen } from '$lib/types';
 import { PIECEVAL, BAG, PCSIZE } from '$lib/constants';
+import { decodeWrapper } from '$lib/utils/fumenUtils';
 
 const setupidRegex = new RegExp('^[1-9][0-9a-f]{11}$');
 const ID_BYTE_SIZE = 6;
@@ -89,23 +90,54 @@ export function generateSetupIDPrefix(
   return tempPackedNum.toString(16) as SetupID;
 }
 
-export function hashFumen(fumen: string, bits: number = 4): number {
-  const randomSection = fumen.slice(5, -8); // section of fumen that is reasonably random
-  let xor = randomSection.length;
+export function hashFumen(fumen: Fumen, bits: number = 2): number {
+  const pages = decodeWrapper(fumen);
+  const field = pages[0].field
+    .str({ reduced: true, garbage: false, separator: '\n' })
+    .split('\n');
 
-  for (let i = 0; i < randomSection.length; i++) {
-    xor = ((xor << 3) | (xor >> 4)) & 0x7f;
-    xor ^= randomSection.charCodeAt(i);
+  // determine range of non fully filled columns in setup
+  let leadingSize = PCSIZE;
+  let trailingSize = PCSIZE;
+  for (let line of field) {
+      const rowLeading = line.indexOf('_');
+      if (rowLeading === -1) continue;
+
+      const rowTrailing = line.lastIndexOf('_');
+
+      // give size of leading and trailing sizes
+      if (rowLeading < leadingSize) leadingSize = rowLeading;
+      if (PCSIZE - rowTrailing - 1 < trailingSize) trailingSize = PCSIZE - rowTrailing - 1;
   }
 
-  return xor & ((1 << bits) - 1);
-}
+  let xor = 0;
+  for (let line of field) {
+    // only consider section that isn't full columns
+    line = line.slice(leadingSize, PCSIZE - trailingSize);
+    
+    // convert sequence of number of filled minos into a number
+    let count = 0;
+    let finishSection = false;
+    let value = 0;
+    let sectionCount = 0;
+    for (let mino of line) {
+      if (mino !== '_') {
+        count++;
+        finishSection = true;
+      } else if (finishSection) {
+        value |= count << (4 * sectionCount);
+        count = 0;
+        finishSection = false;
+        sectionCount++;
+      }
+    }
+    if (finishSection) {
+      value |= count << (4 * sectionCount);
+    }
 
-export function hashCoverPattern(coverPattern: string, bits: number = 2): number {
-  let xor = coverPattern.length;
-
-  for (let i = 0; i < coverPattern.length; i++) {
-    xor ^= coverPattern.charCodeAt(i);
+    // fold the hash so far and xor in new value
+    xor = (xor << 3 | xor >> 4) & 0x7F;
+    xor ^= value;
   }
 
   return xor & ((1 << bits) - 1);
