@@ -228,7 +228,7 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trigger_initialize_set_tree_path
 AFTER INSERT
 OR
-UPDATE OF type ON sets FOR EACH ROW
+UPDATE ON sets FOR EACH ROW
 EXECUTE FUNCTION private.initialize_set_tree_paths ();
 
 -- Trigger to delete nodes
