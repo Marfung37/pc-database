@@ -21,6 +21,12 @@ enum status {
   failed
 }
 
+enum setup_type {
+  regular
+  qb
+  oqb
+}
+
 table schema_metadata {
   version           text          [primary key]
   description       text          [not null]
@@ -33,9 +39,7 @@ table setups {
   leftover          varchar(7)    [not null, note: 'Pieces left from bag. Only TILJSZO allowed']
   build             varchar(10)   [not null, note: 'Pieces used in setup. Only TILJSZO allowed']
   cover_pattern     varchar(255)  [not null, note: 'Extended pieces notation for when setup is covered. Need not be perfect']
-  cover_description varchar(255)  [note: 'Description for when to use this setup']
-  oqb_path          ltree         [note: 'Materialized path of ids to this setup. NULL if not oqb and set to setup_id if oqb initially and populated from setup_oqb_links']
-  oqb_depth         smallint      [note: 'Setup oqb tree depth']
+  type              setup_type    [not null, default: 'regular', note: 'Type of setup for regular, qb, or oqb']
   fumen             text          [not null, note: 'Fumen of the setup']
   solve_pattern     varchar(100)  [note: 'Extended pieces notation used for solving. NULL if internal node in oqb']
   mirror            setupid       [note: 'References a setup_id for mirror setup']
@@ -44,9 +48,15 @@ table setups {
   credit            varchar(255)  [note: 'Credit for founder of setup']
 }
 
-table setup_oqb_links {
-  child_id          setupid   [primary key]
-  parent_id         setupid   [not null]
+table setup_translations {
+  setup_id          setupid       [not null]
+  language_code     varchar(10)   [not null, default: 'en']
+  cover_description varchar(255)  [not null, note: 'Description for when to use this setup']
+}
+
+table setup_oqb_paths {
+  setup_id          setupid   [not null]
+  oqb_path          ltree     [not null, unique, note: 'Materialized path of ids to this setup']
 }
 
 table setup_variants {
@@ -59,6 +69,28 @@ table setup_variants {
   Note: 'Setups where other pieces can be placed without affecting statistics'
 }
 
+table setup_sets {
+  setup_id          setupid       [not null]
+  set_id            int           [not null]
+}
+
+table sets {
+  set_id           int           [primary key]
+  category         varchar(50)   [note: 'Overarching set category']  
+}
+
+table set_translations {
+  set_id           int           [not null]
+  language_code    varchar(10)   [not null, default: 'en']
+  name             varchar(100)  [not null, note: 'Name of the set']
+  description      varchar(255)  [not null, note: 'Description about the set']
+}
+
+table set_paths {
+  set_id    int       [not null]
+  set_path  ltree     [not null, unique, note: 'Materialized path of ids to this set']
+}
+
 table statistics {
   stat_id           uuid          [primary key, default: `gen_random_uuid()`]
   setup_id          setupid       [not null, note: '12 hexdigits']
@@ -69,10 +101,11 @@ table statistics {
   solve_fraction    fraction      [note: 'Precise solve fraction. NULL if internal node in oqb']
   all_solves        text          [note: 'All solves for the setup']
   minimal_solves    text          [note: 'Minimal set of solves. NULL if not created']
+  true_minimal      bool          [note: 'Whether algorithm for minimal gurantees minimality']
   path_file         bool          [note: 'Whether path file exist. Follows [setup-id]-[kicktable].csvd.xz format']
 
   indexes {
-    (setup_id, kicktable) [unique]
+    (setup_id, kicktable, hold_type) [unique]
   }
 }
 
@@ -93,12 +126,17 @@ table save_data {
 table saves {
   save_id           uuid          [primary key, default: `gen_random_uuid()`]
   save              varchar(255)  [not null, note: 'Pieces saved for next PC for sfinder-saves']
-  description       varchar(255)  [note: 'Description of the save. Ex: One T or Two LJ']
   pc                smallint      [not null, note: 'PC Number for 1-9']
   importance        smallint      [not null, note: 'Level of importance this save is. Denotes which saves are shown above others']
   auto_populate     bool          [not null, default: false, note: 'Whether to automatically populate for all setups with this pc']
   gen_minimal       bool          [not null, default: false, note: 'When automatically populating, populate the minimal solves']
   gen_all_solves    bool          [not null, default: false, note: 'When automatically populating, populate all solves']
+}
+
+table save_translations {
+  save_id          uuid           [not null]
+  language_code    varchar(2)     [not null, default: 'en']
+  name             varchar(100)   [not null, note: 'Name of the save. Ex: One T or Two LJ']
 }
 
 table users {
@@ -125,6 +163,13 @@ Ref: save_data.stat_id > statistics.stat_id       [delete: cascade, update: casc
 Ref: saves.save_id > save_data.save_id            [delete: cascade, update: cascade]
 
 Ref: setup_variants.setup_id > setups.setup_id    [delete: cascade, update: cascade]
-Ref: setup_oqb_links.child_id > setups.setup_id   [delete: cascade, update: cascade]
-Ref: setup_oqb_links.parent_id > setups.setup_id  [delete: cascade, update: cascade]
-Ref: setups.mirror - setups.setup_id              [delete: set null, update: cascade]
+Ref: setup_oqb_paths.setup_id > setups.setup_id   [delete: cascade, update: cascade]
+Ref: setups.mirror - setups.setup_id              [delete: cascade, update: cascade]
+
+Ref: setup_sets.setup_id > setups.setup_id        [delete: cascade, update: cascade]
+Ref: setup_sets.set_id > sets.set_id              [delete: cascade, update: cascade]
+Ref: set_paths.set_id > sets.set_id               [delete: cascade, update: cascade]
+
+Ref: save_translations.save_id > saves.save_id     [delete: cascade, update: cascade]
+Ref: setup_translations.setup_id > setups.setup_id [delete: cascade, update: cascade]
+Ref: set_translations.set_id > sets.set_id         [delete: cascade, update: cascade]

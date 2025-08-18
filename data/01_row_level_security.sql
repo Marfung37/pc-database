@@ -479,6 +479,110 @@ CREATE POLICY delete_sets ON sets FOR DELETE TO authenticated USING (
   )
 );
 
+-- setup_sets RLS
+-- SELECT setup_sets
+-- INSERT if have editor set
+-- UPDATE if have editor set
+-- DELETE if have editor set
+ALTER TABLE setup_sets ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS view_setup_sets ON setup_sets;
+
+CREATE POLICY view_setup_sets ON setup_sets FOR
+SELECT
+  TO authenticated,
+  anon USING (true);
+
+DROP POLICY IF EXISTS edit_setup_sets ON setup_sets;
+
+CREATE POLICY edit_setup_sets ON setup_sets FOR INSERT TO authenticated
+WITH
+  CHECK (
+    (
+      SELECT
+        public.has_edit_permission ()
+    )
+  );
+
+DROP POLICY IF EXISTS update_setup_sets ON setup_sets;
+
+CREATE POLICY update_setup_sets ON setup_sets
+FOR UPDATE
+  TO authenticated USING (
+    (
+      SELECT
+        public.has_edit_permission ()
+    )
+  );
+
+DROP POLICY IF EXISTS delete_setup_sets ON setup_sets;
+
+CREATE POLICY delete_setup_sets ON setup_sets FOR DELETE TO authenticated USING (
+  (
+    SELECT
+      public.has_edit_permission ()
+  )
+);
+
+-- set_translations RLS
+-- SELECT set_translations
+-- INSERT if have editor set
+-- UPDATE if have editor set
+-- DELETE if have editor set
+ALTER TABLE set_translations ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS view_set_translations ON set_translations;
+
+CREATE POLICY view_set_translations ON set_translations FOR
+SELECT
+  TO authenticated,
+  anon USING (true);
+
+DROP POLICY IF EXISTS edit_set_translations ON set_translations;
+
+CREATE POLICY edit_set_translations ON set_translations FOR INSERT TO authenticated
+WITH
+  CHECK (
+    (
+      SELECT
+        public.has_edit_permission ()
+    )
+  );
+
+DROP POLICY IF EXISTS update_set_translations ON set_translations;
+
+CREATE POLICY update_set_translations ON set_translations
+FOR UPDATE
+  TO authenticated USING (
+    (
+      SELECT
+        public.has_edit_permission ()
+    )
+  );
+
+DROP POLICY IF EXISTS delete_set_translations ON set_translations;
+
+CREATE POLICY delete_set_translations ON set_translations FOR DELETE TO authenticated USING (
+  (
+    SELECT
+      public.has_edit_permission ()
+  )
+);
+
+-- set_paths RLS
+-- SELECT set_paths
+-- INSERT never
+-- UPDATE never
+-- DELETE never
+ALTER TABLE set_paths ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS view_set_paths ON set_paths;
+
+CREATE POLICY view_set_paths ON set_paths FOR
+SELECT
+  TO authenticated,
+  anon USING (true);
+
 -- set_translations RLS
 -- SELECT set_translations
 -- INSERT if have editor set

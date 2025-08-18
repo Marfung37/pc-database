@@ -70,14 +70,14 @@ CREATE TABLE "setups" (
   "pc" smallint NOT NULL CHECK (pc BETWEEN 1 AND 9),
   "leftover" queue NOT NULL CHECK (LENGTH(leftover) <= 7), -- enforce tetris pieces
   "build" queue NOT NULL CHECK (LENGTH(build) <= 10), -- enforce tetris pieces
-  "cover_pattern" varchar(255) NOT NULL, -- difficult to constrain
+  "cover_pattern" text NOT NULL, -- difficult to constrain
   "type" setup_type NOT NULL DEFAULT 'regular',
   "fumen" fumen NOT NULL, -- enforce fumen structure with version 115
-  "solve_pattern" varchar(100), -- difficult to constrain
+  "solve_pattern" text, -- difficult to constrain
   "mirror" setupid,
   "see" smallint NOT NULL DEFAULT 7 CHECK (see BETWEEN 1 AND 11),
   "hold" smallint NOT NULL DEFAULT 1 CHECK (hold BETWEEN 0 AND 11),
-  "credit" varchar(255),
+  "credit" text, -- TODO: change to separate table
   -- either all columns about solves are filled or is an oqb setup that doesn't solve
   CONSTRAINT no_solve_oqb_setup CHECK (
     (
@@ -91,8 +91,8 @@ CREATE TABLE "setups" (
 
 CREATE TABLE "setup_translations" (
   "setup_id" setupid NOT NULL,
-  "language_code" varchar(10) NOT NULL DEFAULT 'en',
-  "cover_description" varchar(255) NOT NULL,
+  "language_code" varchar(2) NOT NULL DEFAULT 'en',
+  "cover_description" text NOT NULL,
   FOREIGN KEY (setup_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -110,14 +110,14 @@ CREATE TABLE "setup_variants" (
   "variant_number" smallint NOT NULL CHECK (variant_number > 0), -- 1 index with intent 0 is the entry in setups
   "build" queue NOT NULL CHECK (LENGTH(build) <= 10), -- enforce tetris pieces
   "fumen" fumen NOT NULL, -- enforce fumen structure with version 115
-  "solve_pattern" varchar(100),
+  "solve_pattern" text,
   PRIMARY KEY (setup_id, variant_number),
   FOREIGN KEY (setup_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE "sets" (
   "set_id" SERIAL PRIMARY KEY,
-  "category" varchar(50)
+  "category" text
 );
 
 CREATE TABLE "setup_sets" (
@@ -129,9 +129,9 @@ CREATE TABLE "setup_sets" (
 
 CREATE TABLE "set_translations" (
   "set_id" int NOT NULL,
-  "language_code" varchar(10) NOT NULL DEFAULT 'en',
-  "name" varchar(100) NOT NULL,
-  "description" varchar(255) NOT NULL,
+  "language_code" varchar(2) NOT NULL DEFAULT 'en',
+  "name" text NOT NULL,
+  "description" text NOT NULL,
   FOREIGN KEY (set_id) REFERENCES sets (set_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -165,7 +165,7 @@ CREATE TABLE "statistics" (
 
 CREATE TABLE "saves" (
   "save_id" uuid PRIMARY KEY DEFAULT (gen_random_uuid ()),
-  "save" varchar(255) NOT NULL,
+  "save" text NOT NULL,
   "pc" smallint NOT NULL,
   "importance" smallint NOT NULL,
   "auto_populate" bool NOT NULL DEFAULT false,
@@ -211,6 +211,16 @@ CREATE TABLE "save_data" (
       AND priority_save_fraction IS NOT NULL
     )
   ),
+  CHECK (
+    (
+      minimal_solves IS NULL
+      AND true_minimal IS NULL
+    )
+    OR (
+      minimal_solves IS NOT NULL
+      AND true_minimal IS NOT NULL
+    )
+  ),
   FOREIGN KEY (stat_id) REFERENCES statistics (stat_id) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (save_id) REFERENCES saves (save_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -218,7 +228,7 @@ CREATE TABLE "save_data" (
 CREATE TABLE "save_translations" (
   "save_id" uuid NOT NULL,
   "language_code" varchar(2) NOT NULL DEFAULT 'en',
-  "name" varchar(100) NOT NULL,
+  "name" text NOT NULL,
   FOREIGN KEY (save_id) REFERENCES saves (save_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
