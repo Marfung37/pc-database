@@ -18,7 +18,7 @@ export type Database = {
         Row: {
           all_solves: string | null
           minimal_solves: string | null
-          priority_save_fraction: Database["public"]["CompositeTypes"]["unsafe_fraction"][] | null
+          priority_save_fraction: unknown[] | null
           priority_save_percent: number[] | null
           save_data_id: string
           save_fraction:
@@ -33,7 +33,7 @@ export type Database = {
         Insert: {
           all_solves?: string | null
           minimal_solves?: string | null
-          priority_save_fraction?: Database["public"]["CompositeTypes"]["unsafe_fraction"][] | null
+          priority_save_fraction?: unknown[] | null
           priority_save_percent?: number[] | null
           save_data_id?: string
           save_fraction?:
@@ -48,7 +48,7 @@ export type Database = {
         Update: {
           all_solves?: string | null
           minimal_solves?: string | null
-          priority_save_fraction?: Database["public"]["CompositeTypes"]["unsafe_fraction"][] | null
+          priority_save_fraction?: unknown[] | null
           priority_save_percent?: number[] | null
           save_data_id?: string
           save_fraction?:
@@ -106,7 +106,6 @@ export type Database = {
       saves: {
         Row: {
           auto_populate: boolean
-          description: string | null
           gen_all_solves: boolean
           gen_minimal: boolean
           importance: number
@@ -116,7 +115,6 @@ export type Database = {
         }
         Insert: {
           auto_populate?: boolean
-          description?: string | null
           gen_all_solves?: boolean
           gen_minimal?: boolean
           importance: number
@@ -126,7 +124,6 @@ export type Database = {
         }
         Update: {
           auto_populate?: boolean
-          description?: string | null
           gen_all_solves?: boolean
           gen_minimal?: boolean
           importance?: number
@@ -220,36 +217,6 @@ export type Database = {
           set_id?: number
         }
         Relationships: []
-      }
-      setup_oqb_links: {
-        Row: {
-          child_id: string
-          parent_id: string
-        }
-        Insert: {
-          child_id: string
-          parent_id: string
-        }
-        Update: {
-          child_id?: string
-          parent_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "setup_oqb_links_child_id_fkey"
-            columns: ["child_id"]
-            isOneToOne: true
-            referencedRelation: "setups"
-            referencedColumns: ["setup_id"]
-          },
-          {
-            foreignKeyName: "setup_oqb_links_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "setups"
-            referencedColumns: ["setup_id"]
-          },
-        ]
       }
       setup_oqb_paths: {
         Row: {
@@ -372,7 +339,6 @@ export type Database = {
       setups: {
         Row: {
           build: string
-          cover_description: string | null
           cover_pattern: string
           credit: string | null
           fumen: string
@@ -387,7 +353,6 @@ export type Database = {
         }
         Insert: {
           build: string
-          cover_description?: string | null
           cover_pattern: string
           credit?: string | null
           fumen: string
@@ -402,7 +367,6 @@ export type Database = {
         }
         Update: {
           build?: string
-          cover_description?: string | null
           cover_pattern?: string
           credit?: string | null
           fumen?: string
@@ -687,17 +651,17 @@ export type Database = {
         save: string | null
         name: string | null
         save_percent: number | null
-        save_fraction: Database["public"]["CompositeTypes"]["unsafe_fraction"] | null
+        save_fraction: unknown | null
         priority_save_percent: number[] | null
-        priority_save_fraction: Database["public"]["CompositeTypes"]["unsafe_fraction"][] | null
-        all_solves: string | null
-        minimal_solves: string | null
+        priority_save_fraction: unknown[] | null
+        all_solves: unknown | null
+        minimal_solves: unknown | null
         true_minimal: boolean | null
       }
       setup_variants_data: {
         variant_number: number | null
-        build: string | null
-        fumen: string | null
+        build: unknown | null
+        fumen: unknown | null
         solve_pattern: string | null
       }
       unsafe_fraction: {
