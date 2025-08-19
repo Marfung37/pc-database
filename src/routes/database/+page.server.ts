@@ -138,6 +138,14 @@ function buildOqbTree(allSetups: ProcessedSetup[]): ProcessedSetup[] {
     setup.data = []; // Initialize children array
     setup.open = false; // Initialize UI state
     setupMap.set(setup.setup_id, setup);
+
+    // populate root nodes
+    if (setup.setup_oqb_paths === null) continue;
+    for (const pathEntry of setup.setup_oqb_paths) {
+      const pathParts = pathEntry.oqb_path.split('.');
+      if (pathParts.length === 1)
+        rootNodes.push(setup);
+    }
   }
 
   // Second pass: Assign children to their parents
@@ -146,9 +154,7 @@ function buildOqbTree(allSetups: ProcessedSetup[]): ProcessedSetup[] {
     for (const pathEntry of setup.setup_oqb_paths) {
       const pathParts = pathEntry.oqb_path.split('.');
 
-      if (pathParts.length === 1) {
-        rootNodes.push(setup);
-      } else {
+      if (pathParts.length > 1) {
         // Extract parent setup_id from oqb_path
         const parentId = pathParts[pathParts.length - 2]; // Last part is the parent setup_id
 
@@ -224,7 +230,6 @@ export const actions: Actions = {
       )
       .eq('pc', pc)
       .eq('statistics.kicktable', 'srs180') // Apply kicktable filter once
-      .order('oqb_path', { ascending: true }); // Then by path for consistent tree building
 
     if (fetchError) {
       console.error('Failed to get all setups:', fetchError.message);
