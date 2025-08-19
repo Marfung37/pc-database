@@ -2,19 +2,20 @@
   import FumenRender from '$lib/components/FumenRender.svelte';
   import { Fraction } from '$lib/saves/fraction';
   import { fumenSplit } from '$lib/utils/fumenUtils';
-  import { Clipboard, ClipboardCheck } from '@lucide/svelte';
+  import type { Database } from '$lib/supabaseTypes';
+  import type { Fumen } from '$lib/types';
   import { m } from '$lib/paraglide/messages.js';
   import { toast } from 'svelte-sonner';
 
-  export let save;
+  export let save: Database["public"]["CompositeTypes"]["setup_saves_data"];
   export let isOpen = false;
 
   // TODO: handle priority percent
-  let header = `${save.description ?? save.save}: `;
-  if (save.save_percent !== null) {
-    header += `${save.save_percent?.toFixed(2)}% (${new Fraction(save.save_fraction.numerator, save.save_fraction.denominator).toString()})`;
-  } else {
-    header += save.priority_save_fraction
+  let header = `${save.name ?? save.save}: `;
+  if (save.save_percent !== null && save.save_fraction !== null) {
+    header += `${save.save_percent?.toFixed(2)}% (${new Fraction(save.save_fraction.numerator!, save.save_fraction.denominator!).toString()})`;
+  } else if (save.priority_save_fraction !== null) {
+    header += (save.priority_save_fraction as Fraction[])
       .map(
         (f) =>
           `${((f.numerator / f.denominator) * 100).toFixed(2)}% (${new Fraction(f.numerator, f.denominator).toString()})`
@@ -34,6 +35,10 @@
       toast.error(m.copy_not_supported());
       console.warn('Clipboard API not supported.');
       return;
+    }
+
+    if (save.minimal_solves === null) {
+      throw Error('copyContent was run when minimal solves does not exist');
     }
 
     try {
@@ -62,7 +67,7 @@
       </span>
     {/if}
   </button>
-  {#if isOpen}
+  {#if isOpen && save.minimal_solves !== null}
     <div class="flex flex-col gap-2 p-4">
       <button
         class="text-left text-2xl text-blue-500 hover:cursor-pointer hover:text-blue-700"
@@ -71,7 +76,7 @@
         {m.copy_minimal()}
       </button>
       <div class="grid grid-cols-2 gap-2 text-sm md:grid-cols-4 xl:grid-cols-8">
-        {#each fumenSplit(save.minimal_solves) as fumen (fumen)}
+        {#each fumenSplit(save.minimal_solves as Fumen) as fumen (fumen)}
           <FumenRender {fumen} />
         {/each}
       </div>

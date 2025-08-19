@@ -1,20 +1,16 @@
 import type {
   Result,
-  Setup,
-  Statistic,
-  SetupVariant,
   Kicktable,
   Queue,
   SetupID,
-  HoldType
+  HoldType,
+  SetupData
 } from '$lib/types';
 import { PCNUM2LONUM } from '$lib/utils/formulas';
 import { sortQueue } from '$lib/utils/queueUtils';
 import { piecesContains } from '$lib/utils/piecesUtils';
 import { supabase } from '$lib/supabaseClient';
 import { PUBLIC_DEFAULT_KICKTABLE, PUBLIC_DEFAULT_HOLDTYPE } from '$env/static/public';
-
-type setupFullData = Setup & Statistic & { variants: SetupVariant[] };
 
 // Helper function remains necessary for counting characters
 function getCharCounts(str: string): Map<string, number> {
@@ -50,15 +46,17 @@ export async function setupFinder(
   queue: Queue,
   pcNum: number | null = null,
   previousSetup: SetupID | null = null,
+  language: string = 'en',
   kicktable: Kicktable = PUBLIC_DEFAULT_KICKTABLE as Kicktable,
-  hold_type: HoldType = PUBLIC_DEFAULT_HOLDTYPE as HoldType
-): Result<setupFullData[]> {
+  hold_type: HoldType = PUBLIC_DEFAULT_HOLDTYPE as HoldType,
+): Result<SetupData[]> {
   let setups, setupErr;
   if (previousSetup) {
     const { data: tmp, error: tmpErr } = await supabase.rpc('find_setup_parent_id', {
       parent_id: previousSetup,
       kicktable,
-      hold_type
+      hold_type,
+      language
     });
     setups = tmp;
     setupErr = tmpErr;
@@ -67,7 +65,8 @@ export async function setupFinder(
     const { data: tmp, error: tmpErr } = await supabase.rpc('find_setup_leftover', {
       p_leftover: leftover,
       kicktable,
-      hold_type
+      hold_type,
+      language
     });
     setups = tmp;
     setupErr = tmpErr;
@@ -114,13 +113,15 @@ export async function setupFinder(
 
 export async function getSetup(
   setupId: SetupID,
+  language: string = 'en',
   kicktable: Kicktable = PUBLIC_DEFAULT_KICKTABLE as Kicktable,
   hold_type: HoldType = PUBLIC_DEFAULT_HOLDTYPE as HoldType
-): Result<setupFullData> {
+): Result<SetupData> {
   const { data: setup, error: setupErr } = await supabase.rpc('find_setup_setup_id', {
     p_setup_id: setupId,
     kicktable,
-    hold_type
+    hold_type,
+    language
   });
 
   if (setupErr) return { data: null, error: setupErr };

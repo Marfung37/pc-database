@@ -2,12 +2,12 @@ CREATE TYPE setup_variants_data AS (
   variant_number smallint,
   build queue,
   fumen fumen,
-  solve_pattern varchar(100)
+  solve_pattern text
 );
 
 CREATE TYPE setup_saves_data AS (
-  save varchar(255),
-  name varchar(255),
+  save text,
+  name text,
   save_percent decimal(5, 2),
   save_fraction fraction,
   priority_save_percent decimal(5, 2) [],
@@ -22,21 +22,21 @@ CREATE OR REPLACE FUNCTION public.find_setup_leftover (
   p_leftover queue,
   kicktable kicktable DEFAULT 'srs180',
   hold_type hold_type DEFAULT 'any',
-  language  varchar(10) DEFAULT 'en'
+  language  varchar(2) DEFAULT 'en'
 ) RETURNS TABLE (
   setup_id setupid,
   pc smallint,
   leftover queue,
   build queue,
   type setup_type,
-  cover_pattern varchar(255),
-  cover_description varchar(255),
+  cover_pattern text,
+  cover_description text,
   fumen fumen,
-  solve_pattern varchar(100),
+  solve_pattern text,
   mirror setupid,
   see smallint,
   hold smallint,
-  credit varchar(255),
+  credit text,
   cover_data bytea,
   solve_percent decimal(5, 2),
   solve_fraction fraction,
@@ -56,7 +56,7 @@ BEGIN
     s.build,
     s.type,
     s.cover_pattern,
-    sl.cover_description,
+    COALESCE(sl.cover_description, sl_default.cover_description) AS cover_description,
     s.fumen,
     s.solve_pattern,
     s.mirror,
@@ -80,7 +80,7 @@ BEGIN
     (
       SELECT ARRAY_AGG(ROW(
         sa.save,
-        sal.name,
+        COALESCE(sal.name, sal_default.name),
         sd.save_percent,
         sd.save_fraction,
         sd.priority_save_percent,
@@ -92,6 +92,7 @@ BEGIN
       FROM save_data sd
       JOIN saves sa ON sd.save_id = sa.save_id
       LEFT JOIN save_translations sal ON sd.save_id = sal.save_id AND sal.language_code = language
+      LEFT JOIN save_translations sal_default ON sd.save_id = sal_default.save_id AND sal_default.language_code = 'en'
       WHERE sd.stat_id = st.stat_id AND sd.status = 'completed'
     )
   FROM
@@ -104,12 +105,17 @@ BEGIN
     s.setup_id = v.setup_id
   LEFT JOIN setup_translations sl ON
     s.setup_id = sl.setup_id AND sl.language_code = language
+  LEFT JOIN setup_translations sl_default ON
+    s.setup_id = sl_default.setup_id AND sl_default.language_code = 'en'
   LEFT JOIN setup_oqb_paths sop ON
     s.setup_id = sop.setup_id
   WHERE
     s.leftover = find_setup_leftover.p_leftover AND
     (
-      s.type = 'oqb' AND sop.oqb_path = s.setup_id::ltree -- if oqb then only the root node
+      s.type <> 'oqb' OR
+      (
+        s.type = 'oqb' AND sop.oqb_path = s.setup_id::ltree -- if oqb then only the root node
+      )
     )
   ORDER BY
     s.setup_id;
@@ -121,21 +127,21 @@ CREATE OR REPLACE FUNCTION public.find_setup_parent_id (
   parent_id setupid,
   kicktable kicktable DEFAULT 'srs180',
   hold_type hold_type DEFAULT 'any',
-  language varchar(10) DEFAULT 'en'
+  language varchar(2) DEFAULT 'en'
 ) RETURNS TABLE (
   setup_id setupid,
   pc smallint,
   leftover queue,
   build queue,
   type setup_type,
-  cover_pattern varchar(255),
-  cover_description varchar(255),
+  cover_pattern text,
+  cover_description text,
   fumen fumen,
-  solve_pattern varchar(100),
+  solve_pattern text,
   mirror setupid,
   see smallint,
   hold smallint,
-  credit varchar(255),
+  credit text,
   cover_data bytea,
   solve_percent decimal(5, 2),
   solve_fraction fraction,
@@ -153,9 +159,9 @@ BEGIN
     s.pc,
     s.leftover,
     s.build,
-    s.cover_pattern,
     s.type,
-    sl.cover_description,
+    s.cover_pattern,
+    COALESCE(sl.cover_description, sl_default.cover_description) AS cover_description,
     s.fumen,
     s.solve_pattern,
     s.mirror,
@@ -179,7 +185,7 @@ BEGIN
     (
       SELECT ARRAY_AGG(ROW(
         sa.save,
-        sal.name,
+        COALESCE(sal.name, sal_default.name),
         sd.save_percent,
         sd.save_fraction,
         sd.priority_save_percent,
@@ -191,6 +197,7 @@ BEGIN
       FROM save_data sd
       JOIN saves sa ON sd.save_id = sa.save_id
       LEFT JOIN save_translations sal ON sd.save_id = sal.save_id AND sal.language_code = language
+      LEFT JOIN save_translations sal_default ON sd.save_id = sal_default.save_id AND sal_default.language_code = 'en'
       WHERE sd.stat_id = st.stat_id AND sd.status = 'completed'
     )
   FROM
@@ -206,6 +213,8 @@ BEGIN
     s.setup_id = v.setup_id
   LEFT JOIN setup_translations sl ON
     s.setup_id = sl.setup_id AND sl.language_code = language
+  LEFT JOIN setup_translations sl_default ON
+    s.setup_id = sl_default.setup_id AND sl_default.language_code = 'en'
   ORDER BY
     s.setup_id;
 END;
@@ -215,21 +224,22 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION public.find_setup_setup_id (
   p_setup_id setupid,
   kicktable kicktable DEFAULT 'srs180',
-  hold_type hold_type DEFAULT 'any'
+  hold_type hold_type DEFAULT 'any',
+  language varchar(2) DEFAULT 'en'
 ) RETURNS TABLE (
   setup_id setupid,
   pc smallint,
   leftover queue,
   build queue,
   type setup_type,
-  cover_pattern varchar(255),
-  cover_description varchar(255),
+  cover_pattern text,
+  cover_description text,
   fumen fumen,
-  solve_pattern varchar(100),
+  solve_pattern text,
   mirror setupid,
   see smallint,
   hold smallint,
-  credit varchar(255),
+  credit text,
   cover_data bytea,
   solve_percent decimal(5, 2),
   solve_fraction fraction,
@@ -249,7 +259,7 @@ BEGIN
     s.build,
     s.type,
     s.cover_pattern,
-    sl.cover_description,
+    COALESCE(sl.cover_description, sl_default.cover_description) AS cover_description,
     s.fumen,
     s.solve_pattern,
     s.mirror,
@@ -274,7 +284,7 @@ BEGIN
     (
       SELECT ARRAY_AGG(ROW(
         sa.save,
-        sal.name,
+        COALESCE(sal.name, sal_default.name),
         sd.save_percent,
         sd.save_fraction,
         sd.priority_save_percent,
@@ -286,6 +296,7 @@ BEGIN
       FROM save_data sd
       JOIN saves sa ON sd.save_id = sa.save_id
       LEFT JOIN save_translations sal ON sd.save_id = sal.save_id AND sal.language_code = language
+      LEFT JOIN save_translations sal_default ON sd.save_id = sal_default.save_id AND sal_default.language_code = 'en'
       WHERE sd.stat_id = st.stat_id AND sd.status = 'completed'
     )
   FROM
@@ -298,6 +309,8 @@ BEGIN
     s.setup_id = v.setup_id
   LEFT JOIN setup_translations sl ON
     s.setup_id = sl.setup_id AND sl.language_code = language
+  LEFT JOIN setup_translations sl ON
+    s.setup_id = sl_default.setup_id AND sl_default.language_code = 'en'
   WHERE
     s.setup_id = find_setup_setup_id.p_setup_id
   ORDER BY

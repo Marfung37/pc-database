@@ -1,29 +1,27 @@
 <script lang="ts">
-  import { page } from '$app/stores';
-  import { goto } from '$app/navigation';
+	import type { PageProps, SubmitFunction } from './$types';
   import { enhance, applyAction } from '$app/forms';
   import { m } from '$lib/paraglide/messages.js';
-  import { onMount } from 'svelte';
   import SetupInfo from '$lib/components/SetupInfo.svelte';
   import SaveAccordian from '$lib/components/SaveAccordian.svelte';
 
-  export let data;
-  export let form;
+  const { data, form }: PageProps = $props();
 
-  $: ({ setup, subbuild } = data);
+  let setup = $derived(data.setup);
+  let subbuild = $derived(data.subbuild);
 
-  let loading = false;
+  let loading = $state(false);
 
-  let queueValue: string = '';
-  let submittedQueue: string = '';
+  let queueValue: string = $state('');
+  let submittedQueue: string = $state('');
 
-  function enforceTetraminoOnly(event: Event) {
-    const inputElement = event.target as HTMLInputElement;
+  $effect(() => {
     // Update the bound variable with the sanitized value
-    queueValue = inputElement.value.replace(/[^TILJSZOtiljszo]/g, '').toUpperCase();
-  }
+    queueValue = queueValue.replace(/[^TILJSZOtiljszo]/g, '').toUpperCase();
+    console.log(queueValue);
+  });
 
-  const handleSaveSubmit: SubmitFunction = ({ formData }) => {
+  const handleSaveSubmit: SubmitFunction = () => {
     loading = true;
     return async ({ result }) => {
       loading = false;
@@ -100,7 +98,7 @@
         {loading
           ? m.loading()
           : (form?.fractions
-              .map((f) => `${((f.split('/')[0] / f.split('/')[1]) * 100).toFixed(2)}% (${f})`)
+              .map((f) => `${((parseInt(f.split('/')[0]) / parseInt(f.split('/')[1])) * 100).toFixed(2)}% (${f})`)
               .join(', ') ?? '')}
       {/if}
     </p>
@@ -126,7 +124,6 @@
           type="text"
           pattern="[TILJSZO]+"
           bind:value={queueValue}
-          on:input={enforceTetraminoOnly}
           class="mino focus:shadow-outline block min-w-40 grow appearance-none rounded border border-gray-300 bg-white text-2xl leading-tight shadow hover:border-gray-400 focus:outline-none"
           maxlength={11 - subbuild.length}
           minlength={1}

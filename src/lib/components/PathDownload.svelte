@@ -4,8 +4,8 @@
   import type { SetupID, Kicktable, HoldType } from '$lib/types';
 
   export let setupid: SetupID;
-  export let kicktable: Kicktable = PUBLIC_DEFAULT_KICKTABLE;
-  export let holdtype: HoldType = PUBLIC_DEFAULT_HOLDTYPE;
+  export let kicktable: Kicktable = PUBLIC_DEFAULT_KICKTABLE as Kicktable;
+  export let holdtype: HoldType = PUBLIC_DEFAULT_HOLDTYPE as HoldType;
   export let level: number = 4;
 
   let downloading = false;
@@ -21,7 +21,7 @@
     params.append('setupid', setupid);
     params.append('kicktable', kicktable);
     params.append('holdtype', holdtype);
-    params.append('level', level);
+    params.append('level', level.toString());
     const url = `/api/path?${params.toString()}`;
 
     let response;

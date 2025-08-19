@@ -18,7 +18,7 @@ export type Database = {
         Row: {
           all_solves: string | null
           minimal_solves: string | null
-          priority_save_fraction: unknown[] | null
+          priority_save_fraction: Database["public"]["CompositeTypes"]["unsafe_fraction"][] | null
           priority_save_percent: number[] | null
           save_data_id: string
           save_fraction:
@@ -33,7 +33,7 @@ export type Database = {
         Insert: {
           all_solves?: string | null
           minimal_solves?: string | null
-          priority_save_fraction?: unknown[] | null
+          priority_save_fraction?: Database["public"]["CompositeTypes"]["unsafe_fraction"][] | null
           priority_save_percent?: number[] | null
           save_data_id?: string
           save_fraction?:
@@ -48,7 +48,7 @@ export type Database = {
         Update: {
           all_solves?: string | null
           minimal_solves?: string | null
-          priority_save_fraction?: unknown[] | null
+          priority_save_fraction?: Database["public"]["CompositeTypes"]["unsafe_fraction"][] | null
           priority_save_percent?: number[] | null
           save_data_id?: string
           save_fraction?:
@@ -379,8 +379,6 @@ export type Database = {
           hold: number
           leftover: string
           mirror: string | null
-          oqb_depth: number | null
-          oqb_path: unknown | null
           pc: number
           see: number
           setup_id: string
@@ -396,8 +394,6 @@ export type Database = {
           hold?: number
           leftover: string
           mirror?: string | null
-          oqb_depth?: number | null
-          oqb_path?: unknown | null
           pc: number
           see?: number
           setup_id: string
@@ -413,8 +409,6 @@ export type Database = {
           hold?: number
           leftover?: string
           mirror?: string | null
-          oqb_depth?: number | null
-          oqb_path?: unknown | null
           pc?: number
           see?: number
           setup_id?: string
@@ -550,6 +544,7 @@ export type Database = {
         Args: {
           hold_type?: Database["public"]["Enums"]["hold_type"]
           kicktable?: Database["public"]["Enums"]["kicktable"]
+          language?: string
           p_leftover: unknown
         }
         Returns: {
@@ -563,8 +558,6 @@ export type Database = {
           leftover: unknown
           minimal_solves: unknown
           mirror: unknown
-          oqb_depth: number
-          oqb_path: unknown
           pc: number
           saves: Database["public"]["CompositeTypes"]["setup_saves_data"][]
           see: number
@@ -572,6 +565,7 @@ export type Database = {
           solve_fraction: unknown
           solve_pattern: string
           solve_percent: number
+          type: Database["public"]["Enums"]["setup_type"]
           variants: Database["public"]["CompositeTypes"]["setup_variants_data"][]
         }[]
       }
@@ -579,6 +573,7 @@ export type Database = {
         Args: {
           hold_type?: Database["public"]["Enums"]["hold_type"]
           kicktable?: Database["public"]["Enums"]["kicktable"]
+          language?: string
           parent_id: unknown
         }
         Returns: {
@@ -592,8 +587,6 @@ export type Database = {
           leftover: unknown
           minimal_solves: unknown
           mirror: unknown
-          oqb_depth: number
-          oqb_path: unknown
           pc: number
           saves: Database["public"]["CompositeTypes"]["setup_saves_data"][]
           see: number
@@ -601,6 +594,7 @@ export type Database = {
           solve_fraction: unknown
           solve_pattern: string
           solve_percent: number
+          type: Database["public"]["Enums"]["setup_type"]
           variants: Database["public"]["CompositeTypes"]["setup_variants_data"][]
         }[]
       }
@@ -608,6 +602,7 @@ export type Database = {
         Args: {
           hold_type?: Database["public"]["Enums"]["hold_type"]
           kicktable?: Database["public"]["Enums"]["kicktable"]
+          language?: string
           p_setup_id: unknown
         }
         Returns: {
@@ -621,8 +616,6 @@ export type Database = {
           leftover: unknown
           minimal_solves: unknown
           mirror: unknown
-          oqb_depth: number
-          oqb_path: unknown
           pc: number
           saves: Database["public"]["CompositeTypes"]["setup_saves_data"][]
           see: number
@@ -630,6 +623,7 @@ export type Database = {
           solve_fraction: unknown
           solve_pattern: string
           solve_percent: number
+          type: Database["public"]["Enums"]["setup_type"]
           variants: Database["public"]["CompositeTypes"]["setup_variants_data"][]
         }[]
       }
@@ -691,19 +685,19 @@ export type Database = {
     CompositeTypes: {
       setup_saves_data: {
         save: string | null
-        description: string | null
+        name: string | null
         save_percent: number | null
-        save_fraction: unknown | null
+        save_fraction: Database["public"]["CompositeTypes"]["unsafe_fraction"] | null
         priority_save_percent: number[] | null
-        priority_save_fraction: unknown[] | null
-        all_solves: unknown | null
-        minimal_solves: unknown | null
+        priority_save_fraction: Database["public"]["CompositeTypes"]["unsafe_fraction"][] | null
+        all_solves: string | null
+        minimal_solves: string | null
         true_minimal: boolean | null
       }
       setup_variants_data: {
         variant_number: number | null
-        build: unknown | null
-        fumen: unknown | null
+        build: string | null
+        fumen: string | null
         solve_pattern: string | null
       }
       unsafe_fraction: {

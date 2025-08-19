@@ -5,6 +5,11 @@ import { PCNUM2LONUM } from '$lib/utils/formulas';
 import { setupFinder } from '$lib/utils/setupFinder';
 import type { Actions, PageServerLoad } from './$types';
 import type { Queue } from '$lib/types';
+import {
+  locales // Get an array of all available locales
+} from '$lib/paraglide/runtime'; 
+
+
 
 export const load: PageServerLoad = async () => {};
 
@@ -13,6 +18,7 @@ export const actions: Actions = {
     const formData = await request.formData();
     const pcStr = formData.get('pc') as string;
     const queueStr = formData.get('queue') as string;
+    const language = formData.get('language') as string;
 
     const returnData = {
       pc: pcStr,
@@ -34,6 +40,9 @@ export const actions: Actions = {
         message: `Invalid queue`
       });
     }
+    if (language in locales) {
+
+    }
 
     const pc = parseInt(pcStr) as number;
 
@@ -54,7 +63,7 @@ export const actions: Actions = {
       });
     }
 
-    const { data: setups, error: setupsErr } = await setupFinder(queue, pc);
+    const { data: setups, error: setupsErr } = await setupFinder(queue, pc, null, language);
 
     if (setupsErr) {
       console.error(`Failed to find setups for pc ${pc} and queue ${queue}:`, setupsErr.message);
@@ -72,7 +81,6 @@ export const actions: Actions = {
         message: 'No setups found'
       };
     }
-    console.log(setups);
 
     setups.sort((a, b) => {
       if (a.solve_percent === null) {

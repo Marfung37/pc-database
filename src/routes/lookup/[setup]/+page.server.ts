@@ -38,7 +38,7 @@ export const load: PageServerLoad = async ({ params }) => {
 
   if (oqb) {
     // looking up from a non oqb setup?
-    if (setup.oqb_path === null) {
+    if (setup.type !== 'oqb') {
       error(404, { message: 'Setup is not an oqb setup' });
     } else if (!subStringSet(subbuild.slice(0, setup.build.length + 1), setup.build)) {
       error(404, { message: 'Incorrect pieces for the setup' });

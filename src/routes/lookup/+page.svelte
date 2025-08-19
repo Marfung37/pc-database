@@ -1,11 +1,13 @@
 <script lang="ts">
+	import type { PageProps, SubmitFunction } from './$types';
   import { enhance, applyAction } from '$app/forms';
   import { m } from '$lib/paraglide/messages.js';
+  import { getLocale } from '$lib/paraglide/runtime';
   import SetupInfo from '$lib/components/SetupInfo.svelte';
 
-  export let form;
+  const {form}: PageProps = $props();
 
-  let loading = false;
+  let loading = $state(false);
 
   const pcs = [
     { id: 1, pc: '1st' },
@@ -19,18 +21,19 @@
     { id: 9, pc: '9th' }
   ];
 
-  let queueValue: string = '';
-  let submittedQueue: string = '';
+  let queueValue: string = $state('');
+  let submittedQueue: string = $state('');
 
-  function enforceTetraminoOnly(event: Event) {
-    const inputElement = event.target as HTMLInputElement;
+  $effect(() => {
     // Update the bound variable with the sanitized value
-    queueValue = inputElement.value.replace(/[^TILJSZOtiljszo]/g, '').toUpperCase();
-  }
+    queueValue = queueValue.replace(/[^TILJSZOtiljszo]/g, '').toUpperCase();
+    console.log(queueValue);
+  });
 
   const handleSubmit: SubmitFunction = ({ formData }) => {
     loading = true;
-    submittedQueue = formData.get('queue');
+    formData.set('language', getLocale());
+    submittedQueue = formData.get('queue') as string;
     return async ({ result }) => {
       loading = false;
       applyAction(result);
@@ -75,7 +78,6 @@
         type="text"
         pattern="[TILJSZO]+"
         bind:value={queueValue}
-        on:input={enforceTetraminoOnly}
         class="mino focus:shadow-outline block min-w-40 grow appearance-none rounded border border-gray-300 bg-white text-2xl leading-tight shadow hover:border-gray-400 focus:outline-none"
         maxlength={11}
         minlength={1}

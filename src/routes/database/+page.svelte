@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { SubmitFunction } from './$types.ts';
   import { enhance, applyAction } from '$app/forms';
   import { m } from '$lib/paraglide/messages.js';
   import { Grid } from 'wx-svelte-grid';

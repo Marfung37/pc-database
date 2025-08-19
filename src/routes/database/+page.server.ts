@@ -82,12 +82,11 @@ interface BaseSetup {
   setup_id: string;
   leftover: string;
   build: string;
+  type: string;
   cover_pattern: string;
   fumen: string;
   solve_pattern: string;
   mirror: boolean;
-  oqb_path: string | null;
-  oqb_depth: number | null; // Assuming this column exists and is used
 }
 
 // Define the shape of the statistics data when embedded
@@ -95,14 +94,20 @@ interface StatisticsData {
   solve_percent: number;
 }
 
+interface PathsData {
+  oqb_path: string;
+}
+
 // Combined type for data coming directly from Supabase, before flattening statistics
 interface RawSetup extends BaseSetup {
   statistics: StatisticsData[] | null; // Null if no related statistics due to UNIQUE constraint
+  setup_oqb_paths: PathsData[] | null; // Null if no related statistics due to UNIQUE constraint
 }
 
 // Type for data after processing (flattened statistics and nested 'data' for children)
 interface ProcessedSetup extends BaseSetup {
   solve_percent: number | null; // Flattened solve_percent, can be null
+  setup_oqb_paths: PathsData[] | null; // Null if no related statistics due to UNIQUE constraint
   data?: ProcessedSetup[]; // Children in the tree structure
   open?: boolean; // For UI state if you plan to use it (e.g., in a tree view)
 }
@@ -137,27 +142,31 @@ function buildOqbTree(allSetups: ProcessedSetup[]): ProcessedSetup[] {
 
   // Second pass: Assign children to their parents
   for (const setup of allSetups) {
-    if (setup.oqb_depth == 1) {
-      rootNodes.push(setup);
-    } else if (setup.oqb_path !== null) {
-      // Extract parent setup_id from oqb_path
-      const pathParts = setup.oqb_path.split('.');
-      const parentId = pathParts[pathParts.length - 2]; // Last part is the parent setup_id
+    if (setup.setup_oqb_paths === null) continue;
+    for (const pathEntry of setup.setup_oqb_paths) {
+      const pathParts = pathEntry.oqb_path.split('.');
 
-      const parent = setupMap.get(parentId);
-      if (parent) {
-        // Ensure data is initialized before pushing
-        if (!parent.data) {
-          parent.data = [];
-        }
-        parent.data.push(setup);
+      if (pathParts.length === 1) {
+        rootNodes.push(setup);
       } else {
-        // This scenario means a child has an oqb_path pointing to a non-existent parent
-        // or a parent that wasn't fetched in the 'allSetups' list (e.g., beyond max depth).
-        // You might want to log a warning or handle this edge case.
-        console.warn(`Parent setup_id ${parentId} not found for child ${setup.setup_id}`);
-        // If a parent is not found, this setup might become a root node or be dropped.
-        // For now, let's assume all parents will be in the map if fetched.
+        // Extract parent setup_id from oqb_path
+        const parentId = pathParts[pathParts.length - 2]; // Last part is the parent setup_id
+
+        const parent = setupMap.get(parentId);
+        if (parent) {
+          // Ensure data is initialized before pushing
+          if (!parent.data) {
+            parent.data = [];
+          }
+          parent.data.push(setup);
+        } else {
+          // This scenario means a child has an oqb_path pointing to a non-existent parent
+          // or a parent that wasn't fetched in the 'allSetups' list (e.g., beyond max depth).
+          // You might want to log a warning or handle this edge case.
+          console.warn(`Parent setup_id ${parentId} not found for child ${setup.setup_id}`);
+          // If a parent is not found, this setup might become a root node or be dropped.
+          // For now, let's assume all parents will be in the map if fetched.
+        }
       }
     }
   }
@@ -205,18 +214,17 @@ export const actions: Actions = {
         `setup_id,
         leftover,
         build,
+        type,
         cover_pattern,
         fumen,
         solve_pattern,
         mirror,
-        oqb_path,
-        oqb_depth,
-        statistics (solve_percent)`
+        statistics (solve_percent),
+        setup_oqb_paths (oqb_path)`
       )
       .eq('pc', pc)
       .eq('statistics.kicktable', 'srs180') // Apply kicktable filter once
-      .order('oqb_depth', { ascending: true }) // Order by depth first
-      .order('oqb_path', { ascending: true }); // Then by path for consistent tree building
+      .order('oqb_path', { ascending: true }) // Then by path for consistent tree building
 
     if (fetchError) {
       console.error('Failed to get all setups:', fetchError.message);
@@ -229,8 +237,8 @@ export const actions: Actions = {
     const allSetupsProcessed = processSetupData(allRelevantSetupsRaw);
 
     // 2. Separate non-OQB setups from OQB candidates
-    const nonOqbSetups = allSetupsProcessed.filter((s) => s.oqb_path === null);
-    const oqbTreeCandidates = allSetupsProcessed.filter((s) => s.oqb_path !== null);
+    const nonOqbSetups = allSetupsProcessed.filter((s) => s.type !== 'oqb');
+    const oqbTreeCandidates = allSetupsProcessed.filter((s) => s.type === 'oqb');
 
     // 3. Build the OQB tree in-memory
     // Pass only the candidates that could be part of the OQB tree to the builder

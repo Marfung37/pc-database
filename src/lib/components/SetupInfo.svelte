@@ -1,14 +1,16 @@
 <script lang="ts">
+  import type { SetupData, SetupID } from '$lib/types';
+  import { Fraction } from '$lib/saves/fraction';
   import { m } from '$lib/paraglide/messages.js';
   import FumenRender from '$lib/components/FumenRender.svelte';
   import PathDownload from '$lib/components/PathDownload.svelte';
   import { ChevronRight } from '@lucide/svelte';
 
-  export let setup;
+  export let setup: SetupData;
   export let submittedQueue;
   export let baseUrl;
   export let next = true;
-  const oqb = setup.oqb_path !== null;
+  const oqb = setup.type === 'oqb';
 </script>
 
 <div class="flex min-h-60 w-full rounded-3xl bg-white shadow-lg">
@@ -31,7 +33,7 @@
         <p>{m.exact_cover_pattern()}: {setup.cover_data === null ? m.yes() : m.no()}</p>
         <p>{m.lookup_credit()}: {setup.credit ? setup.credit : m.lookup_unknown()}</p>
         {#if setup.solve_pattern}
-          <PathDownload setupid={setup.setup_id} />
+          <PathDownload setupid={setup.setup_id as SetupID} />
         {/if}
         <!-- <p>Minimal Solves</p> -->
         <!-- <p>Variants</p> -->
@@ -42,18 +44,18 @@
         class="flex h-60 w-full flex-col flex-wrap gap-x-2 p-4 xl:w-auto xl:p-0 xl:py-12 xl:pl-8"
       >
         {#each setup.saves as save (save.save)}
-          {#if save.save_fraction}
+          {#if save.save_fraction && save.save_percent}
+            {@const fraction = save.save_fraction as Fraction}
             <p>
-              {save.description ?? save.save}: {save.save_percent.toFixed(2)}% ({save.save_fraction
-                .numerator}/{save.save_fraction.denominator})
+              {save.name ?? save.save}: {save.save_percent.toFixed(2)}% ({fraction.numerator}/{fraction.denominator})
             </p>
-          {:else}
+          {:else if save.priority_save_percent && save.priority_save_fraction}
             <div>
               <p>Priority Saves</p>
               {#each save.priority_save_percent as save_percent, index}
-                {@const save_fraction = save.priority_save_fraction[index]}
+                {@const save_fraction = save.priority_save_fraction[index] as Fraction}
                 {@const description =
-                  save.description?.split(', ')[index] ?? save.save.split(',')[index]}
+                  save.name?.split(', ')[index] ?? save.save!.split(',')[index]}
                 <p class="pl-2">
                   {description}: {save_percent.toFixed(2)}% ({save_fraction.numerator}/{save_fraction.denominator})
                 </p>
