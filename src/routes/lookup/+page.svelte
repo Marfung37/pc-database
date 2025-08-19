@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { PageProps, SubmitFunction } from './$types';
+  import type { PageProps, SubmitFunction } from './$types';
   import { enhance, applyAction } from '$app/forms';
   import { m } from '$lib/paraglide/messages.js';
   import { getLocale } from '$lib/paraglide/runtime';
   import SetupInfo from '$lib/components/SetupInfo.svelte';
 
-  const {form}: PageProps = $props();
+  const { form }: PageProps = $props();
 
   let loading = $state(false);
 

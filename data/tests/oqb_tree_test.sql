@@ -10,17 +10,13 @@ COMMIT
 DROP;
 
 ALTER TABLE test_setup_oqb_paths
-ADD CONSTRAINT test_setup_oqb_paths_setup
-FOREIGN KEY (setup_id)
-REFERENCES test_setups(setup_id) ON DELETE CASCADE ON UPDATE CASCADE;
+ADD CONSTRAINT test_setup_oqb_paths_setup FOREIGN KEY (setup_id) REFERENCES test_setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE test_setup_oqb_paths
 DROP CONSTRAINT test_setup_oqb_paths_oqb_path_key;
 
 ALTER TABLE test_setup_oqb_paths
-ADD CONSTRAINT test_oqb_path_unique
-UNIQUE (oqb_path)
-DEFERRABLE INITIALLY IMMEDIATE;
+ADD CONSTRAINT test_oqb_path_unique UNIQUE (oqb_path) DEFERRABLE INITIALLY IMMEDIATE;
 
 -- Function to initialize oqb setups as root nodes
 CREATE OR REPLACE FUNCTION test_initialize_tree_paths () RETURNS TRIGGER SECURITY DEFINER -- Runs with owner's privileges
@@ -44,9 +40,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Function to update path when links change
-CREATE OR REPLACE FUNCTION test_add_setup_edge (parent_id setupid, child_id setupid) 
-RETURNS void
-SECURITY DEFINER -- Runs with owner's privileges
+CREATE OR REPLACE FUNCTION test_add_setup_edge (parent_id setupid, child_id setupid) RETURNS void SECURITY DEFINER -- Runs with owner's privileges
 SET
   search_path = public,
   extensions AS $$
@@ -106,9 +100,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Function to update path when links delete
-CREATE OR REPLACE FUNCTION test_delete_setup_edge (parent_id setupid, child_id setupid) 
-RETURNS void
-SECURITY DEFINER -- Runs with owner's privileges
+CREATE OR REPLACE FUNCTION test_delete_setup_edge (parent_id setupid, child_id setupid) RETURNS void SECURITY DEFINER -- Runs with owner's privileges
 SET
   search_path = public,
   extensions AS $$
@@ -149,9 +141,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Function to update path when node delete
-CREATE OR REPLACE FUNCTION test_delete_setup_node (node_id setupid) 
-RETURNS void
-SECURITY DEFINER -- Runs with owner's privileges
+CREATE OR REPLACE FUNCTION test_delete_setup_node (node_id setupid) RETURNS void SECURITY DEFINER -- Runs with owner's privileges
 SET
   search_path = public,
   extensions AS $$
@@ -260,20 +250,17 @@ EXECUTE FUNCTION test_initialize_tree_paths ();
 
 -- Trigger to delete nodes
 CREATE TRIGGER trigger_test_delete_oqb_tree_node
-AFTER DELETE
-ON test_setups FOR EACH ROW
+AFTER DELETE ON test_setups FOR EACH ROW
 EXECUTE FUNCTION test_delete_oqb_tree_node ();
 
 -- Trigger to delete nodes
 CREATE TRIGGER trigger_test_update_oqb_setup_id
-AFTER UPDATE OF setup_id
-ON test_setup_oqb_paths FOR EACH ROW
+AFTER
+UPDATE OF setup_id ON test_setup_oqb_paths FOR EACH ROW
 EXECUTE FUNCTION test_update_oqb_setup_id ();
 
 -- Debug function to print out the graph
-CREATE OR REPLACE FUNCTION test_print_oqb_as_dot(start_path ltree DEFAULT NULL)
-RETURNS text
-LANGUAGE sql AS $$
+CREATE OR REPLACE FUNCTION test_print_oqb_as_dot (start_path ltree DEFAULT NULL) RETURNS text LANGUAGE sql AS $$
 WITH RECURSIVE edges AS (
   -- starting points
   SELECT oqb_path

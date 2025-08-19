@@ -54,8 +54,7 @@
               <p>Priority Saves</p>
               {#each save.priority_save_percent as save_percent, index}
                 {@const save_fraction = save.priority_save_fraction[index] as Fraction}
-                {@const description =
-                  save.name?.split(', ')[index] ?? save.save!.split(',')[index]}
+                {@const description = save.name?.split(', ')[index] ?? save.save!.split(',')[index]}
                 <p class="pl-2">
                   {description}: {save_percent.toFixed(2)}% ({save_fraction.numerator}/{save_fraction.denominator})
                 </p>

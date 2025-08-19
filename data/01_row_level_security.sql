@@ -128,7 +128,7 @@ WITH
       SELECT
         public.has_edit_permission ()
     )
-);
+  );
 
 DROP POLICY IF EXISTS update_setups ON setups;
 

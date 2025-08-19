@@ -7,7 +7,7 @@
   import { m } from '$lib/paraglide/messages.js';
   import { toast } from 'svelte-sonner';
 
-  export let save: Database["public"]["CompositeTypes"]["setup_saves_data"];
+  export let save: Database['public']['CompositeTypes']['setup_saves_data'];
   export let isOpen = false;
 
   // TODO: handle priority percent

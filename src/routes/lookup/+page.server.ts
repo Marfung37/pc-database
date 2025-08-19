@@ -7,9 +7,7 @@ import type { Actions, PageServerLoad } from './$types';
 import type { Queue } from '$lib/types';
 import {
   locales // Get an array of all available locales
-} from '$lib/paraglide/runtime'; 
-
-
+} from '$lib/paraglide/runtime';
 
 export const load: PageServerLoad = async () => {};
 
@@ -41,7 +39,6 @@ export const actions: Actions = {
       });
     }
     if (language in locales) {
-
     }
 
     const pc = parseInt(pcStr) as number;

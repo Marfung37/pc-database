@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PageProps, SubmitFunction } from './$types';
+  import type { PageProps, SubmitFunction } from './$types';
   import { enhance, applyAction } from '$app/forms';
   import { m } from '$lib/paraglide/messages.js';
   import SetupInfo from '$lib/components/SetupInfo.svelte';
@@ -98,7 +98,10 @@
         {loading
           ? m.loading()
           : (form?.fractions
-              .map((f) => `${((parseInt(f.split('/')[0]) / parseInt(f.split('/')[1])) * 100).toFixed(2)}% (${f})`)
+              .map(
+                (f) =>
+                  `${((parseInt(f.split('/')[0]) / parseInt(f.split('/')[1])) * 100).toFixed(2)}% (${f})`
+              )
               .join(', ') ?? '')}
       {/if}
     </p>

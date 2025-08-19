@@ -19,11 +19,12 @@ export type HoldType = Enums<'hold_type'>;
 export type Status = Enums<'status'>;
 export type SetupType = Enums<'setup_type'>;
 
-export type SetupData = Setup & Statistic & {
-  variants: Database["public"]["CompositeTypes"]["setup_variants_data"][], 
-  saves: Database["public"]["CompositeTypes"]["setup_saves_data"][],
-  cover_description: string
-};
+export type SetupData = Setup &
+  Statistic & {
+    variants: Database['public']['CompositeTypes']['setup_variants_data'][];
+    saves: Database['public']['CompositeTypes']['setup_saves_data'][];
+    cover_description: string;
+  };
 
 export type Result<T> = Promise<{ data: T; error: null } | { data: null; error: Error }>;
 

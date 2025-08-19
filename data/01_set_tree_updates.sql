@@ -1,7 +1,5 @@
 -- Function to update path when links change
-CREATE OR REPLACE FUNCTION public.add_set_edge (parent_id int, child_id int) 
-RETURNS void
-SECURITY DEFINER -- Runs with owner's privileges
+CREATE OR REPLACE FUNCTION public.add_set_edge (parent_id int, child_id int) RETURNS void SECURITY DEFINER -- Runs with owner's privileges
 SET
   search_path = public,
   extensions AS $$
@@ -61,9 +59,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Function to update path when links delete
-CREATE OR REPLACE FUNCTION public.delete_set_edge (parent_id int, child_id int) 
-RETURNS void
-SECURITY DEFINER -- Runs with owner's privileges
+CREATE OR REPLACE FUNCTION public.delete_set_edge (parent_id int, child_id int) RETURNS void SECURITY DEFINER -- Runs with owner's privileges
 SET
   search_path = public,
   extensions AS $$
@@ -130,9 +126,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Function to update path when node delete
-CREATE OR REPLACE FUNCTION private.delete_set_node (node_id int) 
-RETURNS void
-SECURITY DEFINER -- Runs with owner's privileges
+CREATE OR REPLACE FUNCTION private.delete_set_node (node_id int) RETURNS void SECURITY DEFINER -- Runs with owner's privileges
 SET
   search_path = public,
   extensions AS $$
@@ -233,12 +227,11 @@ EXECUTE FUNCTION private.initialize_set_tree_paths ();
 
 -- Trigger to delete nodes
 CREATE TRIGGER trigger_delete_set_tree_node
-AFTER DELETE
-ON sets FOR EACH ROW
+AFTER DELETE ON sets FOR EACH ROW
 EXECUTE FUNCTION private.delete_set_tree_node ();
 
 -- Trigger to delete nodes
 CREATE TRIGGER trigger_update_set_id
-AFTER UPDATE OF set_id
-ON set_paths FOR EACH ROW
+AFTER
+UPDATE OF set_id ON set_paths FOR EACH ROW
 EXECUTE FUNCTION private.update_set_id ();

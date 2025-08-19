@@ -1,5 +1,5 @@
 CREATE TABLE "users" (
-  "user_id" uuid PRIMARY KEY DEFAULT (gen_random_uuid ()),
+  "user_id" uuid PRIMARY KEY DEFAULT (gen_random_uuid()),
   "auth_id" uuid UNIQUE REFERENCES auth.users ON UPDATE CASCADE ON DELETE SET NULL,
   "username" varchar(255) UNIQUE NOT NULL,
   "email" varchar(255) UNIQUE NOT NULL,

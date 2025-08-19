@@ -19,7 +19,7 @@ async function runUploads(batchSize: number = 1000) {
     if (setupErr) {
       throw setupErr;
     }
-    
+
     for (let setup of setups) {
       if (setup.setup_id in oldSetupIdSet) continue;
 
@@ -27,8 +27,10 @@ async function runUploads(batchSize: number = 1000) {
       let down = false;
       do {
         down = false;
-        let prefix = setup.setup_id.slice(0, -4)
-        prefix += ((parseInt(setup.setup_id[8], 16) & 0b1100) | hashFumen(setup.fumen)).toString(16);
+        let prefix = setup.setup_id.slice(0, -4);
+        prefix += ((parseInt(setup.setup_id[8], 16) & 0b1100) | hashFumen(setup.fumen)).toString(
+          16
+        );
 
         // determine the unique id
         let uniqueId = prefixMap.get(prefix);
@@ -41,13 +43,13 @@ async function runUploads(batchSize: number = 1000) {
 
         const setupid = prefix + uniqueId.toString(16);
 
-        if(setupid in setupIdSet) {
+        if (setupid in setupIdSet) {
           throw Error(`${setupid} already found`);
         } else {
           setupIdSet.add(setupid);
         }
 
-        setupStack.push({...setup, new_setup_id: setupid});
+        setupStack.push({ ...setup, new_setup_id: setupid });
 
         const { data, error } = await supabaseAdmin
           .from('setups')
@@ -69,16 +71,16 @@ async function runUploads(batchSize: number = 1000) {
         const setup = setupStack[i];
         const { error } = await supabaseAdmin
           .from('setups')
-          .update({'setup_id': setup.new_setup_id})
+          .update({ setup_id: setup.new_setup_id })
           .eq('setup_id', setup.setup_id);
-        
+
         if (error) {
           throw error;
         }
         console.log(`Updated ${setup.setup_id} to ${setup.new_setup_id}`);
         oldSetupIdSet.add(setup.setup_id);
       }
-      
+
       from++;
     }
 
@@ -89,7 +91,6 @@ async function runUploads(batchSize: number = 1000) {
     } else {
       done = true;
     }
-
   }
 
   // Update setup id and corresponding setup id for path file

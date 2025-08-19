@@ -224,7 +224,7 @@ export const actions: Actions = {
       )
       .eq('pc', pc)
       .eq('statistics.kicktable', 'srs180') // Apply kicktable filter once
-      .order('oqb_path', { ascending: true }) // Then by path for consistent tree building
+      .order('oqb_path', { ascending: true }); // Then by path for consistent tree building
 
     if (fetchError) {
       console.error('Failed to get all setups:', fetchError.message);

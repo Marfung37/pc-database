@@ -92,29 +92,27 @@ export function generateSetupIDPrefix(
 
 export function hashFumen(fumen: Fumen, bits: number = 2): number {
   const pages = decodeWrapper(fumen);
-  const field = pages[0].field
-    .str({ reduced: true, garbage: false, separator: '\n' })
-    .split('\n');
+  const field = pages[0].field.str({ reduced: true, garbage: false, separator: '\n' }).split('\n');
 
   // determine range of non fully filled columns in setup
   let leadingSize = PCSIZE;
   let trailingSize = PCSIZE;
   for (let line of field) {
-      const rowLeading = line.indexOf('_');
-      if (rowLeading === -1) continue;
+    const rowLeading = line.indexOf('_');
+    if (rowLeading === -1) continue;
 
-      const rowTrailing = line.lastIndexOf('_');
+    const rowTrailing = line.lastIndexOf('_');
 
-      // give size of leading and trailing sizes
-      if (rowLeading < leadingSize) leadingSize = rowLeading;
-      if (PCSIZE - rowTrailing - 1 < trailingSize) trailingSize = PCSIZE - rowTrailing - 1;
+    // give size of leading and trailing sizes
+    if (rowLeading < leadingSize) leadingSize = rowLeading;
+    if (PCSIZE - rowTrailing - 1 < trailingSize) trailingSize = PCSIZE - rowTrailing - 1;
   }
 
   let xor = 0;
   for (let line of field) {
     // only consider section that isn't full columns
     line = line.slice(leadingSize, PCSIZE - trailingSize);
-    
+
     // convert sequence of number of filled minos into a number
     let count = 0;
     let finishSection = false;
@@ -136,7 +134,7 @@ export function hashFumen(fumen: Fumen, bits: number = 2): number {
     }
 
     // fold the hash so far and xor in new value
-    xor = (xor << 3 | xor >> 4) & 0x7F;
+    xor = ((xor << 3) | (xor >> 4)) & 0x7f;
     xor ^= value;
   }
 

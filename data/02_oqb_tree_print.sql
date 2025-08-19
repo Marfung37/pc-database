@@ -1,6 +1,4 @@
-CREATE OR REPLACE FUNCTION public.print_oqb_as_dot(start_path ltree DEFAULT NULL)
-RETURNS text
-LANGUAGE sql AS $$
+CREATE OR REPLACE FUNCTION public.print_oqb_as_dot (start_path ltree DEFAULT NULL) RETURNS text LANGUAGE sql AS $$
 WITH RECURSIVE edges AS (
   -- starting points
   SELECT oqb_path

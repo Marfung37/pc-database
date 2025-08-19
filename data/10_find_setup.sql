@@ -22,7 +22,7 @@ CREATE OR REPLACE FUNCTION public.find_setup_leftover (
   p_leftover queue,
   kicktable kicktable DEFAULT 'srs180',
   hold_type hold_type DEFAULT 'any',
-  language  varchar(2) DEFAULT 'en'
+  language varchar(2) DEFAULT 'en'
 ) RETURNS TABLE (
   setup_id setupid,
   pc smallint,

@@ -13,11 +13,7 @@ CREATE TYPE "hold_type" AS ENUM('any', 'cyclic', 'none');
 
 CREATE TYPE "status" AS ENUM('processing', 'completed', 'failed');
 
-CREATE TYPE "setup_type" AS ENUM (
-  'regular',
-  'qb',
-  'oqb'
-);
+CREATE TYPE "setup_type" AS ENUM('regular', 'qb', 'oqb');
 
 CREATE TYPE unsafe_fraction AS ("numerator" integer, "denominator" integer);
 
@@ -115,10 +111,7 @@ CREATE TABLE "setup_variants" (
   FOREIGN KEY (setup_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE "sets" (
-  "set_id" SERIAL PRIMARY KEY,
-  "category" text
-);
+CREATE TABLE "sets" ("set_id" SERIAL PRIMARY KEY, "category" text);
 
 CREATE TABLE "setup_sets" (
   "setup_id" setupid NOT NULL,
@@ -137,15 +130,13 @@ CREATE TABLE "set_translations" (
 
 CREATE TABLE "set_paths" (
   "set_id" int NOT NULL,
-  "set_path" ltree CHECK (
-    set_path::text ~ '^\d+(\.\d+)*$'
-  ),
+  "set_path" ltree CHECK (set_path::text ~ '^\d+(\.\d+)*$'),
   CONSTRAINT set_path_unique UNIQUE (set_path) DEFERRABLE INITIALLY IMMEDIATE,
   FOREIGN KEY (set_id) REFERENCES sets (set_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE "statistics" (
-  "stat_id" uuid PRIMARY KEY DEFAULT (gen_random_uuid ()),
+  "stat_id" uuid PRIMARY KEY DEFAULT (gen_random_uuid()),
   "setup_id" setupid NOT NULL,
   "kicktable" kicktable NOT NULL,
   "hold_type" hold_type NOT NULL DEFAULT 'any',
@@ -164,7 +155,7 @@ CREATE TABLE "statistics" (
 );
 
 CREATE TABLE "saves" (
-  "save_id" uuid PRIMARY KEY DEFAULT (gen_random_uuid ()),
+  "save_id" uuid PRIMARY KEY DEFAULT (gen_random_uuid()),
   "save" text NOT NULL,
   "pc" smallint NOT NULL,
   "importance" smallint NOT NULL,
@@ -174,7 +165,7 @@ CREATE TABLE "saves" (
 );
 
 CREATE TABLE "save_data" (
-  "save_data_id" uuid PRIMARY KEY DEFAULT (gen_random_uuid ()),
+  "save_data_id" uuid PRIMARY KEY DEFAULT (gen_random_uuid()),
   "save_id" uuid NOT NULL,
   "stat_id" uuid NOT NULL,
   "save_percent" decimal(5, 2) CHECK (
@@ -350,13 +341,17 @@ END
 $$;
 
 -- prevent directly affecting generated columns
-REVOKE INSERT, UPDATE, DELETE ON setup_oqb_paths
+REVOKE INSERT,
+UPDATE,
+DELETE ON setup_oqb_paths
 FROM
   PUBLIC,
   authenticated,
   anon;
 
-REVOKE INSERT, UPDATE, DELETE ON set_paths
+REVOKE INSERT,
+UPDATE,
+DELETE ON set_paths
 FROM
   PUBLIC,
   authenticated,
