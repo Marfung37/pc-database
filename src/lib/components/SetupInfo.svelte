@@ -4,7 +4,8 @@
   import { m } from '$lib/paraglide/messages.js';
   import FumenRender from '$lib/components/FumenRender.svelte';
   import PathDownload from '$lib/components/PathDownload.svelte';
-  import { ChevronRight } from '@lucide/svelte';
+  import CopyButton from '$lib/components/CopyButton.svelte';
+  import ChevronRight from '@lucide/svelte/icons/chevron-right';
 
   export let setup: SetupData;
   export let submittedQueue;
@@ -29,7 +30,10 @@
         {#if setup.cover_description}
           <p>{m.cover_description()}: {setup.cover_description}</p>
         {/if}
-        <p>{m.cover_pattern()}: {setup.cover_pattern}</p>
+        <div class="flex gap-1">
+          <p>{m.cover_pattern()}: </p>
+          <CopyButton textToCopy={setup.cover_pattern} />
+        </div>
         <p>{m.exact_cover_pattern()}: {setup.cover_data === null ? m.yes() : m.no()}</p>
         <p>{m.lookup_credit()}: {setup.credit ? setup.credit : m.lookup_unknown()}</p>
         {#if setup.solve_pattern}
