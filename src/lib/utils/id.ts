@@ -15,7 +15,6 @@ export function generateSetupIDPrefix(
   oqb: boolean,
   leftover: Queue,
   build: Queue,
-  coverPattern: string,
   fumen: Fumen
 ): SetupID {
   // assumes leftover and build are already sorted
@@ -79,13 +78,8 @@ export function generateSetupIDPrefix(
   }
 
   // adds fumen hash taking 4 bits
-  currentBitOffset += 4n;
-  tempPackedNum |= BigInt(hashFumen(fumen)) << (BigInt(byteLength) * 8n - currentBitOffset);
-
-  // adds cover hash taking 2 bits
   currentBitOffset += 2n;
-  tempPackedNum |=
-    BigInt(hashCoverPattern(coverPattern)) << (BigInt(byteLength) * 8n - currentBitOffset);
+  tempPackedNum |= BigInt(hashFumen(fumen)) << (BigInt(byteLength) * 8n - currentBitOffset);
 
   return tempPackedNum.toString(16) as SetupID;
 }
@@ -142,16 +136,5 @@ export function hashFumen(fumen: Fumen, bits: number = 2): number {
 }
 
 export function getPrefix(setupid: SetupID): string {
-  return setupid.slice(0, -2);
-}
-
-export function getNoHashPrefix(setupid: SetupID): string {
-  return setupid.slice(0, -4);
-}
-
-export function getNoHashPrefixRegex(setupid: SetupID): string {
-  const lastPart = parseInt(setupid[setupid.length - 4], 16) & 0b1100;
-  return (
-    '^' + getNoHashPrefix(setupid) + `[${lastPart.toString(16)}-${(lastPart + 3).toString(16)}]`
-  );
+  return setupid.slice(0, -3);
 }

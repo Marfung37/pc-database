@@ -1,19 +1,19 @@
 import fsPromises from 'fs/promises';
 import { supabaseAdmin } from './lib/supabaseAdmin';
 import { extendPieces } from './lib/pieces';
-import { fumenGetMinos, isCongruentFumen, fumenMirror, fumenSplit, isPC } from './lib/fumenUtils';
+import { fumenGetMinos, isCongruentFumen, fumenMirror, fumenSplit } from './lib/fumenUtils';
 import { mirrorQueue, sortQueue } from './lib/queueUtils';
 import { piecesMirror } from './lib/piecesUtils';
 import glueFumenModule from './lib/GluingFumens/src/lib/glueFumen';
-import { generateSetupIDPrefix, getNoHashPrefix, getNoHashPrefixRegex } from './lib/id';
+import { generateSetupIDPrefix, getPrefix } from './lib/id';
 import { PIECEVAL } from './lib/constants';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { parse } from 'csv-parse/sync';
 import type {
   Setup,
+  SetupTranslation,
   Statistic,
-  SetupOQBLink,
   SetupVariant,
   SetupID,
   Kicktable,
@@ -41,15 +41,20 @@ interface InputSetup {
   id: number;
   pc: number;
   leftover: Queue;
+  type: string;
   cover_pattern: string;
   cover_description: string | null;
   fumen: Fumen;
   solve_pattern: string | null;
-  children: number | null;
-  parent_id?: number | null;
+  parent_id: string[] | null;
   mirror?: number | null;
   credit: string | null;
   variants: Fumen | null;
+}
+
+interface SetupOQBLink {
+  child_id: string,
+  parent_id: string
 }
 
 const is180: Record<string, boolean> = {
@@ -154,11 +159,12 @@ function mirrorInputSetup(row: InputSetup, id: number): InputSetup | null {
     id,
     pc: row.pc,
     leftover,
+    type: row.type,
     cover_pattern: piecesMirror(row.cover_pattern),
     cover_description: row.cover_description !== null ? piecesMirror(row.cover_description) : null,
     fumen,
     solve_pattern: row.solve_pattern !== null ? piecesMirror(row.solve_pattern) : null,
-    children: row.children,
+    parent_id: null,
     mirror: row.id,
     credit: row.credit,
     variants: row.variants !== null ? fumenMirror(row.variants) : null
@@ -176,9 +182,7 @@ async function checkDuplicate(
   if (otherSetups.length !== otherStats.length)
     throw new Error('Differing length of setups and stats passed to checkDuplicate');
 
-  const prefix = getNoHashPrefix(setup.setup_id);
-  const regexStr = getNoHashPrefixRegex(setup.setup_id);
-  const regex = new RegExp(regexStr);
+  const prefix = getPrefix(setup.setup_id);
 
   const { data, error: setupErr } = await supabaseAdmin
     .from('setups')
@@ -186,13 +190,13 @@ async function checkDuplicate(
     .like('setup_id', prefix + '____')
     .eq('statistics.kicktable', kicktable)
     .eq('statistics.hold_type', holdtype)
-    .filter('setup_id', 'match', regexStr);
+    .like('setup_id', prefix + '%');
 
   if (setupErr) throw setupErr;
 
   for (let i = 0; i < otherSetups.length; i++) {
     // check if same prefix
-    if (otherSetups[i].setup_id.match(regex)) {
+    if (otherSetups[i].setup_id.startsWith(prefix)) {
       data.push({
         ...otherSetups[i],
         statistics: [otherStats[i]]
@@ -243,15 +247,14 @@ async function checkDuplicate(
 async function generateSetupID(
   row: Omit<InputSetup, 'id'>,
   prefixCount: Map<string, number>,
-  oqb: boolean,
   build: Queue
 ): Promise<SetupID> {
+
   const prefix = generateSetupIDPrefix(
     row.pc,
-    oqb,
+    row.type === 'oqb',
     row.leftover,
     build,
-    row.cover_pattern,
     row.fumen
   );
 
@@ -261,17 +264,16 @@ async function generateSetupID(
   const { data: setupids, error: setupidErr } = await supabaseAdmin
     .from('setups')
     .select('setup_id')
-    .like('setup_id', prefix + '__');
+    .like('setup_id', prefix + '___');
 
   if (setupidErr) throw setupidErr;
 
-  return (prefix + (0xff - setupids.length - currentCount).toString(16)) as SetupID;
+  return (prefix + (0xfff - setupids.length - currentCount).toString(16)) as SetupID;
 }
 
 async function generateSetupEntry(
   row: InputSetup,
   prefixCount: Map<string, number>,
-  oqb: boolean,
   mirror: SetupID | null,
   see: number,
   hold: number
@@ -286,16 +288,15 @@ async function generateSetupEntry(
   const build = sortQueue(buildTmp as Queue);
 
   // compute the setupid
-  let setup_id = await generateSetupID(row, prefixCount, oqb, build);
+  let setup_id = await generateSetupID(row, prefixCount, build);
 
   return {
     setup_id,
     pc: row.pc,
     leftover: row.leftover,
     build,
+    type: row.type,
     cover_pattern: row.cover_pattern,
-    cover_description: row.cover_description,
-    oqb_path: oqb ? setup_id : null,
     fumen: row.fumen,
     solve_pattern: row.solve_pattern,
     mirror,
@@ -476,9 +477,6 @@ async function parseSetupInput(
         if (value === '') throw new Error(`Parse error: 'fumen' column is empty in row ${lines}`);
         return value as Fumen;
       }
-      if (column === 'children') {
-        return value ? parseInt(value) : null;
-      }
       if (column === 'mirror') {
         if (value === 'null') return null;
         return value ? parseInt(value) : undefined;
@@ -487,110 +485,133 @@ async function parseSetupInput(
         return value ? (value as Fumen) : null;
       }
       if (column === 'parent_id') {
-        throw new Error(`Parse error: 'parent_id' column does not exist`);
+        return value ? value.split(',').map((v) => parseInt(v)) : null;
       }
       return value ? value : null;
     }
   });
 
-  const idMap: (SetupID | null)[] = Array.from({ length: csvData.length }, () => null);
-
-  let childrenCountDown: number[] = [];
-  const childrenRowStack: InputSetup[] = [];
+  const mirrorChecked: boolean[] = Array.from({ length: csvData.length }, () => false);
 
   // add mirror setups and setting parent ids
   let originalLength = csvData.length;
-  for (let i = 0; i < originalLength; i++) {
-    const row = csvData[i];
-    const parent = row.children !== null && row.children > 0;
-    const child = childrenCountDown.length > 0;
+  let foundSomething = false;
+  while (mirrorChecked.some((b) => !b)) {
+    foundSomething = false;
+    for (let i = 0; i < originalLength; i++) {
+      if (mirrorChecked[i]) continue;
 
-    if (child) {
-      row.parent_id = childrenRowStack[childrenRowStack.length - 1].id;
-    } else {
-      row.parent_id = null;
-    }
+      const row = csvData[i];
 
-    if (row.mirror !== null) {
+      let safeToCheck = row.parent_id === null || row.parent_id.every((id: string) => id in mirrorChecked);
+      if (!safeToCheck)
+        continue;
+      if (row.mirrorChecked !== undefined) {
+        mirrorChecked[i] = true;
+        continue;
+      }
+
       const mirrorRow = mirrorInputSetup(row, csvData.length);
       if (mirrorRow !== null) {
-        if (child) {
-          if (childrenRowStack[childrenRowStack.length - 1].mirror === null)
-            mirrorRow.parent_id = childrenRowStack[childrenRowStack.length - 1].id;
-          else mirrorRow.parent_id = childrenRowStack[childrenRowStack.length - 1].mirror;
-        } else {
-          mirrorRow.parent_id = null;
+        if (row.parent_id !== null) {
+          mirrorRow.parent_id = row.parent_id.map((id: number) => csvData[id].mirror).filter((id: number | null) => id !== null);
         }
         csvData.push(mirrorRow);
         row.mirror = mirrorRow.id;
       } else {
         row.mirror = null;
       }
+      mirrorChecked[i] = true;
+      foundSomething = true;
     }
 
-    // decrement the count and remove if no more children
-    if (child && --childrenCountDown[childrenCountDown.length - 1] == 0) {
-      childrenCountDown.pop();
-      childrenRowStack.pop();
-    }
+    if (!foundSomething) {
+      const falseIds: number[] = [];
 
-    // add the count of children of this current setup
-    if (parent) {
-      childrenCountDown.push(row.children);
-      childrenRowStack.push(row);
+      for (const [index, value] of mirrorChecked.entries()) {
+        if (!value) falseIds.push(index);
+      }
+
+      throw Error (`Setups ${falseIds} were unable to determine if mirror is needed due to possibly circular dependency in parent_id`);
     }
   }
 
   const setups: Setup[] = [];
+  const setupTranslations: SetupTranslation[] = [];
   const setupVariants: SetupVariant[] = [];
   const setupLinks: SetupOQBLink[] = [];
   const stats: Statistic[] = [];
 
   const setupsDuplicate: Set<SetupID> = new Set();
   const prefixCount: Map<string, number> = new Map();
+  const idMap: (SetupID | null)[] = Array.from({ length: csvData.length }, () => null);
 
-  for (let row of csvData) {
-    const parent = row.children !== null && row.children > 0;
-    const child = row.parent_id !== null;
-    const oqb = parent || child;
-    const setup = await generateSetupEntry(row, prefixCount, oqb, null, see, hold);
+  while (idMap.some((id) => id === null)) {
+    foundSomething = false;
+    for (let row of csvData) {
+      if (idMap[row.id] !== null) continue;
 
-    let variants: SetupVariant[] = [];
-    if (row.variants !== null) {
-      variants = generateVariantEntry(setup, row.variants);
+      let safeToCheck = row.parent_id === null || row.parent_id.every((id: number) => idMap[id] !== null);
+      if (!safeToCheck) continue;
+
+      const setup = await generateSetupEntry(row, prefixCount, null, see, hold);
+
+      let variants: SetupVariant[] = [];
+      if (row.variants !== null) {
+        variants = generateVariantEntry(setup, row.variants);
+      }
+
+      // compute the stats
+      const stat = await generateStatEntry(setup, variants, kicktable, holdtype);
+
+      // DEBUG
+      if (stat.cover_data !== null) console.log(`Row ${row.id} does not have full coverage`);
+
+      const duplicateSetupid = await checkDuplicate(setup, stat, setups, stats, kicktable, holdtype);
+      if (duplicateSetupid !== null) {
+        console.log(
+          `Setup ${row.id} is a duplicate of ${duplicateSetupid} with possibly different cover pattern`
+        );
+        setup.setup_id = duplicateSetupid; // kept in case child isn't duplicate so link is made with existing setup
+        setupsDuplicate.add(setup.setup_id);
+      }
+
+      if (row.parent_id !== null && duplicateSetupid === null) {
+        for (const id of row.parent_id) {
+          if (idMap[id] === null) 
+            throw Error(`Somehow parent id ${id} isn\'t mapped for setup ${row.id}`);
+
+          const link = {
+            child_id: setup.setup_id,
+            parent_id: idMap[id]
+          };
+
+          setupLinks.push(link);
+        }
+      }
+
+      idMap[row.id] = setup.setup_id;
+      setups.push(setup);
+      setupTranslations.push({setup_id: setup.setup_id, language: 'en', cover_description: row.cover_description});
+      stats.push(stat);
+      setupVariants.push(...variants);
+      foundSomething = true;
     }
 
-    // compute the stats
-    const stat = await generateStatEntry(setup, variants, kicktable, holdtype);
+    if (!foundSomething) {
+      const falseIds: number[] = [];
 
-    // DEBUG
-    if (stat.cover_data !== null) console.log(`Row ${row.id} does not have full coverage`);
+      for (const [index, value] of idMap.entries()) {
+        if (value === null) falseIds.push(index);
+      }
 
-    const duplicateSetupid = await checkDuplicate(setup, stat, setups, stats, kicktable, holdtype);
-    if (duplicateSetupid !== null) {
-      console.log(
-        `Setup ${row.id} is a duplicate of ${duplicateSetupid} with possibly different cover pattern`
-      );
-      setup.setup_id = duplicateSetupid; // kept in case child isn't duplicate so link is made with existing setup
-      setupsDuplicate.add(setup.setup_id);
-    }
-    idMap[row.id] = setup.setup_id;
-    setups.push(setup);
-    stats.push(stat);
-    setupVariants.push(...variants);
-
-    if (child && duplicateSetupid === null) {
-      const link = {
-        child_id: setup.setup_id,
-        parent_id: idMap[row.parent_id]
-      };
-
-      setupLinks.push(link);
+      throw Error (`Setups ${falseIds} didn't have their ids`);
     }
   }
 
   for (let i = 0; i < setups.length; i++) {
     if (csvData[i].mirror !== null && idMap[csvData[i].mirror] !== null) {
+      console.log(setups[i].mirror, csvData[i].mirror, idMap[csvData[i].mirror]);
       setups[i].mirror = idMap[csvData[i].mirror];
     }
   }
@@ -598,4 +619,4 @@ async function parseSetupInput(
   console.log(setups, setupLinks, stats, setupVariants);
 }
 
-await parseSetupInput('utils/test1.csv');
+await parseSetupInput('utils/test.csv');
