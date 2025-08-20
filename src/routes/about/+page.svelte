@@ -5,7 +5,8 @@
   import { ArrowRight, Square, SquareX } from '@lucide/svelte';
 
   const iconProps = {
-    class: 'inline-block'
+    class: 'inline pb-[3px]',
+    size: 16
   }
 </script>
 
@@ -21,9 +22,10 @@
 <!--   </div> -->
 <!-- </div> -->
 
-<div class="container mx-auto p-2 pb-32 text-left">
+<div class="container mx-auto p-2 pb-32 text-left flex flex-col gap-4">
   <h1 class="py-2 text-4xl"> {m.nav_about() } </h1>
   <h2 class="py-2 text-2xl">{ m.about_pc_heading() }</h2>
+  <p>{ m.about_pc() }</p>
   <div class="flex flex-col items-center">
     <div class="w-1/2 flex justify-between items-center">
       <div class="w-1/3">
@@ -37,8 +39,9 @@
       </div>
     </div>
   </div>
+  <p>{ m.about_pc_num() }</p>
   <div class="flex flex-col items-center">
-    <table class="table w-1/2 p-4 bg-white border-radius-32">
+    <table class="table w-1/2 p-4 bg-white border-radius-32 shadow">
       <caption class="caption-bottom">
         <ComponentText 
           message={m.about_pc_table_caption()}
@@ -51,10 +54,10 @@
       </caption>
       <thead>
         <tr>
-          <th>No.</th>
-          <th>Leftover</th>
-          <th>Next Bag</th>
-          <th>Subsequent Bag</th>
+          <th>{m.about_pc_table_heading_number()}</th>
+          <th>{m.about_pc_table_heading_leftover()}</th>
+          <th>{m.about_pc_table_heading_next_bag()}</th>
+          <th>{m.about_pc_table_heading_subsequent_bag()}</th>
         </tr>
       </thead>
       <tbody>
@@ -169,7 +172,6 @@
     </table>
   </div>
 
-  <p>{ m.about_pc() }</p>
   <h2 class="py-2 text-2xl">{ m.about_website_heading() }</h2>
   <p>{ m.about_website_section_one() }<a href="/lookup" class="text-blue-500 hover:text-blue-900" >{ m.about_website_lookup_link() }</a>{ m.about_website_section_two() }</p>
 </div>
