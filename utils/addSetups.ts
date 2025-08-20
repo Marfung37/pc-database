@@ -514,6 +514,7 @@ async function parseSetupInput(
       const mirrorRow = mirrorInputSetup(row, csvData.length);
       if (mirrorRow !== null) {
         if (row.parent_id !== null) {
+          // TODO: check if parent_id is type oqb, if not error
           mirrorRow.parent_id = row.parent_id.map((id: number) => csvData[id].mirror).filter((id: number | null) => id !== null);
         }
         csvData.push(mirrorRow);

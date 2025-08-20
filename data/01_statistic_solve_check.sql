@@ -5,7 +5,7 @@ SET
 BEGIN
   IF (NEW.solve_percent IS NULL OR NEW.solve_fraction IS NULL) AND EXISTS (
       SELECT 1 FROM setups s
-      WHERE s.setup_id = NEW.setup_id AND s.oqb_path IS NULL
+      WHERE s.setup_id = NEW.setup_id AND s.type <> 'oqb'
   ) THEN
       RAISE EXCEPTION 'Statistic must set solve percent and fraction if not oqb setup';
   END IF;

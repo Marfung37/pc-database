@@ -5,7 +5,7 @@ SET
 BEGIN
   IF NEW.solve_pattern IS NULL AND EXISTS (
       SELECT 1 FROM setups s
-      WHERE s.setup_id = NEW.setup_id AND s.oqb_path IS NULL
+      WHERE s.setup_id = NEW.setup_id AND s.type <> 'oqb'
   ) THEN
       RAISE EXCEPTION 'Variant must set solve_pattern if not oqb setup';
   END IF;
