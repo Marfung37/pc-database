@@ -44,12 +44,12 @@
         class="flex h-60 w-full flex-col flex-wrap gap-x-2 p-4 xl:w-auto xl:p-0 xl:py-12 xl:pl-8"
       >
         {#each setup.saves as save (save.save)}
-          {#if save.save_fraction && save.save_percent}
+          {#if save.save_fraction !== null && save.save_percent !== null}
             {@const fraction = save.save_fraction as Fraction}
             <p>
               {save.name ?? save.save}: {save.save_percent.toFixed(2)}% ({fraction.numerator}/{fraction.denominator})
             </p>
-          {:else if save.priority_save_percent && save.priority_save_fraction}
+          {:else if save.priority_save_percent !== null && save.priority_save_fraction !== null}
             <div>
               <p>Priority Saves</p>
               {#each save.priority_save_percent as save_percent, index}
