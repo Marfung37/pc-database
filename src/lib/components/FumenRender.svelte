@@ -1,6 +1,6 @@
 <script lang="ts">
   import { browser } from '$app/environment';
-  import { onMount, onDestroy } from 'svelte';
+  import { onDestroy } from 'svelte';
   import { Clipboard, ClipboardCheck } from '@lucide/svelte';
   import { m } from '$lib/paraglide/messages.js';
 
@@ -10,6 +10,7 @@
   export let mirror: boolean = null;
   export let loop: boolean = null;
   export let delay: number = null;
+  export let clipboard: boolean = true;
 
   let loading: boolean = false;
   let error: string | null = null;
@@ -94,6 +95,7 @@
   <div class="group relative h-auto w-full rounded-md border border-gray-200 bg-gray-200 pt-4">
     <img class="h-auto w-full" src={imageSrc} alt={fumen} />
 
+    {#if clipboard}
     <div
       class={'transparent absolute top-[10px] right-[10px] z-20 rounded-md border-gray-500 opacity-0 transition-opacity duration-300 group-hover:opacity-100 ' +
         (showFeedback ? 'bg-gray-100' : '')}
@@ -119,6 +121,7 @@
         </button>
       </div>
     </div>
+    {/if}
   </div>
 {:else}
   <p></p>
