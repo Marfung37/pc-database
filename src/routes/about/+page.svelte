@@ -2,7 +2,7 @@
   import { m } from '$lib/paraglide/messages.js';
   import FumenRender from '$lib/components/FumenRender.svelte';
   import ComponentText from '$lib/components/ComponentText.svelte';
-  import { ArrowRight, Square, SquareX } from '@lucide/svelte';
+  import { ArrowDown, ArrowRight, Square, SquareX } from '@lucide/svelte';
 
   const iconProps = {
     class: 'inline pb-[3px]',
@@ -27,13 +27,14 @@
   <h2 class="py-2 text-2xl">{ m.about_pc_heading() }</h2>
   <p>{ m.about_pc() }</p>
   <div class="flex flex-col items-center">
-    <div class="w-1/2 flex justify-between items-center">
-      <div class="w-1/3">
+    <div class="w-2/3 flex flex-col justify-center gap-3 items-center lg:flex-row lg:justify-between lg:items-center">
+      <div class="w-full lg:w-1/2">
         <p>{ m.about_pc_setup() }</p>
         <FumenRender fumen="v115@HhwwIexwHewwSeNJJ9gBtIeBtkeAgHThR4GeR4QeAg?HahglGeilJeAgHOhRpHeRpUeAgHEhi0Ieg0deAgHDhwhIew?hIewhIewhMeAgH" clipboard={false}/>
       </div>
-      <ArrowRight size={36}/>
-      <div class="w-1/3">
+      <ArrowRight class="hidden lg:block" size={36}/>
+      <ArrowDown class="block lg:hidden" size={36}/>
+      <div class="w-full lg:w-1/2">
         <p>{ m.about_pc_solve() }</p>
         <FumenRender fumen="v115@9gB8CeglG8ilH8BeG8CeD8JeAgHLhQ4IeR4IeQ4NeA?gHThBtIeBtOeAgH" clipboard={false}/>
       </div>
