@@ -191,9 +191,11 @@ export function fumenMirror(fumen: Fumen): Fumen {
   const pages = decodeWrapper(fumen);
 
   for (let page of pages) {
-    const fieldStr = page.field.str({ reduced: true, separator: '\n' }).split('\n');
+    const fieldStr = page.field.str({ reduced: true, separator: '\n' });
+    if (fieldStr === '') continue;
+
     let newFieldStr: string[] = [];
-    for (let line of fieldStr) {
+    for (let line of fieldStr.split('\n')) {
       const reversedLine = line.split('').reverse().join('');
       let mirrorLine = '';
       for (let mino of reversedLine) {

@@ -1,3 +1,6 @@
+// TODO: check if all pages of fumen has same pieces
+// TODO: handle duplicate in form such as v115@Vhg0AeBtBezhi0BtKeAgHRhg0AeBtgHAeBPBeywQpg?WgHQLxSwhJeAgH
+
 import fsPromises from 'fs/promises';
 import { supabaseAdmin } from './lib/supabaseAdmin';
 import { extendPieces } from './lib/pieces';
@@ -356,7 +359,7 @@ async function generateStatEntry(
   const patternPath = path.join(outputPath, patternFilename);
   const cmdBase = (cmd: string) =>
     `java -jar ${sfinderPath} ${cmd} -pp ${patternPath} -K ${kickFilename} -d ${drop}`;
-
+  
   // run cover
   await fsPromises.writeFile(patternPath, extendPieces(setup.cover_pattern).join('\n'));
 
@@ -612,7 +615,6 @@ async function parseSetupInput(
 
   for (let i = 0; i < setups.length; i++) {
     if (csvData[i].mirror !== null && idMap[csvData[i].mirror] !== null) {
-      console.log(setups[i].mirror, csvData[i].mirror, idMap[csvData[i].mirror]);
       setups[i].mirror = idMap[csvData[i].mirror];
     }
   }
@@ -620,4 +622,4 @@ async function parseSetupInput(
   console.log(setups, setupLinks, stats, setupVariants);
 }
 
-await parseSetupInput('utils/test.csv');
+await parseSetupInput('utils/test-TILS.csv');

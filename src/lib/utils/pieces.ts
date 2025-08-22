@@ -37,6 +37,21 @@ function sortQueues(queues: Iterable<string>): string[] {
   return [...queues].sort((a, b) => queueSetValues(a) - queueSetValues(b));
 }
 
+/**
+ * Calculates the set difference between two Sets.
+ * It returns a new array containing all elements from the first Set
+ * that are not present in the second Set.
+ *
+ * @param set1 The first Set.
+ * @param set2 The second Set.
+ * @returns A new array with the elements that are in set1 but not in set2.
+ */
+function setDifference<T>(set1: Set<T>, set2: Set<T>): T[] {
+  // Use a simple filter on the first Set to find elements not present in the second.
+  // We first convert the Set to an array to use the filter method.
+  return [...set1].filter((item) => !set2.has(item));
+}
+
 // Get the pieces from the normal sfinder format
 function parseInput(inputPattern: string, bsortQueues: boolean = true): Iterable<string> {
   /**
@@ -48,7 +63,7 @@ function parseInput(inputPattern: string, bsortQueues: boolean = true): Iterable
    */
 
   // Two sections with prefix of pieces and suffix of permutate
-  const prefixPattern = /([*TILJSZO]|\[\^?[TILJSZO]+\]|<.*>)/;
+  const prefixPattern = /([*TILJSZO]|\[\^?[TILJSZO]*(?:\[[TILJSZO]+\])*[TILJSZO]*\]|<.*>)/;
   const suffixPattern = /(p[1-7]|!)?/;
 
   // Regex find all the parts
@@ -85,32 +100,53 @@ function parseInput(inputPattern: string, bsortQueues: boolean = true): Iterable
   for (const [piecesFormat, permutateFormat] of patternParts) {
     // Generate the actual pieces
 
-    let actualPieces: string;
+    let actualPieces: string[];
 
     // Just a wildcard or a piece
     if (piecesFormat.length === 1) {
       if (piecesFormat === '*') {
-        actualPieces = BAG;
+        actualPieces = [BAG];
       } else {
-        actualPieces = piecesFormat; // a piece
+        actualPieces = [piecesFormat]; // a piece
       }
     }
     // Is a set of pieces
-    else if (piecesFormat.startsWith('[^') && piecesFormat.endsWith(']')) {
-      const pieces = piecesFormat.slice(2, -1);
-      actualPieces = [...BAG].filter((p) => !pieces.includes(p)).join('');
+    else if (piecesFormat.startsWith('[') && piecesFormat.endsWith(']')) {
+      let piecesSet: string;
+      if (piecesFormat[1] === '^')
+        piecesSet = piecesFormat.slice(2, -1);
+      else
+        piecesSet = piecesFormat.slice(1, -1);
 
-      if (actualPieces === '') {
+
+      if (piecesSet === '') {
         throw new Error(`Empty actual pieces from ${piecesFormat}`);
       }
-    } else if (piecesFormat.startsWith('[') && piecesFormat.endsWith(']')) {
-      actualPieces = piecesFormat.slice(1, -1);
-      // }
-      // Is a file
-      // else if (piecesFormat.startsWith('<') && piecesFormat.endsWith('>')) {
-      //   const filename = piecesFormat.slice(1, -1);
-      //   // In browser environment, file reading would need to be handled differently
-      //   throw new Error('File reading not implemented in browser environment');
+
+      actualPieces = [];
+      const matches = Array.from(piecesSet.matchAll(/(\[[TILJSZO]+\])/g));
+      if (matches.length != 0) {
+        let subpieces = [piecesSet.split(/\[[TILJSZO]+\]/).join('')];
+        for (const nestedSet of matches) {
+          let tmpSubpieces: string[] = [];
+          for (const piece of nestedSet[0].slice(1, -1)) {
+            for (const otherPieces of subpieces) {
+              tmpSubpieces.push(otherPieces + piece);
+            }
+          }
+          subpieces = tmpSubpieces;
+        }
+        actualPieces = subpieces;
+      } else {
+        actualPieces = [piecesSet]
+      }
+
+      if (piecesFormat[1] === '^') {
+        for (let i in actualPieces) {
+          actualPieces[i] = setDifference(new Set(BAG), new Set(actualPieces[i])).join('');
+        }
+      }
+
     } else {
       // Invalid pieces format
       throw new Error(`The pieces ${piecesFormat} could not be parsed!`);
@@ -122,8 +158,9 @@ function parseInput(inputPattern: string, bsortQueues: boolean = true): Iterable
     if (permutateFormat !== '') {
       // ! ending meaning permutation of the pieces
       if (permutateFormat === '!') {
-        const perms = permutations([...actualPieces]);
-        queues.push(new Set(perms.map((p) => p.join(''))) as Set<string>);
+        const perms = actualPieces.map((pieces) => permutations([...pieces]));
+        const flattenPerms = perms.reduce((accumulator, value) => accumulator.concat(value), []);
+        queues.push(new Set(flattenPerms.map((p) => p.join(''))) as Set<string>);
       }
       // Some permute n ending
       else {
@@ -131,9 +168,10 @@ function parseInput(inputPattern: string, bsortQueues: boolean = true): Iterable
         const permutateNum = parseInt(permutateFormat.slice(1), 10);
 
         // As long as the number is at most the length of the pieces
-        if (permutateNum <= actualPieces.length) {
-          const perms = permutations([...actualPieces], permutateNum);
-          queues.push(new Set(perms.map((p) => p.join(''))) as Set<string>);
+        if (permutateNum <= actualPieces[0].length) {
+          const perms = actualPieces.map((pieces) => permutations([...pieces], permutateNum));
+          const flattenPerms = perms.reduce((accumulator, value) => accumulator.concat(value), []);
+          queues.push(new Set(flattenPerms.map((p) => p.join(''))) as Set<string>);
         } else {
           // Error
           throw new Error(
@@ -144,7 +182,7 @@ function parseInput(inputPattern: string, bsortQueues: boolean = true): Iterable
       }
     } else {
       // 1 piece queues
-      queues.push(new Set(actualPieces));
+      queues.push(...[new Set(actualPieces.join(''))]);
     }
   }
 
