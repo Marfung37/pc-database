@@ -12,7 +12,7 @@
   const LOCALE_DISPLAY_NAMES: Record<string, string> = {
     en: 'English',
     jp: '日本語',
-    kr: '한국인'
+    kr: '한국어'
     // Add all your configured locales here
   };
 
