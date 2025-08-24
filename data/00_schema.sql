@@ -89,6 +89,7 @@ CREATE TABLE "setup_translations" (
   "setup_id" setupid NOT NULL,
   "language_code" varchar(2) NOT NULL DEFAULT 'en',
   "cover_description" text NOT NULL,
+  PRIMARY KEY ("setup_id", "language_code"),
   FOREIGN KEY (setup_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -125,6 +126,7 @@ CREATE TABLE "set_translations" (
   "language_code" varchar(2) NOT NULL DEFAULT 'en',
   "name" text NOT NULL,
   "description" text NOT NULL,
+  PRIMARY KEY ("set_id", "language_code"),
   FOREIGN KEY (set_id) REFERENCES sets (set_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -220,6 +222,7 @@ CREATE TABLE "save_translations" (
   "save_id" uuid NOT NULL,
   "language_code" varchar(2) NOT NULL DEFAULT 'en',
   "name" text NOT NULL,
+  PRIMARY KEY ("save_id", "language_code"),
   FOREIGN KEY (save_id) REFERENCES saves (save_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 

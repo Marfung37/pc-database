@@ -1,4 +1,5 @@
 import { fail } from '@sveltejs/kit';
+import { m } from '$lib/paraglide/messages.js';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
@@ -206,7 +207,7 @@ export const actions: Actions = {
     if (!pcStr.match(/^[1-9]$/)) {
       return fail(400, {
         success: false,
-        message: `Invalid pc number.`
+        message: m.database_error_invalid_pc()
       });
     }
     const pc = parseInt(pcStr);
@@ -235,7 +236,7 @@ export const actions: Actions = {
       console.error('Failed to get all setups:', fetchError.message);
       return fail(500, {
         success: false,
-        message: `Failed to load setups: ${fetchError.message}`
+        message: `${m.database_error_load_setups()}${fetchError.message}`
       });
     }
 

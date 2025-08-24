@@ -2,7 +2,6 @@
   import type { PageProps, SubmitFunction } from './$types';
   import { enhance, applyAction } from '$app/forms';
   import { m } from '$lib/paraglide/messages.js';
-  import { getLocale } from '$lib/paraglide/runtime';
   import SetupInfo from '$lib/components/SetupInfo.svelte';
 
   const { form }: PageProps = $props();
@@ -32,7 +31,6 @@
 
   const handleSubmit: SubmitFunction = ({ formData }) => {
     loading = true;
-    formData.set('language', getLocale());
     submittedQueue = formData.get('queue') as string;
     return async ({ result }) => {
       loading = false;

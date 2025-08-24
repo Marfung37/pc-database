@@ -8,6 +8,8 @@ import { WANTED_SAVE_DELIMITER } from '$lib/saves/constants';
 import { decompressPath, generateBucketPathFilename } from '$lib/utils/compression';
 import { PATH_UPLOAD_BUCKET } from '$env/static/private';
 import { PUBLIC_DEFAULT_KICKTABLE, PUBLIC_DEFAULT_HOLDTYPE } from '$env/static/public';
+import { getLocale } from '$lib/paraglide/runtime';
+import { m } from '$lib/paraglide/messages.js';
 import type { Actions, PageServerLoad } from './$types';
 import type { Queue, SetupID, Kicktable, HoldType } from '$lib/types';
 
@@ -20,28 +22,25 @@ export const load: PageServerLoad = async ({ params }) => {
   } else {
     oqb = true;
     [setupid, subbuild] = params.setup.split('+');
-    if (setupid === undefined || subbuild === undefined) {
-      error(404, { message: 'No <setup-id>+<subbuild> found' });
-    }
   }
 
   if (!isSetupID(setupid)) {
-    error(404, { message: 'No setup id found' });
+    error(404, { message: m.lookup_error_invalid_setup_id() });
   }
 
   const { data: setup, error: setupErr } = await getSetup(setupid as SetupID);
 
   if (setupErr) {
     console.error('Failed to get setup:', setupErr.message);
-    error(500, { message: 'Failed to get setup' });
+    error(500, { message: m.lookup_error_find_setup() });
   }
 
   if (oqb) {
     // looking up from a non oqb setup?
     if (setup.type !== 'oqb') {
-      error(404, { message: 'Setup is not an oqb setup' });
+      error(404, { message: m.lookup_error_non_oqb_with_queue() });
     } else if (!subStringSet(subbuild.slice(0, setup.build.length + 1), setup.build)) {
-      error(404, { message: 'Incorrect pieces for the setup' });
+      error(404, { message: m.lookup_error_oqb_with_invalid_queue() });
     }
   }
 
@@ -58,22 +57,31 @@ export const actions: Actions = {
       return fail(400, {
         success: false,
         queue: queueStr,
-        message: 'Expected <parent_id>+<subbuild> for route'
+        message: m.lookup_error_oqb_next_setup_no_queue()
       });
     }
 
     queueStr = subbuild + queueStr;
+
+    if (queueStr === '') {
+      return fail(400, {
+        success: false,
+        queue: queueStr,
+        message: m.lookup_error_empty_queue()
+      });
+    }
+
     if (!isQueue(queueStr)) {
       return fail(400, {
         success: false,
         queue: queueStr,
-        message: `Invalid queue`
+        message: m.lookup_error_invalid_queue()
       });
     }
 
     const queue = queueStr as Queue;
 
-    const { data: setups, error: setupsErr } = await setupFinder(queue, null, parent_id as SetupID);
+    const { data: setups, error: setupsErr } = await setupFinder(queue, null, parent_id as SetupID, getLocale());
 
     if (setupsErr) {
       console.error(
@@ -83,7 +91,7 @@ export const actions: Actions = {
       return fail(500, {
         success: false,
         queue: queueStr,
-        message: `Failed to find setups`
+        message: m.lookup_error_find_setup()
       });
     }
 
@@ -91,7 +99,7 @@ export const actions: Actions = {
       return {
         success: false,
         queue: queueStr,
-        message: 'No setups found'
+        message: m.lookup_error_no_setup()
       };
     }
 
@@ -131,35 +139,35 @@ export const actions: Actions = {
       return fail(400, {
         success: false,
         ...returnData,
-        message: `Invalid pc number`
+        message: m.lookup_error_invalid_pc()
       });
     }
     if (!isQueue(buildStr)) {
       return fail(400, {
         success: false,
         ...returnData,
-        message: `Invalid build`
+        message: m.lookup_error_invalid_build()
       });
     }
     if (!isQueue(leftoverStr)) {
       return fail(400, {
         success: false,
         ...returnData,
-        message: `Invalid leftover`
+        message: m.lookup_error_invalid_leftover()
       });
     }
     if (!isSetupID(setupidStr)) {
       return fail(400, {
         success: false,
         ...returnData,
-        message: `Invalid setupid`
+        message: m.lookup_error_invalid_setup_id()
       });
     }
     if (wantedSaves.length == 0) {
       return fail(400, {
         success: false,
         ...returnData,
-        message: `Wanted Save not populated`
+        message: m.lookup_error_empty_wanted_saves()
       });
     }
 
@@ -183,7 +191,7 @@ export const actions: Actions = {
       return fail(500, {
         success: false,
         ...returnData,
-        message: `Failed to check path file existance`
+        message: m.lookup_error_find_path_file()
       });
     }
 
@@ -191,7 +199,7 @@ export const actions: Actions = {
       return fail(400, {
         success: false,
         ...returnData,
-        message: `Path file for this setup does not exist`
+        message: m.lookup_error_no_path_file()
       });
     }
 
@@ -204,7 +212,7 @@ export const actions: Actions = {
       return fail(500, {
         success: false,
         ...returnData,
-        message: `Failed to download path file`
+        message: m.lookup_download_path_file()
       });
     }
 
@@ -218,7 +226,7 @@ export const actions: Actions = {
       return fail(500, {
         success: false,
         ...returnData,
-        message: `Failed to decompress path file`
+        message: m.lookup_error_decompress_path_file()
       });
     }
 
@@ -231,20 +239,20 @@ export const actions: Actions = {
         pc,
         null,
         decompressedFile
-      ); // TODO: twoline
+      ); 
     } catch (e) {
       if ((e as Error).message.match(/Expression '.*' could not be tokenized/)) {
         return fail(400, {
           success: false,
           ...returnData,
-          message: `Percent failed: ${(e as Error).message}`
+          message: `${m.lookup_error_run_saves_percent()}${(e as Error).message}`
         });
       }
       console.error('Percent failed to run:', e);
       return fail(500, {
         success: false,
         ...returnData,
-        message: `Percent failed to run: ${(e as Error).message}`
+        message: `${m.lookup_error_run_saves_percent()}${(e as Error).message}`
       });
     }
 
