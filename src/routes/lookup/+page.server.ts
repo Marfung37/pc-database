@@ -5,9 +5,8 @@ import { PCNUM2LONUM } from '$lib/utils/formulas';
 import { setupFinder } from '$lib/utils/setupFinder';
 import type { Actions, PageServerLoad } from './$types';
 import type { Queue } from '$lib/types';
-import {
-  locales // Get an array of all available locales
-} from '$lib/paraglide/runtime';
+import { getLocale } from '$lib/paraglide/runtime';
+import { m } from '$lib/paraglide/messages.js';
 
 export const load: PageServerLoad = async () => {};
 
@@ -16,7 +15,6 @@ export const actions: Actions = {
     const formData = await request.formData();
     const pcStr = formData.get('pc') as string;
     const queueStr = formData.get('queue') as string;
-    const language = formData.get('language') as string;
 
     const returnData = {
       pc: pcStr,
@@ -28,17 +26,23 @@ export const actions: Actions = {
       return fail(400, {
         success: false,
         ...returnData,
-        message: `Invalid pc number`
+        message: m.lookup_error_invalid_pc()
       });
     }
+    if (queueStr.length === 0) {
+      return fail(400, {
+        success: false,
+        ...returnData,
+        message: m.lookup_error_empty_queue()
+      });
+    }
+
     if (!isQueue(queueStr)) {
       return fail(400, {
         success: false,
         ...returnData,
-        message: `Invalid queue`
+        message: m.lookup_error_invalid_queue()
       });
-    }
-    if (language in locales) {
     }
 
     const pc = parseInt(pcStr) as number;
@@ -56,18 +60,18 @@ export const actions: Actions = {
       return fail(400, {
         success: false,
         ...returnData,
-        message: `Not enough pieces to know leftover`
+        message: m.lookup_error_leftover_uncertain()
       });
     }
 
-    const { data: setups, error: setupsErr } = await setupFinder(queue, pc, null, language);
+    const { data: setups, error: setupsErr } = await setupFinder(queue, pc, null, getLocale());
 
     if (setupsErr) {
       console.error(`Failed to find setups for pc ${pc} and queue ${queue}:`, setupsErr.message);
       return fail(500, {
         success: false,
         ...returnData,
-        message: `Failed to find setups`
+        message: m.lookup_error_find_setup()
       });
     }
 
@@ -75,7 +79,7 @@ export const actions: Actions = {
       return {
         success: false,
         ...returnData,
-        message: 'No setups found'
+        message: m.lookup_error_no_setup()
       };
     }
 

@@ -55,7 +55,7 @@
             </p>
           {:else if save.priority_save_percent !== null && save.priority_save_fraction !== null}
             <div>
-              <p>Priority Saves</p>
+              <p>{m.lookup_priority_saves()}</p>
               {#each save.priority_save_percent as save_percent, index}
                 {@const save_fraction = save.priority_save_fraction[index] as Fraction}
                 {@const description = save.name?.split(', ')[index] ?? save.save!.split(',')[index]}
