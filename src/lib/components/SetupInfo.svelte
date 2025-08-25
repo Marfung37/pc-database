@@ -16,7 +16,7 @@
 
 <div class="flex min-h-60 w-full rounded-3xl bg-white shadow-lg">
   <div class="flex flex-1 flex-wrap">
-    <div class="flex min-w-80 basis-1/2 items-center justify-center p-4 xl:basis-1/3">
+    <div class="flex min-w-80 basis-1/2 items-center justify-center p-4 md:basis-1/3 xl:basis-1/4">
       <FumenRender fumen={setup.fumen} />
     </div>
     <div class="pl-4">

@@ -10,18 +10,6 @@
   }
 </script>
 
-<!-- <div class="hero min-h-[60vh]"> -->
-<!--   <div class="hero-content py-12 text-center"> -->
-<!--     <div class="max-w-xl"> -->
-<!--       <div -->
-<!--         class="from-primary to-accent mb-3 bg-linear-to-r bg-clip-text pb-1 text-xl font-bold text-transparent md:mb-7 md:text-3xl" -->
-<!--       > -->
-<!--         WIP: {m.nav_about()} -->
-<!--       </div> -->
-<!--     </div> -->
-<!--   </div> -->
-<!-- </div> -->
-
 <div class="container mx-auto p-2 pb-32 text-left flex flex-col gap-4">
   <h1 class="py-2 text-4xl"> {m.nav_about() } </h1>
   <h2 class="py-2 text-2xl">{ m.about_pc_heading() }</h2>
