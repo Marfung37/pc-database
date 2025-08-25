@@ -59,6 +59,7 @@
     use:enhance={handleSubmit}
   >
     <div class="flex flex-wrap items-center gap-2">
+      <div class="flex justify-center items-center gap-2">
       <label for="pc-select" class="block text-lg font-medium"> {m.lookup_pc_number()} </label>
       <select
         id="pc-select"
@@ -69,6 +70,8 @@
           <option value={pc.id}>{pc.pc}</option>
         {/each}
       </select>
+      </div>
+      <div class="flex justify-center items-center gap-2">
       <label for="queue-text" class="block text-lg font-medium"> {m.lookup_queue()} </label>
       <input
         id="queue-text"
@@ -76,10 +79,11 @@
         type="text"
         pattern="[TILJSZO]+"
         bind:value={queueValue}
-        class="mino focus:shadow-outline block min-w-40 grow appearance-none rounded border border-gray-300 bg-white text-2xl leading-tight shadow hover:border-gray-400 focus:outline-none"
+        class="mino focus:shadow-outline block min-w-40 max-w-80 grow appearance-none rounded border border-gray-300 bg-white text-2xl leading-tight shadow hover:border-gray-400 focus:outline-none"
         maxlength={11}
         minlength={1}
       />
+      </div>
       <div>
         <button
           type="submit"

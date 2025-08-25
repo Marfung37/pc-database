@@ -1,5 +1,6 @@
 export const BAG: string = 'TILJSZO';
 export const PCSIZE: number = 10;
+export const BOARDHEIGHT: number = 20;
 
 export const PIECEVAL: { [key: string]: number } = {
   T: 1,
