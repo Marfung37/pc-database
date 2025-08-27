@@ -34,7 +34,7 @@ BEGIN
         SELECT 1
         FROM set_paths p
         WHERE p.set_id = parent_id
-          AND p.set_path ~ ('*.' || child_id || '.*')::lquery
+          AND p.set_path ~ ('*.' || child_id::text || '.*')::lquery
     ) THEN 
         RAISE EXCEPTION 'Circular reference detected: Setup % cannot be child of %', 
             child_id, parent_id;
@@ -43,14 +43,14 @@ BEGIN
     BEGIN
         -- Cartesian product of the two graphs
         INSERT INTO set_paths (set_id, set_path) (
-            SELECT DISTINCT set_id, fp.set_path || subpath(s.set_path, index(s.set_path, child_id::ltree))
+            SELECT DISTINCT set_id, fp.set_path || subpath(s.set_path, index(s.set_path, child_id::text::ltree))
             FROM set_paths s,
-                 (SELECT set_path FROM set_paths WHERE set_path ~ ('*.' || parent_id)::lquery) as fp
-            WHERE s.set_path ~ ('*.' || child_id || '.*')::lquery
+                 (SELECT set_path FROM set_paths WHERE set_path ~ ('*.' || parent_id::text)::lquery) as fp
+            WHERE s.set_path ~ ('*.' || child_id::text || '.*')::lquery
         );
 
         -- Cleanup the old paths
-        DELETE FROM set_paths s WHERE s.set_path ~ (child_id || '.*')::lquery;
+        DELETE FROM set_paths s WHERE s.set_path ~ (child_id::text || '.*')::lquery;
 
     EXCEPTION WHEN OTHERS THEN
         RAISE NOTICE 'Tree path update aborted: %', SQLERRM;
@@ -96,8 +96,8 @@ BEGIN
         -- remove everything above the descendents in their paths
         -- this creates duplicates on set_path
         UPDATE set_paths
-        SET set_path = subpath(set_path, index(set_path, child_id::ltree))
-        WHERE set_path ~ ('*.' || parent_id || '.' || child_id || '.*')::lquery;
+        SET set_path = subpath(set_path, index(set_path, child_id::text::ltree))
+        WHERE set_path ~ ('*.' || parent_id::text || '.' || child_id::text || '.*')::lquery;
 
         -- remove duplicates
         DELETE FROM set_paths a
@@ -120,7 +120,7 @@ BEGIN
     -- child, ex. 'child_id'.'desc1')
     IF (SELECT COUNT(1) FROM set_paths WHERE set_id = child_id) > 1
     THEN
-        DELETE FROM set_paths WHERE set_path <@ child_id::ltree;
+        DELETE FROM set_paths WHERE set_path <@ child_id::text::ltree;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
@@ -144,8 +144,8 @@ BEGIN
         -- removes for all descendants of the node all ancestors including this node and above
         -- this creates duplicates on set_path
         UPDATE set_paths
-        SET set_path = subpath(set_path, index(set_path, node_id::ltree) + 1)
-        WHERE set_path ~ ('*.' || node_id || '.*{1,}')::lquery;
+        SET set_path = subpath(set_path, index(set_path, node_id::text::ltree) + 1)
+        WHERE set_path ~ ('*.' || node_id::text || '.*{1,}')::lquery;
 
         -- remove duplicates
         DELETE FROM set_paths a
@@ -173,7 +173,7 @@ SET
   extensions AS $$
 BEGIN
     INSERT INTO set_paths (set_id, set_path)
-    VALUES (NEW.set_id, NEW.set_id::ltree);
+    VALUES (NEW.set_id, NEW.set_id::text::ltree);
 
     RETURN NEW;
 END;
@@ -185,7 +185,7 @@ SET
   search_path = public,
   extensions AS $$
 BEGIN
-    PERFORM public.delete_set_node(OLD.set_id);
+    PERFORM private.delete_set_node(OLD.set_id);
 
     RETURN NEW;
 END;
@@ -201,17 +201,17 @@ BEGIN
     UPDATE set_paths s
     SET set_path = 
       subpath(OLD.set_path, 0, -1) 
-      || NEW.set_id::ltree 
+      || NEW.set_id::text::ltree 
       || CASE
           WHEN nlevel(OLD.set_path) < nlevel(s.set_path)
-          THEN subpath(s.set_path, index(s.set_path, OLD.set_id::ltree) + 1)
+          THEN subpath(s.set_path, index(s.set_path, OLD.set_id::text::ltree) + 1)
           ELSE ''::ltree
          END
     WHERE set_path <@ OLD.set_path;
 
     -- Update node also
     UPDATE set_paths s
-    SET set_path = subpath(OLD.set_path, 0, -1) || NEW.set_id::ltree
+    SET set_path = subpath(OLD.set_path, 0, -1) || NEW.set_id::text::ltree
     WHERE set_path = OLD.set_path;
     
     RETURN NEW;

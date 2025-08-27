@@ -173,7 +173,7 @@ SET
   extensions AS $$
 BEGIN
     IF TG_OP = 'UPDATE' AND OLD.type <> NEW.type AND OLD.type = 'oqb' THEN
-      PERFORM public.delete_setup_node(OLD.setup_id);
+      PERFORM private.delete_setup_node(OLD.setup_id);
     ELSE 
         IF NEW.type = 'oqb' THEN
             INSERT INTO setup_oqb_paths (setup_id, oqb_path)
@@ -192,7 +192,7 @@ SET
   extensions AS $$
 BEGIN
     IF OLD.type = 'oqb' THEN
-      PERFORM public.delete_setup_node(OLD.setup_id);
+      PERFORM private.delete_setup_node(OLD.setup_id);
     END IF;
 
     RETURN NEW;
