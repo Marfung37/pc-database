@@ -641,3 +641,95 @@ CREATE POLICY view_set_paths ON set_paths FOR
 SELECT
   TO authenticated,
   anon USING (true);
+
+-- tags RLS
+-- SELECT tags
+-- INSERT if have admin set
+-- UPDATE if have admin set
+-- DELETE if have admin set
+ALTER TABLE tags ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS view_tags ON tags;
+
+CREATE POLICY view_tags ON tags FOR
+SELECT
+  TO authenticated,
+  anon USING (true);
+
+DROP POLICY IF EXISTS edit_tags ON tags;
+
+CREATE POLICY edit_tags ON tags FOR INSERT TO authenticated
+WITH
+  CHECK (
+    (
+      SELECT
+        public.has_admin_permission ()
+    )
+  );
+
+DROP POLICY IF EXISTS update_tags ON tags;
+
+CREATE POLICY update_tags ON tags
+FOR UPDATE
+  TO authenticated USING (
+    (
+      SELECT
+        public.has_admin_permission ()
+    )
+  );
+
+DROP POLICY IF EXISTS delete_tags ON tags;
+
+CREATE POLICY delete_tags ON tags FOR DELETE TO authenticated USING (
+  (
+    SELECT
+      public.has_admin_permission ()
+  )
+);
+
+-- set_tags RLS
+-- SELECT set_tags
+-- INSERT if have edit set
+-- UPDATE if have edit set
+-- DELETE if have edit set
+ALTER TABLE set_tags ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS view_set_tags ON set_tags;
+
+CREATE POLICY view_set_tags ON set_tags FOR
+SELECT
+  TO authenticated,
+  anon USING (true);
+
+DROP POLICY IF EXISTS edit_set_tags ON set_tags;
+
+CREATE POLICY edit_set_tags ON set_tags FOR INSERT TO authenticated
+WITH
+  CHECK (
+    (
+      SELECT
+        public.has_edit_permission ()
+    )
+  );
+
+DROP POLICY IF EXISTS update_set_tags ON set_tags;
+
+CREATE POLICY update_set_tags ON set_tags
+FOR UPDATE
+  TO authenticated USING (
+    (
+      SELECT
+        public.has_edit_permission ()
+    )
+  );
+
+DROP POLICY IF EXISTS delete_set_tags ON set_tags;
+
+CREATE POLICY delete_set_tags ON set_tags FOR DELETE TO authenticated USING (
+  (
+    SELECT
+      public.has_edit_permission ()
+  )
+);
+
+

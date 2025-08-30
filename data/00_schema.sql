@@ -112,13 +112,27 @@ CREATE TABLE "setup_variants" (
   FOREIGN KEY (setup_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE "sets" ("set_id" SERIAL PRIMARY KEY, "category" text);
+CREATE TABLE "sets" ("set_id" SERIAL PRIMARY KEY);
+
+CREATE TABLE "tags" (
+  "tag_id"  SERIAL PRIMARY KEY,
+  "name" text NOT NULL
+);
 
 CREATE TABLE "setup_sets" (
   "setup_id" setupid NOT NULL,
   "set_id" int NOT NULL,
   FOREIGN KEY (set_id) REFERENCES sets (set_id) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (set_id) REFERENCES sets (set_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE "set_tags" (
+  "set_id" int NOT NULL,
+  "tag_id" int NOT NULL,
+  "order" smallint,
+  PRIMARY KEY ("set_id", "tag_id"),
+  FOREIGN KEY (set_id) REFERENCES sets (set_id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (tag_id) REFERENCES tags (tag_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE "set_translations" (
@@ -266,7 +280,9 @@ COMMENT ON COLUMN "setup_variants"."fumen" IS 'Fumen of the setup';
 
 COMMENT ON COLUMN "setup_variants"."solve_pattern" IS 'Extended pieces notation used for solving. NULL if internal node in oqb';
 
-COMMENT ON COLUMN "sets"."category" IS 'Overarching set category';
+COMMENT ON COLUMN "tags"."name" IS 'Tag for categorizing';
+
+COMMENT ON COLUMN "set_tags"."order" IS 'Value to depict which order the sets are when displayed where less is earlier';
 
 COMMENT ON COLUMN "set_translations"."name" IS 'Name of the set';
 
@@ -372,6 +388,6 @@ INSERT INTO
   schema_metadata (version, description)
 VALUES
   (
-    '2.0.0',
-    'Change how oqb_paths works to enable DAG instead of tree structure. Adds sets to group together setups and translation tables to provide translations for text in database.'
+    '2.1.0',
+    'Changes from category per set to usage of tags on sets'
   );

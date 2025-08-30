@@ -51,7 +51,11 @@ table setups {
 table setup_translations {
   setup_id          setupid       [not null]
   language_code     varchar(2)    [not null, default: 'en']
-  cover_description text          [not null, note: 'Description for when to use this setup']
+  description       text          [note: 'General description about setup']
+  cover_description text          [note: 'Description for when to use this setup']
+  indexes {
+    (setup_id, language_code)     [pk]
+  }
 }
 
 table setup_oqb_paths {
@@ -76,7 +80,17 @@ table setup_sets {
 
 table sets {
   set_id           int           [primary key]
-  category         text          [note: 'Overarching set category']  
+}
+
+table set_tags {
+  set_id           int           [not null]
+  tag_id           int           [not null]
+  order            smallint      [note: 'Value to depict which order the sets are when displayed where less is earlier']
+}
+
+table tags {
+  tag_id          int            [primary key]
+  name            text           [not null, note: 'Tag for categorizing']
 }
 
 table set_translations {
@@ -84,6 +98,9 @@ table set_translations {
   language_code    varchar(2)    [not null, default: 'en']
   name             text          [not null, note: 'Name of the set']
   description      text          [not null, note: 'Description about the set']
+  indexes {
+    (set_id, language_code) [pk]
+  }
 }
 
 table set_paths {
@@ -137,6 +154,9 @@ table save_translations {
   save_id          uuid           [not null]
   language_code    varchar(2)     [not null, default: 'en']
   name             text           [not null, note: 'Name of the save. Ex: One T or Two LJ']
+  indexes {
+    (save_id, language_code) [pk]
+  }
 }
 
 table users {
@@ -169,7 +189,11 @@ Ref: setups.mirror - setups.setup_id              [delete: cascade, update: casc
 Ref: setup_sets.setup_id > setups.setup_id        [delete: cascade, update: cascade]
 Ref: setup_sets.set_id > sets.set_id              [delete: cascade, update: cascade]
 Ref: set_paths.set_id > sets.set_id               [delete: cascade, update: cascade]
+Ref: set_tags.set_id > sets.set_id                [delete: cascade, update: cascade]
+Ref: set_tags.tag_id > tags.tag_id                [delete: cascade, update: cascade]
 
 Ref: save_translations.save_id > saves.save_id     [delete: cascade, update: cascade]
 Ref: setup_translations.setup_id > setups.setup_id [delete: cascade, update: cascade]
 Ref: set_translations.set_id > sets.set_id         [delete: cascade, update: cascade]
+
+Ref: "public"."statistics"."solve_percent" < "public"."statistics"."setup_id"

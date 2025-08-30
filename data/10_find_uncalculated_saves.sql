@@ -9,7 +9,7 @@ CREATE OR REPLACE FUNCTION public.find_uncalculated_saves (max_rows smallint DEF
   kicktable kicktable,
   hold_type hold_type,
   save_id uuid,
-  save varchar(255),
+  save text,
   auto_populate bool,
   gen_minimal bool,
   gen_all_solves bool
