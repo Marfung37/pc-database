@@ -41,7 +41,7 @@ export interface FilterOutput {
   trueMinimal?: boolean;
 }
 
-interface MinimalOutput {
+export interface MinimalOutput {
   minimalSolves?: Fumen;
   trueMinimal?: boolean;
 }
@@ -133,7 +133,7 @@ export async function filter(
   return returnData;
 }
 
-async function generateMinimalSet(
+export async function generateMinimalSet(
   patterns: pathRow[],
   total: number,
   filteredPathFile: string,
