@@ -1,16 +1,16 @@
 <script lang="ts">
-  import { browser } from '$app/environment';
   import { Clipboard, ClipboardCheck } from '@lucide/svelte';
   import { m } from '$lib/paraglide/messages.js';
   import { PCSIZE, BOARDHEIGHT } from '$lib/constants';
   import { getHeight } from '$lib/utils/fumenUtils';
   import type { Fumen } from '$lib/types';
   import { type Page, decoder } from 'tetris-fumen';
+	import { onMount } from 'svelte';
 
   export let fumen: string;
   export let clipboard: boolean = true;
 
-  let loading: boolean = false;
+  let loading: boolean = true;
   let error: string | null = null;
 
   let imageSrc: string[] | null = null;
@@ -263,7 +263,6 @@
 
     var canvas = document.createElement('canvas');
     canvas.width = PCSIZE * tileSize
-    // DEBUG
     canvas.height = numrows * tileSize;
 
     const canvasContext = canvas.getContext('2d');
@@ -301,35 +300,36 @@
     return { resultURLs }
   }
 
-  function renderImages(fumen: Fumen) {
+  async function renderImages(fumen: Fumen) {
     fumen = fumen.replace(/[Ddm]115@/gm, 'v115@') as Fumen;
     let { resultURLs } = fumencanvas(fumen);
     imageSrc = resultURLs;
   }
 
-  $: if (browser && fumen) {
-    loading = true;
-    error = null;
-    (async () => {
+  onMount(async () => {
+    if (fumen) {
       try {
-        renderImages(fumen as Fumen);
+        await renderImages(fumen as Fumen);
       } catch (e: any) {
         error = e.message;
         console.error('Error fetching or processing image:', e);
       } finally {
         loading = false;
       }
-    })();
-  }
-
+    }
+  })
 </script>
 
-{#if loading}
-  <p>{m.loading_image()}</p>
+<div class="group relative h-auto w-full rounded-md border border-gray-200 bg-gray-200 p-4">
+{#if loading && fumen}
+  <div class="flex justify-center items-center aspect-[5/2]">
+    <p>{m.loading_image()}</p>
+  </div>
 {:else if error}
-  <p>{m.error()}: {error}</p>
+  <div class="flex justify-center items-center aspect-[5/2]">
+    <p>{m.error()}: {error}</p>
+  </div>
 {:else if imageSrc}
-  <div class="group relative h-auto w-full rounded-md border border-gray-200 bg-gray-200 p-4">
   
     <img class="h-auto w-full" src={imageSrc[index]} alt={fumen} />
 
@@ -376,7 +376,7 @@
       </div>
     </div>
     {/if}
-  </div>
 {:else}
   <p></p>
 {/if}
+</div>
