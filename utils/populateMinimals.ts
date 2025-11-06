@@ -105,6 +105,7 @@ async function runUploads(batchSize: number = 1000) {
       .from('statistics')
       .select('stat_id, setup_id, hold_type, kicktable')
       .is('minimal_solves', null)
+      .eq('path_file', true)
       .range(from, batchSize);
     if (dataError) {
       console.error('Failed to get stat data to calculate');
