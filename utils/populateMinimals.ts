@@ -12,7 +12,7 @@ import {
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const PLATFORM_HARD_TIMEOUT_MS = Infinity; // 6 * 60 * 60 * 1000; // 5 hours
+const PLATFORM_HARD_TIMEOUT_MS = 6 * 60 * 60 * 1000; // 5 hours
 const SAFETY_MARGIN_MS = 60 * 60 * 1000; // 1 hour
 const EFFECTIVE_MAX_RUNTIME_MS = PLATFORM_HARD_TIMEOUT_MS - SAFETY_MARGIN_MS;
 
@@ -21,7 +21,6 @@ const currentFilePath = fileURLToPath(import.meta.url);
 // Get the directory name from the file path
 const currentFileDir = path.dirname(currentFilePath);
 const outputPath = path.join(currentFileDir, 'tmp');
-const outputFile = path.join(outputPath, 'minimals.sql')
 
 interface StatPathData {
   stat_id: string,
@@ -89,7 +88,17 @@ async function generateMinimalData(row: StatPathData): Promise<boolean> {
     return false;
   }
 
-  await fsPromises.appendFile(outputFile, `UPDATE statistics SET minimal_solves = '${data.minimalSolves}', true_minimal = ${data.trueMinimal} WHERE stat_id = '${row.stat_id}';\n`)
+  const { error: updateError } = await supabaseAdmin
+    .from('statistics')
+    .update({
+      minimal_solves: data.minimalSolves ?? null,
+      true_minimal: data.trueMinimal ?? null
+    })
+    .eq('stat_id', row.stat_id);
+  if (updateError) {
+    console.error(`Failed to update ${row.stat_id}:`, updateError);
+    return false;
+  }
 
   return true;
 }
@@ -97,8 +106,6 @@ async function generateMinimalData(row: StatPathData): Promise<boolean> {
 async function runUploads(batchSize: number = 1000) {
   const startTime = Date.now();
   let from = 0;
-
-  await fsPromises.writeFile(outputFile, '');
 
   while (true) {
     const { data, error: dataError } = await supabaseAdmin
