@@ -1,0 +1,45 @@
+name: Run Populate Minimals
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 1-31/3 * *' # run at midnight
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: git-tasks
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 10
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile # Use pnpm install for pnpm projects. --frozen-lockfile is similar to npm ci
+
+      - name: Set up JRE (Java Runtime Environment)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Run populate minimals
+        run: pnpm tsx utils/populateMinimals.ts
+        env:
+          PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
+          PATH_UPLOAD_BUCKET: ${{ vars.PATH_UPLOAD_BUCKET }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
