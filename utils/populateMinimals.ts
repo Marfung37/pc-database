@@ -96,7 +96,7 @@ async function generateMinimalData(row: StatPathData): Promise<boolean> {
 
 async function runUploads(batchSize: number = 1000) {
   const startTime = Date.now();
-  let from = 0;
+  let from = 100;
 
   await fsPromises.writeFile(outputFile, '');
 
@@ -108,7 +108,7 @@ async function runUploads(batchSize: number = 1000) {
       .eq('path_file', true)
       .range(from, batchSize);
     if (dataError) {
-      console.error('Failed to get stat data to calculate');
+      console.error('Failed to get stat data to calculate:', dataError.message);
       return;
     }
     if (data.length === 0) break;
@@ -126,4 +126,4 @@ async function runUploads(batchSize: number = 1000) {
   }
 }
 
-await runUploads();
+await runUploads(100);
