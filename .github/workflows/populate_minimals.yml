@@ -37,6 +37,9 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Create a directory
+        run: mkdir -p utils/tmp
+
       - name: Run populate minimals
         run: pnpm tsx utils/populateMinimals.ts
         env:
