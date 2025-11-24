@@ -3,7 +3,7 @@ name: Run Populate Minimals
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 1-31/3 * *' # run at midnight
+    - cron: '0 0 1-31/5 * *' # run at midnight
 
 jobs:
   run-script:
@@ -36,6 +36,9 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      - name: Create a directory
+        run: mkdir -p utils/tmp
 
       - name: Run populate minimals
         run: pnpm tsx utils/populateMinimals.ts
