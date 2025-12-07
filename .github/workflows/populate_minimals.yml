@@ -1,9 +1,9 @@
 name: Run Populate Minimals
 
-on:
-  workflow_dispatch:
-  schedule:
-    - cron: '0 0 1-31/5 * *' # run at midnight
+# on:
+#   workflow_dispatch:
+#   schedule:
+#     - cron: '0 0 1-31/5 * *' # run at midnight
 
 jobs:
   run-script:
