@@ -81,7 +81,7 @@ export const actions: Actions = {
 
     const queue = queueStr as Queue;
 
-    const { data: setups, error: setupsErr } = await setupFinder(queue, null, parent_id as SetupID, getLocale());
+    const { data: setups, error: setupsErr } = await setupFinder(queue, null, parent_id as SetupID, true, true, getLocale());
 
     if (setupsErr) {
       console.error(

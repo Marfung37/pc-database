@@ -39,6 +39,8 @@ export async function setupFinder(
   queue: Queue,
   pcNum: number | null = null,
   previousSetup: SetupID | null = null,
+  include_variants: boolean = false,
+  include_saves: boolean = false,
   language: string = 'en',
   kicktable: Kicktable = PUBLIC_DEFAULT_KICKTABLE as Kicktable,
   hold_type: HoldType = PUBLIC_DEFAULT_HOLDTYPE as HoldType
@@ -47,6 +49,8 @@ export async function setupFinder(
   if (previousSetup) {
     const { data: tmp, error: tmpErr } = await supabase.rpc('find_setup_parent_id', {
       parent_id: previousSetup,
+      p_include_variants: include_variants,
+      p_include_saves: include_saves,
       kicktable,
       hold_type,
       language
@@ -60,12 +64,16 @@ export async function setupFinder(
       return { data: [], error: null };
     }
 
+    const start = performance.now()
     const { data: tmp, error: tmpErr } = await supabase.rpc('find_setup_leftover', {
       p_leftover: leftover,
+      p_include_variants: include_variants,
+      p_include_saves: include_saves,
       kicktable,
       hold_type,
-      language
+      language,
     });
+    console.log("Timing sql request:", performance.now() - start, "ms")
     setups = tmp;
     setupErr = tmpErr;
   } else {
@@ -80,6 +88,7 @@ export async function setupFinder(
   if (setups.length == 0) return { data: [], error: null };
 
   const validSetups = [];
+  const start = performance.now()
   for (let setup of setups) {
     // check with build if the build is within the queue first len(build) + 1 pieces
     if (!subStringSet(queue.slice(0, setup.build.length + 1), setup.build)) continue;
@@ -103,18 +112,24 @@ export async function setupFinder(
       if (covered) validSetups.push(setup);
     }
   }
+  console.log("Timing validity test:", performance.now() - start, "ms")
+  
 
   return { data: validSetups, error: null };
 }
 
 export async function getSetup(
   setupId: SetupID,
+  include_variants: boolean = false,
+  include_saves: boolean = false,
   language: string = 'en',
   kicktable: Kicktable = PUBLIC_DEFAULT_KICKTABLE as Kicktable,
   hold_type: HoldType = PUBLIC_DEFAULT_HOLDTYPE as HoldType
 ): Result<SetupData> {
   const { data: setup, error: setupErr } = await supabase.rpc('find_setup_setup_id', {
     p_setup_id: setupId,
+    p_include_variants: include_variants,
+    p_include_saves: include_saves,
     kicktable,
     hold_type,
     language

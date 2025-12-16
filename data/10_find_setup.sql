@@ -20,6 +20,8 @@ CREATE TYPE setup_saves_data AS (
 -- find a setup for solving using leftover
 CREATE OR REPLACE FUNCTION public.find_setup_leftover (
   p_leftover queue,
+  p_include_variants boolean DEFAULT false,
+  p_include_saves boolean DEFAULT false,
   kicktable kicktable DEFAULT 'srs180',
   hold_type hold_type DEFAULT 'any',
   language varchar(2) DEFAULT 'en'
@@ -67,48 +69,51 @@ BEGIN
     st.solve_percent,
     st.solve_fraction,
     st.minimal_solves,
-    (
-      SELECT ARRAY_AGG(ROW(
-        v.variant_number,
-        v.build,
-        v.fumen,
-        v.solve_pattern
-      )::setup_variants_data ORDER BY v.variant_number)
-      FROM setup_variants v
-      WHERE v.setup_id = s.setup_id
-    ),
-    (
-      SELECT ARRAY_AGG(ROW(
-        sa.save,
-        COALESCE(sal.name, sal_default.name),
-        sd.save_percent,
-        sd.save_fraction,
-        sd.priority_save_percent,
-        sd.priority_save_fraction,
-        sd.all_solves,
-        sd.minimal_solves,
-        sd.true_minimal
-      )::setup_saves_data ORDER BY sa.importance)
-      FROM save_data sd
-      JOIN saves sa ON sd.save_id = sa.save_id
-      LEFT JOIN save_translations sal ON sd.save_id = sal.save_id AND sal.language_code = language
-      LEFT JOIN save_translations sal_default ON sd.save_id = sal_default.save_id AND sal_default.language_code = 'en'
-      WHERE sd.stat_id = st.stat_id AND sd.status = 'completed'
-    )
+    v.variants,
+    sa.saves
   FROM
     setups s
   JOIN statistics st ON 
     s.setup_id = st.setup_id
     AND st.kicktable = find_setup_leftover.kicktable
     AND st.hold_type = find_setup_leftover.hold_type
-  LEFT JOIN setup_variants v ON
-    s.setup_id = v.setup_id
   LEFT JOIN setup_translations sl ON
     s.setup_id = sl.setup_id AND sl.language_code = language
   LEFT JOIN setup_translations sl_default ON
     s.setup_id = sl_default.setup_id AND sl_default.language_code = 'en'
   LEFT JOIN setup_oqb_paths sop ON
     s.setup_id = sop.setup_id
+  LEFT JOIN LATERAL (
+    SELECT ARRAY_AGG(ROW(
+      v.variant_number,
+      v.build,
+      v.fumen,
+      v.solve_pattern
+    )::setup_variants_data ORDER BY v.variant_number) AS variants
+    FROM setup_variants v
+    WHERE v.setup_id = s.setup_id
+  ) v ON p_include_variants
+  LEFT JOIN LATERAL (
+    SELECT ARRAY_AGG(ROW(
+      sa.save,
+      COALESCE(sal.name, sal_default.name),
+      sd.save_percent,
+      sd.save_fraction,
+      sd.priority_save_percent,
+      sd.priority_save_fraction,
+      sd.all_solves,
+      sd.minimal_solves,
+      sd.true_minimal
+    )::setup_saves_data ORDER BY sa.importance) AS saves
+    FROM save_data sd
+    JOIN saves sa ON sd.save_id = sa.save_id
+    LEFT JOIN save_translations sal 
+      ON sd.save_id = sal.save_id AND sal.language_code = language
+    LEFT JOIN save_translations sal_default 
+      ON sd.save_id = sal_default.save_id AND sal_default.language_code = 'en'
+    WHERE sd.stat_id = st.stat_id
+      AND sd.status = 'completed'
+  ) sa ON p_include_saves
   WHERE
     s.leftover = find_setup_leftover.p_leftover AND
     (
@@ -125,6 +130,8 @@ $$ LANGUAGE plpgsql;
 -- find a setup for solving using parent_id
 CREATE OR REPLACE FUNCTION public.find_setup_parent_id (
   parent_id setupid,
+  p_include_variants boolean DEFAULT false,
+  p_include_saves boolean DEFAULT false,
   kicktable kicktable DEFAULT 'srs180',
   hold_type hold_type DEFAULT 'any',
   language varchar(2) DEFAULT 'en'
@@ -172,34 +179,8 @@ BEGIN
     st.solve_percent,
     st.solve_fraction,
     st.minimal_solves,
-    (
-      SELECT ARRAY_AGG(ROW(
-        v.variant_number,
-        v.build,
-        v.fumen,
-        v.solve_pattern
-      )::setup_variants_data ORDER BY v.variant_number)
-      FROM setup_variants v
-      WHERE v.setup_id = s.setup_id
-    ),
-    (
-      SELECT ARRAY_AGG(ROW(
-        sa.save,
-        COALESCE(sal.name, sal_default.name),
-        sd.save_percent,
-        sd.save_fraction,
-        sd.priority_save_percent,
-        sd.priority_save_fraction,
-        sd.all_solves,
-        sd.minimal_solves,
-        sd.true_minimal
-      )::setup_saves_data ORDER BY sa.importance)
-      FROM save_data sd
-      JOIN saves sa ON sd.save_id = sa.save_id
-      LEFT JOIN save_translations sal ON sd.save_id = sal.save_id AND sal.language_code = language
-      LEFT JOIN save_translations sal_default ON sd.save_id = sal_default.save_id AND sal_default.language_code = 'en'
-      WHERE sd.stat_id = st.stat_id AND sd.status = 'completed'
-    )
+    v.variants,
+    sa.saves
   FROM
     setups s
   JOIN statistics st ON 
@@ -209,12 +190,50 @@ BEGIN
   JOIN setup_oqb_paths sop ON
     s.setup_id = sop.setup_id AND
     sop.oqb_path ~ (find_setup_parent_id.parent_id::text || '.*{1}')::lquery
-  LEFT JOIN setup_variants v ON
-    s.setup_id = v.setup_id
   LEFT JOIN setup_translations sl ON
     s.setup_id = sl.setup_id AND sl.language_code = language
   LEFT JOIN setup_translations sl_default ON
     s.setup_id = sl_default.setup_id AND sl_default.language_code = 'en'
+  LEFT JOIN LATERAL (
+    SELECT ARRAY_AGG(ROW(
+      v.variant_number,
+      v.build,
+      v.fumen,
+      v.solve_pattern
+    )::setup_variants_data ORDER BY v.variant_number) AS variants
+    FROM setup_variants v
+    WHERE v.setup_id = s.setup_id
+  ) v ON p_include_variants
+  LEFT JOIN LATERAL (
+    SELECT ARRAY_AGG(ROW(
+      sa.save,
+      COALESCE(sal.name, sal_default.name),
+      sd.save_percent,
+      sd.save_fraction,
+      sd.priority_save_percent,
+      sd.priority_save_fraction,
+      sd.all_solves,
+      sd.minimal_solves,
+      sd.true_minimal
+    )::setup_saves_data ORDER BY sa.importance) AS saves
+    FROM save_data sd
+    JOIN saves sa ON sd.save_id = sa.save_id
+    LEFT JOIN save_translations sal 
+      ON sd.save_id = sal.save_id AND sal.language_code = language
+    LEFT JOIN save_translations sal_default 
+      ON sd.save_id = sal_default.save_id AND sal_default.language_code = 'en'
+    WHERE sd.stat_id = st.stat_id
+      AND sd.status = 'completed'
+  ) sa ON p_include_saves
+  WHERE
+    s.leftover = find_setup_leftover.p_leftover AND
+    (
+      s.type <> 'oqb' OR
+      (
+        s.type = 'oqb' AND sop.oqb_path = s.setup_id::ltree -- if oqb then only the root node
+      )
+    )
+
   ORDER BY
     s.setup_id;
 END;
@@ -223,6 +242,8 @@ $$ LANGUAGE plpgsql;
 -- find a setup for solving using setup_id
 CREATE OR REPLACE FUNCTION public.find_setup_setup_id (
   p_setup_id setupid,
+  p_include_variants boolean DEFAULT false,
+  p_include_saves boolean DEFAULT false,
   kicktable kicktable DEFAULT 'srs180',
   hold_type hold_type DEFAULT 'any',
   language varchar(2) DEFAULT 'en'
@@ -270,35 +291,8 @@ BEGIN
     st.solve_percent,
     st.solve_fraction,
     st.minimal_solves,
-    (
-      SELECT ARRAY_AGG(
-      ROW(
-        v.variant_number,
-        v.build,
-        v.fumen,
-        v.solve_pattern
-      )::setup_variants_data ORDER BY v.variant_number)
-      FROM setup_variants v
-      WHERE v.setup_id = s.setup_id
-    ),
-    (
-      SELECT ARRAY_AGG(ROW(
-        sa.save,
-        COALESCE(sal.name, sal_default.name),
-        sd.save_percent,
-        sd.save_fraction,
-        sd.priority_save_percent,
-        sd.priority_save_fraction,
-        sd.all_solves,
-        sd.minimal_solves,
-        sd.true_minimal
-      )::setup_saves_data ORDER BY sa.importance)
-      FROM save_data sd
-      JOIN saves sa ON sd.save_id = sa.save_id
-      LEFT JOIN save_translations sal ON sd.save_id = sal.save_id AND sal.language_code = language
-      LEFT JOIN save_translations sal_default ON sd.save_id = sal_default.save_id AND sal_default.language_code = 'en'
-      WHERE sd.stat_id = st.stat_id AND sd.status = 'completed'
-    )
+    v.variants,
+    sa.saves
   FROM
     setups s
   JOIN statistics st ON 
@@ -311,6 +305,37 @@ BEGIN
     s.setup_id = sl.setup_id AND sl.language_code = language
   LEFT JOIN setup_translations sl ON
     s.setup_id = sl_default.setup_id AND sl_default.language_code = 'en'
+  LEFT JOIN LATERAL (
+    SELECT ARRAY_AGG(ROW(
+      v.variant_number,
+      v.build,
+      v.fumen,
+      v.solve_pattern
+    )::setup_variants_data ORDER BY v.variant_number) AS variants
+    FROM setup_variants v
+    WHERE v.setup_id = s.setup_id
+  ) v ON p_include_variants
+  LEFT JOIN LATERAL (
+    SELECT ARRAY_AGG(ROW(
+      sa.save,
+      COALESCE(sal.name, sal_default.name),
+      sd.save_percent,
+      sd.save_fraction,
+      sd.priority_save_percent,
+      sd.priority_save_fraction,
+      sd.all_solves,
+      sd.minimal_solves,
+      sd.true_minimal
+    )::setup_saves_data ORDER BY sa.importance) AS saves
+    FROM save_data sd
+    JOIN saves sa ON sd.save_id = sa.save_id
+    LEFT JOIN save_translations sal 
+      ON sd.save_id = sal.save_id AND sal.language_code = language
+    LEFT JOIN save_translations sal_default 
+      ON sd.save_id = sal_default.save_id AND sal_default.language_code = 'en'
+    WHERE sd.stat_id = st.stat_id
+      AND sd.status = 'completed'
+  ) sa ON p_include_saves
   WHERE
     s.setup_id = find_setup_setup_id.p_setup_id
   ORDER BY
