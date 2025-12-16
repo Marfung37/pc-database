@@ -18,7 +18,6 @@
   $effect(() => {
     // Update the bound variable with the sanitized value
     queueValue = queueValue.replace(/[^TILJSZOtiljszo]/g, '').toUpperCase();
-    console.log(queueValue);
   });
 
   const handleSaveSubmit: SubmitFunction = () => {
@@ -51,7 +50,7 @@
   </div>
 </div>
 
-<div class="container mx-auto flex flex-col gap-2 p-2 text-left">
+<div class="container mx-auto flex flex-col gap-2 p-2 text-left pb-20">
   <h1 class="py-2 text-3xl">{m.lookup_current_setup()}</h1>
   <SetupInfo {setup} submittedQueue={subbuild} baseUrl="" next={false} />
 

@@ -53,8 +53,13 @@ export async function setupFinder(
     });
     setups = tmp;
     setupErr = tmpErr;
+    pcNum = setups[0].pc as number;
   } else if (pcNum) {
     const leftover = sortQueue(queue.slice(0, PCNUM2LONUM(pcNum)) as Queue);
+    if (leftover.length < PCNUM2LONUM(pcNum)) {
+      return { data: [], error: null };
+    }
+
     const { data: tmp, error: tmpErr } = await supabase.rpc('find_setup_leftover', {
       p_leftover: leftover,
       kicktable,
@@ -73,8 +78,6 @@ export async function setupFinder(
   if (setupErr) return { data: null, error: setupErr };
 
   if (setups.length == 0) return { data: [], error: null };
-
-  if (pcNum === null) pcNum = setups[0].pc as number;
 
   const validSetups = [];
   for (let setup of setups) {

@@ -67,19 +67,19 @@
       </span>
     {/if}
   </button>
-  {#if isOpen && save.minimal_solves !== null}
-    <div class="flex flex-col gap-2 p-4">
-      <button
-        class="text-left text-2xl text-blue-500 hover:cursor-pointer hover:text-blue-700"
-        on:click={copyContent}
-      >
-        {m.copy_minimal()}
-      </button>
-      <div class="grid grid-cols-2 gap-2 text-sm md:grid-cols-4 xl:grid-cols-8">
-        {#each fumenSplit(save.minimal_solves as Fumen) as fumen (fumen)}
-          <FumenRender {fumen} />
-        {/each}
-      </div>
+  {#if save.minimal_solves !== null}
+  <div class="flex flex-col gap-2 p-4 {isOpen ? "block": "hidden"}">
+    <button
+      class="text-left text-2xl text-blue-500 hover:cursor-pointer hover:text-blue-700"
+      on:click={copyContent}
+    >
+      {m.copy_minimal()}
+    </button>
+    <div class="grid grid-cols-2 gap-2 text-sm md:grid-cols-4 xl:grid-cols-8">
+      {#each fumenSplit(save.minimal_solves as Fumen) as fumen (fumen)}
+        <FumenRender {fumen} />
+      {/each}
     </div>
+  </div>
   {/if}
 </div>
