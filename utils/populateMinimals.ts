@@ -96,7 +96,7 @@ async function generateMinimalData(row: StatPathData): Promise<boolean> {
 
 async function runUploads(batchSize: number = 1000) {
   const startTime = Date.now();
-  let from = 100;
+  let from = 0;
 
   await fsPromises.writeFile(outputFile, '');
 
@@ -126,4 +126,4 @@ async function runUploads(batchSize: number = 1000) {
   }
 }
 
-await runUploads(100);
+await runUploads();
