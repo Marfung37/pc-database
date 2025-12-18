@@ -157,12 +157,12 @@
         <SetupInfo setup={next_setup} {submittedQueue} baseUrl="/lookup/" />
       {/each}
     </div>
+  {:else}
+    <div>
+      <h1 class="py-2 text-3xl">{m.lookup_saves()}</h1>
+      {#each setup.saves as save (save.save)}
+        <SaveAccordian {save} />
+      {/each}
+    </div>
   {/if}
-
-  <div>
-    <h1 class="py-2 text-3xl">{m.lookup_saves()}</h1>
-    {#each setup.saves as save (save.save)}
-      <SaveAccordian {save} />
-    {/each}
-  </div>
 </div>

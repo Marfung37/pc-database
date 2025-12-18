@@ -28,7 +28,7 @@ export const load: PageServerLoad = async ({ params }) => {
     error(404, { message: m.lookup_error_invalid_setup_id() });
   }
 
-  const { data: setup, error: setupErr } = await getSetup(setupid as SetupID);
+  const { data: setup, error: setupErr } = await getSetup(setupid as SetupID, false, true, getLocale());
 
   if (setupErr) {
     console.error('Failed to get setup:', setupErr.message);
