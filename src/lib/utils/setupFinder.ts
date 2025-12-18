@@ -45,37 +45,38 @@ export async function setupFinder(
   kicktable: Kicktable = PUBLIC_DEFAULT_KICKTABLE as Kicktable,
   hold_type: HoldType = PUBLIC_DEFAULT_HOLDTYPE as HoldType
 ): Result<SetupData[]> {
-  let setups, setupErr;
+  let bareSetups, bareErr;
+  // DEBUG
+  let requestTime = 0;
   if (previousSetup) {
-    const { data: tmp, error: tmpErr } = await supabase.rpc('find_setup_parent_id', {
+    const { data: tmp, error: tmpErr} = await supabase.rpc('find_bare_setup_parent_id', {
       parent_id: previousSetup,
-      p_include_variants: include_variants,
-      p_include_saves: include_saves,
       kicktable,
-      hold_type,
-      language
-    });
-    setups = tmp;
-    setupErr = tmpErr;
-    pcNum = setups[0].pc as number;
+      hold_type
+    })
+
+    bareSetups = tmp;
+    bareErr = tmpErr;
   } else if (pcNum) {
     const leftover = sortQueue(queue.slice(0, PCNUM2LONUM(pcNum)) as Queue);
     if (leftover.length < PCNUM2LONUM(pcNum)) {
       return { data: [], error: null };
     }
 
+    // DEBUG
     const start = performance.now()
-    const { data: tmp, error: tmpErr } = await supabase.rpc('find_setup_leftover', {
+    const { data: tmp, error: tmpErr} = await supabase.rpc('find_bare_setup_leftover', {
       p_leftover: leftover,
-      p_include_variants: include_variants,
-      p_include_saves: include_saves,
       kicktable,
-      hold_type,
-      language,
-    });
-    console.log("Timing sql request:", performance.now() - start, "ms")
-    setups = tmp;
-    setupErr = tmpErr;
+      hold_type
+    })
+    
+    bareSetups = tmp;
+    bareErr = tmpErr;
+
+    // DEBUG
+    requestTime += performance.now() - start
+
   } else {
     return {
       data: null,
@@ -83,13 +84,13 @@ export async function setupFinder(
     };
   }
 
-  if (setupErr) return { data: null, error: setupErr };
-
-  if (setups.length == 0) return { data: [], error: null };
+  if (bareErr) return { data: null, error: bareErr };
+  if (bareSetups.length == 0) return { data: [], error: null };
 
   const validSetups = [];
-  const start = performance.now()
-  for (let setup of setups) {
+  // DEBUG
+  let start = performance.now()
+  for (let setup of bareSetups) {
     // check with build if the build is within the queue first len(build) + 1 pieces
     if (!subStringSet(queue.slice(0, setup.build.length + 1), setup.build)) continue;
 
@@ -112,10 +113,27 @@ export async function setupFinder(
       if (covered) validSetups.push(setup);
     }
   }
+  // DEBUG
   console.log("Timing validity test:", performance.now() - start, "ms")
-  
 
-  return { data: validSetups, error: null };
+  // DEBUG
+  start = performance.now();
+
+  const {data: setups, error: setupErr} = await supabase.rpc('find_setup_setup_id', {
+    p_setup_ids: validSetups.map((setup) => setup.setup_id),
+    p_include_variants: include_variants,
+    p_include_saves: include_saves,
+    kicktable,
+    hold_type,
+    language
+  })
+
+  // DEBUG
+  requestTime += performance.now() - start;
+  console.log("Timing sql request:", requestTime, "ms")
+
+  if (setupErr) return { data: null, error: setupErr };
+  return { data: setups, error: null };
 }
 
 export async function getSetup(
@@ -127,7 +145,7 @@ export async function getSetup(
   hold_type: HoldType = PUBLIC_DEFAULT_HOLDTYPE as HoldType
 ): Result<SetupData> {
   const { data: setup, error: setupErr } = await supabase.rpc('find_setup_setup_id', {
-    p_setup_id: setupId,
+    p_setup_ids: [setupId],
     p_include_variants: include_variants,
     p_include_saves: include_saves,
     kicktable,
