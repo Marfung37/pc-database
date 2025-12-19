@@ -40,7 +40,7 @@
   "lookup_credit": "来源",
   "lookup_current_setup": "当前地基",
   "lookup_next_setup": "下一地基",
-  "lookup_download_path": "下载数据文件",
+  "lookup_download_path_file": "下载数据文件",
   "lookup_wanted_saves": "存块需求",
   "lookup_save_percent": "存块概率",
   "lookup_saves": "存块",
