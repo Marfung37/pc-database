@@ -4,7 +4,6 @@
   import { invalidate } from '$app/navigation';
   import { onMount } from 'svelte';
   import LocaleSwitcher from '$lib/components/LocaleSwitcher.svelte';
-  import { User } from '@lucide/svelte';
   import { Toaster } from 'svelte-sonner';
 
   export let data;

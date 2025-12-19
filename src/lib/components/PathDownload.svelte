@@ -57,5 +57,5 @@
 </script>
 
 <button class="cursor-pointer" on:click={download} disabled={downloading}>
-  {downloading ? m.processing() : m.lookup_download_path()}
+  {downloading ? m.processing() : m.lookup_download_path_file()}
 </button>
