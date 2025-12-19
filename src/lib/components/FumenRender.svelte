@@ -5,7 +5,7 @@
   import { getHeight } from '$lib/utils/fumenUtils';
   import type { Fumen } from '$lib/types';
   import { type Page, decoder } from 'tetris-fumen';
-	import { onMount } from 'svelte';
+  import { browser } from '$app/environment';
 
   export let fumen: string;
   export let clipboard: boolean = true;
@@ -306,18 +306,18 @@
     imageSrc = resultURLs;
   }
 
-  onMount(async () => {
-    if (fumen) {
-      try {
-        await renderImages(fumen as Fumen);
-      } catch (e: any) {
-        error = e.message;
-        console.error('Error fetching or processing image:', e);
-      } finally {
-        loading = false;
-      }
+  async function loadFumen() {
+    try {
+      await renderImages(fumen as Fumen);
+    } catch (e: any) {
+      error = e.message;
+      console.error('Error fetching or processing image:', e);
+    } finally {
+      loading = false;
     }
-  })
+  }
+
+  $: if (browser && fumen) loadFumen();
 </script>
 
 <div class="group relative h-auto w-full rounded-md border border-gray-200 bg-gray-200 p-4">

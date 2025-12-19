@@ -7,7 +7,7 @@
 
   const { data, form }: PageProps = $props();
 
-  let setup = $derived(data.setup);
+  let setup = $derived.by(() => data.setup);
   let subbuild = $derived(data.subbuild);
 
   let loading = $state(false);
