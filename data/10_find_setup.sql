@@ -120,6 +120,7 @@ CREATE OR REPLACE FUNCTION public.find_setup_leftover (
   solve_percent decimal(5, 2),
   solve_fraction fraction,
   minimal_solves fumen,
+  leaf_node boolean,
   variants setup_variants_data[],
   saves setup_saves_data[]
 )
@@ -146,6 +147,7 @@ BEGIN
     st.solve_percent,
     st.solve_fraction,
     st.minimal_solves,
+    NOT EXISTS (SELECT 1 FROM setup_oqb_paths WHERE oqb_path ~ (s.setup_id || '.*{1}')::lquery) as leaf_node,
     v.variants,
     sa.saves
   FROM
@@ -230,6 +232,7 @@ CREATE OR REPLACE FUNCTION public.find_setup_parent_id (
   solve_percent decimal(5, 2),
   solve_fraction fraction,
   minimal_solves fumen,
+  leaf_node boolean,
   variants setup_variants_data[],
   saves setup_saves_data[]
 )
@@ -256,6 +259,7 @@ BEGIN
     st.solve_percent,
     st.solve_fraction,
     st.minimal_solves,
+    NOT EXISTS (SELECT 1 FROM setup_oqb_paths WHERE oqb_path ~ (find_setup_parent_id.parent_id::text || '.' || s.setup_id || '.*{1}')::lquery) as leaf_node,
     v.variants,
     sa.saves
   FROM
@@ -333,6 +337,7 @@ CREATE OR REPLACE FUNCTION public.find_setup_setup_id (
   solve_percent decimal(5, 2),
   solve_fraction fraction,
   minimal_solves fumen,
+  leaf_node boolean,
   variants setup_variants_data[],
   saves setup_saves_data[]
 )
@@ -359,6 +364,7 @@ BEGIN
     st.solve_percent,
     st.solve_fraction,
     st.minimal_solves,
+    NOT EXISTS (SELECT 1 FROM setup_oqb_paths WHERE oqb_path ~ (s.setup_id || '.*{1}')::lquery) as leaf_node,
     v.variants,
     sa.saves
   FROM

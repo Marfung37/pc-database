@@ -106,8 +106,7 @@
     </p>
   {/if}
 
-  <!-- TODO: solve pattern not quite accurate for leaf node -->
-  {#if subbuild.length > 0 && setup.solve_pattern === null}
+  {#if !setup.leaf_node}
     <h1 class="py-2 text-3xl">{m.lookup_next_setup()}</h1>
     <form
       class="flex w-full whitespace-nowrap"
@@ -157,7 +156,8 @@
         <SetupInfo setup={next_setup} {submittedQueue} baseUrl="/lookup/" />
       {/each}
     </div>
-  {:else}
+  {/if}
+  {#if setup.solve_pattern !== null}
     <div>
       <h1 class="py-2 text-3xl">{m.lookup_saves()}</h1>
       {#each setup.saves as save (save.save)}

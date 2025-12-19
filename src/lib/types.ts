@@ -24,6 +24,7 @@ export type SetupData = Setup &
     variants: Database['public']['CompositeTypes']['setup_variants_data'][];
     saves: Database['public']['CompositeTypes']['setup_saves_data'][];
     cover_description: string;
+    leaf_node: boolean;
   };
 
 export type Result<T> = Promise<{ data: T; error: null } | { data: null; error: Error }>;
