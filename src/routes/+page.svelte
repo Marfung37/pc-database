@@ -19,5 +19,5 @@
 <div class="flex flex-wrap w-full justify-center gap-8">
   <Shortcut icon={Database} name={m.nav_database()} description={m.home_database_description()} href="./database"/>
   <Shortcut icon={Search} name={m.nav_lookup()} description={m.home_lookup_description()} href="./lookup"/>
-  <Shortcut icon={PackageSearch} name={m.nav_quiz()} description={m.home_quiz_description()} href="."/>
+  <!-- <Shortcut icon={PackageSearch} name={m.nav_quiz()} description={m.home_quiz_description()} href="."/> -->
 </div>
