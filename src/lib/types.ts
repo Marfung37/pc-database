@@ -32,6 +32,6 @@ export type Result<T> = Promise<{ data: T; error: null } | { data: null; error: 
 type RegexMatchedString<Pattern extends string> = `${string & { __brand: Pattern }}`;
 
 export type SetupID = RegexMatchedString<'^[1-9][0-9a-f]{11}$'>;
-export type Piece = RegexMatchedString<'^[TILJSZO]$'>;
+export type Piece = 'T' | 'I' | 'L' | 'J' | 'S' | 'Z' | 'O';
 export type Queue = RegexMatchedString<'^[TILJSZO]+$'>;
 export type Fumen = RegexMatchedString<'^v115@[A-Za-z0-9+/?]+$'>;
