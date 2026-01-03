@@ -7,19 +7,26 @@ export class TetrisQueue {
   // size in queue must mantain to have previews
   previewSize: number;
   queue: number[];
+  length: number;
   private pos: number;
-  private size: number;
   private fillBags: boolean;
 
   constructor(previewSize: number, fillBags: boolean = true) {
     this.previewSize = previewSize;
-    this.queue = Array<number>(previewSize + BAGSIZE - 1);
-    this.pos = 0;
-    this.size = 0;
     this.fillBags = fillBags;
+    this.queue = Array<number>(this.previewSize + BAGSIZE - 1);
+    this.pos = 0;
+    this.length = 0;
 
-    if(fillBags) {
-      for (let i = 0; i < previewSize; i += BAGSIZE) {
+    this.reset();
+  }
+
+  reset(): void {
+    this.pos = 0;
+    this.length = 0;
+
+    if(this.fillBags) {
+      for (let i = 0; i < this.previewSize; i += BAGSIZE) {
         this.addBag();
       }
     }
@@ -27,22 +34,23 @@ export class TetrisQueue {
 
   private addBag(): void {
     let bag = Array.from({ length: BAGSIZE }, (_, i) => i + 1);
-    for (let i = BAGSIZE - 1; i > 0; i--) {
+    for (let i = BAGSIZE - 1; i >= 0; i--) {
       const rand = Math.floor(Math.random() * (i + 1));
-      this.queue[this.pos + this.size + BAGSIZE - 1 - i] = bag[rand];
+      this.queue[this.pos + this.length + BAGSIZE - 1 - i] = bag[rand];
       bag[rand] = bag[i];
     }
-    this.size += BAGSIZE;
+    this.length += BAGSIZE;
   }
 
   poll(): number {
-    this.size--;
-    if (this.fillBags && this.size < this.previewSize) {
+    this.length--;
+    const oldPos = this.pos;
+    this.pos = (this.pos + 1) % this.queue.length;
+
+    if (this.fillBags && this.length < this.previewSize) {
       this.addBag();
     }
 
-    const oldPos = this.pos;
-    this.pos = (this.pos + 1) % this.queue.length;
     return this.queue[oldPos];
   }
 

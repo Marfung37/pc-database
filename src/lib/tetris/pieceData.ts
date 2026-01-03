@@ -235,52 +235,54 @@ const colour_table = [
   "#88C0D0",
   "#d08770",
   "#5e81ac",
-  "#ebcb8b",
-  "#d8dee9",
   "#a3be8c",
   "#bf616a",
+  "#ebcb8b",
 ];
 
-const piece_to_name = [null, "T", "I", "L", "J", "S", "Z", "O"];
 
-const name_to_piece = {
-  "T": 1,
-  "I": 2,
-  "L": 3,
-  "J": 4,
-  "S": 5,
-  "Z": 6,
-  "O": 7,
-};
+export enum PieceEnum {
+  X,
+  T,
+  I,
+  L,
+  J,
+  S,
+  Z,
+  O
+}
 
-export function get_colour(piece: number): string {
+export enum Rotation {
+  spawn,
+  right,
+  reversed,
+  left
+}
+
+export function get_colour(piece: PieceEnum): string {
   return colour_table[piece];
 }
 
-export function spin_cw(rotation: number): number {
+export function spin_cw(rotation: Rotation): Rotation {
   return (rotation + 1) % 4;
 }
 
-export function spin_180(rotation: number): number {
+export function spin_180(rotation: Rotation): Rotation {
   return (rotation + 2) % 4;
 }
 
-export function spin_ccw(rotation: number): number {
+export function spin_ccw(rotation: Rotation): Rotation {
   return (rotation + 3) % 4;
 }
 
-export function get_offsets(piece: number, rotation: number): number[][] {
+export function get_offsets(piece: PieceEnum, rotation: Rotation): number[][] {
   return offsets[piece][rotation];
 }
 
-export function get_kicks(piece: number, init_rot: number, target_rot: number): number[][] | null {
+export function get_kicks(piece: PieceEnum, init_rot: Rotation, target_rot: Rotation): number[][] {
   return kick_map[piece]![init_rot][target_rot];
 }
 
-export function get_piece_name(piece: number): Piece | null {
-  return piece_to_name[piece] as Piece | null;
-}
-
-export function get_piece_number(piece: Piece): number {
-  return name_to_piece[piece];
+export function get_piece_number(piece: Piece): PieceEnum {
+  return PieceEnum[piece];
 }

@@ -1,4 +1,4 @@
-import { get_offsets, get_colour } from '$lib/tetris/pieceData';
+import { get_offsets, get_colour, PieceEnum, Rotation } from '$lib/tetris/pieceData';
 
 interface Pos {
   x: number;
@@ -8,10 +8,10 @@ interface Pos {
 export class TetrisBoardPiece {
   x: number;
   y: number;
-  type: number;
-  rotation: number;
+  type: PieceEnum;
+  rotation: Rotation;
 
-  constructor(x: number, y: number, type: number, rotation: number) {
+  constructor(x: number, y: number, type: PieceEnum, rotation: Rotation) {
     this.x = x;
     this.y = y;
     this.type = type;
@@ -26,8 +26,12 @@ export class TetrisBoardPiece {
     return get_colour(this.type);
   }
 
-  move(dx: number, dy: number) {
+  move(dx: number, dy: number): void {
     this.x += dx;
     this.y += dy;
+  }
+
+  copy(): TetrisBoardPiece {
+    return new TetrisBoardPiece(this.x, this.y, this.type, this.rotation);
   }
 }

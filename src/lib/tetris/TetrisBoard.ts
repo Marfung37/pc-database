@@ -1,5 +1,5 @@
 import { TetrisBoardPiece } from '$lib/tetris/TetrisBoardPiece';
-import { get_piece_name } from '$lib/tetris/pieceData';
+import { PieceEnum } from '$lib/tetris/pieceData';
 
 export class TetrisBoard {
   public width: number;
@@ -33,10 +33,9 @@ export class TetrisBoard {
       throw new RangeError(`Given row out of bounds of 0-${this.height}`)
     }
 
-    this.board[0] = new Array(this.width).fill(0);
-    row = Math.min(row, this.height);
-    for (let i = row - 1; i > 0; i--) {
-      this.board[i] = this.board[i - 1];
+    this.board[this.height - 1] = new Array(this.width).fill(0);
+    for (let i = row; i < this.height - 1; i++) {
+      this.board[i] = this.board[i + 1];
     }
   }
 
@@ -55,9 +54,12 @@ export class TetrisBoard {
     return this.at(row, col) !== 0;
   }
 
-  place(piece: TetrisBoardPiece) {
+  place(piece: TetrisBoardPiece, clear: boolean = false): void {
     for(let {x, y} of piece.getMinos()) {
       this.board[y][x] = piece.type;
+      if (clear && this.lineFull(y)) {
+        this.lineclear(y);
+      }
     }
   }
 
@@ -70,6 +72,6 @@ export class TetrisBoard {
   }
 
   toString(): string {
-    return this.board.map((row) => row.map(get_piece_name).join('')).join('\n');
+    return this.board.map((row) => row.map((val: PieceEnum) => PieceEnum[val]).join('')).join('\n');
   }
 }

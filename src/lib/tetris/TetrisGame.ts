@@ -2,18 +2,33 @@ import type { Queue } from '$lib/types';
 import { TetrisQueue } from '$lib/tetris/TetrisQueue';
 import { TetrisBoard } from '$lib/tetris/TetrisBoard';
 import { TetrisBoardPiece } from '$lib/tetris/TetrisBoardPiece';
+import type { Action } from '$lib/tetris/Keybind';
 import { extendPieces } from '$lib/utils/pieces';
 import { PCSIZE, BOARDHEIGHT } from '$lib/constants';
+import { get_kicks, spin_cw, spin_ccw, spin_180, PieceEnum, Rotation } from '$lib/tetris/pieceData';
 
 const PREVIEWSIZE = 5;
+const INITIALY = 18;
+const INITIALX = 5;
 
-class TetrisGame {
-  private arr: number;
-  private sdArr: number;
-  private das: number;
+export class TetrisGame {
+  board: TetrisBoard;
+  queue: TetrisQueue;
+  holdPiece!: PieceEnum;
+  active!: TetrisBoardPiece;
+
+  softReset: boolean = false;
+
+  arr: number;
+  sdArr: number;
+  das: number;
+
   private isPrac: boolean;
-  private queue: TetrisQueue;
-  private board: TetrisBoard;
+  private held!: boolean;
+  private timers!: Record<Action, number>;
+
+  private queues: Array<string>;
+  private queueIndex: number;
 
   constructor(pattern: string = '') {
     this.arr = 0;
@@ -23,19 +38,271 @@ class TetrisGame {
 
     this.queue = new TetrisQueue(PREVIEWSIZE);
     this.board = new TetrisBoard(PCSIZE, BOARDHEIGHT);
+    this.queues = [];
+    this.queueIndex = -1;
     if (pattern.length > 0) {
-      const queues = extendPieces(pattern);
-      if (queues.length > 0) {
-        // chose random from queues
-        const index = Math.floor(Math.random() * queues.length);
-        this.queue.set(queues[index] as Queue);
+      this.queues = extendPieces(pattern);
+      if (this.queues.length > 0) {
         this.queue.setFillBags(false);
         this.isPrac = true;
+        this.regen();
       }
+    }
+
+    this.reset(this.softReset);
+  }
+
+  private setActive(piece: PieceEnum): void {
+    this.active = new TetrisBoardPiece(INITIALX, INITIALY, piece, Rotation.spawn);
+  }
+
+  reset(soft: boolean = false): void {
+    this.held = false;
+    this.holdPiece = 0;
+    this.timers = {
+      "left": -1,
+      "right": -1,
+      "sd": -1,
+    };
+
+    this.queue.reset();
+    this.board.reset();
+
+    // soft by keeping the queue
+    if (this.queues.length > 0 && soft) 
+      this.queue.set(this.queues[this.queueIndex] as Queue);
+
+    if (this.queues.length > 0 && this.queue.previewSize > 1) {
+      this.holdPiece = this.queue.poll();
+    }
+
+    this.setActive(this.queue.poll());
+  }
+
+  regen(): void {
+    this.queueIndex = Math.floor(Math.random() * this.queues.length);
+    this.queue.set(this.queues[this.queueIndex] as Queue);
+  }
+
+  checkCollide(piece: TetrisBoardPiece): boolean {
+    for (let pos of piece.getMinos()) {
+      if (
+        pos.x < 0 || pos.x >= PCSIZE || pos.y < 0 ||
+        this.board.isFilled(pos.y, pos.x)
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  getGhost(): TetrisBoardPiece {
+    let ghost = this.active.copy();
+    do ghost.move(0, -1);
+    while (!this.checkCollide(ghost));
+    ghost.move(0, 1);
+    return ghost;
+  }
+
+  hold(): void {
+    if (this.held) {
+      return;
+    }
+    this.held = !this.isPrac;
+    if (this.holdPiece === PieceEnum.X) {
+      this.holdPiece = this.active.type;
+      this.setActive(this.queue.poll());
+    } else {
+      let tmp = this.active.type;
+      this.setActive(this.holdPiece)
+      this.holdPiece = tmp;
     }
   }
 
-  checkCollide(piece: TetrisBoardPiece) {
+  private movePiece(dx: number, dy: number): boolean {
+    // move piece directly to location and checks if collides there
 
+    this.active.move(dx, dy);
+    // didn't collide at that location
+    if(!this.checkCollide(this.active)) {
+      return true;
+    }
+    // reverse action
+    this.active.move(-dx, -dy);
+    return false;
   }
+
+  spin(rotation: Rotation): void {
+    const init = this.active.rotation;
+    this.active.rotation = rotation;
+    for (let [dx, dy] of get_kicks(this.active.type, init, rotation)) {
+      if (this.movePiece(dx, dy)) return;
+    }
+    this.active.rotation = init;
+  }
+
+  spinCW(): void {
+    this.spin(spin_cw(this.active.rotation));
+  }
+
+  spinCCW(): void {
+    this.spin(spin_ccw(this.active.rotation));
+  }
+
+  spin180(): void {
+    this.spin(spin_180(this.active.rotation));
+  }
+
+  down(): void {
+    this.movePiece(0, -1);
+  }
+
+  lock(): void {
+    // move piece as far down as possible (hd)
+    while(this.movePiece(0, -1));
+    this.held = false;
+    this.board.place(this.active, true);
+
+    if (this.queue.length == 0) {
+      if (this.holdPiece != PieceEnum.X) {
+        this.setActive(this.holdPiece);
+        this.holdPiece = PieceEnum.X;
+        this.held = true;
+      } else {
+        // no more pieces
+        this.reset(this.softReset);
+      }
+    } else {
+      this.setActive(this.queue.poll());
+    }
+
+    // practice pc
+    if (this.isPrac && this.board.isEmpty()) {
+      this.regen();
+      this.reset(this.softReset);
+    }
+
+    // topped out
+    if (this.checkCollide(this.active)) {
+      this.reset(this.softReset);
+    }
+  }
+
+  tick(time: number, actions: Set<Action>) {
+    let buf = {
+      "left": false,
+      "right": false,
+      "sd": false,
+    };
+    for (let action of actions) {
+      switch (action) {
+        case "hold":
+          this.hold();
+          break;
+        case "ccw":
+          this.spinCCW();
+          actions.delete("ccw");
+          break;
+        case "cw":
+          this.spinCW();
+          actions.delete("cw");
+          break;
+        case "180":
+          this.spin180();
+          actions.delete("180");
+          break;
+        case "hd":
+          this.lock();
+          actions.delete("hd");
+          break;
+        case "d1":
+          this.down();
+          actions.delete("d1");
+          break;
+        case "reset":
+          this.reset();
+          actions.delete("reset");
+          break;
+        case "left":
+        case "right":
+        case "sd":
+          buf[action] = true;
+          break;
+      }
+    }
+    let ldas = -1;
+    let rdas = -1;
+
+    if (!buf["left"]) {
+      this.timers["left"] = -1;
+    } else if (
+      this.timers["left"] != -1 &&
+      time - this.timers["left"] >= this.das + this.arr
+    ) {
+      ldas = this.timers["left"] + this.das;
+    }
+
+    if (!buf["right"]) {
+      this.timers["right"] = -1;
+    } else if (
+      this.timers["right"] != -1 &&
+      time - this.timers["right"] >= this.das + this.arr
+    ) {
+      rdas = this.timers["right"] + this.das;
+    }
+
+    // replace with arr later
+    if (buf["left"] && buf["right"] && (ldas == -1 || rdas == -1)) {
+    } else if (ldas != -1 && (rdas == -1 || ldas > rdas)) {
+      while (ldas + this.arr < time) {
+        if (!this.movePiece(-1, 0)) {
+          ldas = time;
+          break;
+        }
+        ldas += this.arr;
+      }
+      this.timers["left"] = ldas - this.das;
+      if (this.timers["right"] != -1) {
+        this.timers["right"] = ldas - 1;
+      }
+    } else if (rdas != -1) {
+      while (rdas + this.arr < time) {
+        if (!this.movePiece(1, 0)) {
+          rdas = time - this.das;
+          break;
+        }
+        rdas += this.arr;
+      }
+      this.timers["right"] = rdas - this.das;
+      if (this.timers["left"] != -1) {
+        this.timers["left"] = rdas - 1;
+      }
+    }
+    if (buf["left"] && this.timers["left"] == -1) {
+      this.movePiece(-1, 0);
+      this.timers["left"] = time;
+    }
+    if (buf["right"] && this.timers["right"] == -1) {
+      this.movePiece(1, 0);
+      this.timers["right"] = time;
+    }
+
+    if (buf["sd"]) {
+      if (this.timers["sd"] == -1) {
+        this.timers["sd"] = time;
+      }
+      let sddas = this.timers["sd"];
+      while (sddas < time) {
+        if (!this.movePiece(0, -1)) {
+          sddas = time;
+          break;
+        }
+        sddas += this.sdArr;
+      }
+      this.timers["sd"] = sddas;
+    } else {
+      this.timers["sd"] = -1;
+    }
+  }
+
 }

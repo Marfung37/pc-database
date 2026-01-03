@@ -15,8 +15,9 @@ const DEFAULT: Bindings = {
   reset: 'KeyR'
 };
 
-class Keybind {
-  private binding: Bindings;
+export class Keybind {
+  binding: Bindings;
+  lookup: Record<string, Action> = {};
   private storageKey: string;
   private subscribers: Subscriber[];
 
@@ -24,6 +25,14 @@ class Keybind {
     this.binding = binding;
     this.storageKey = storageKey;
     this.subscribers = [];
+    this.reset();
+  }
+
+  rebuildLookup(): void {
+    this.lookup = {};
+    for (const [action, key] of Object.entries(this.binding)) {
+      this.lookup[key] = action as Action;
+    }
   }
 
   set(action: Action, key: string): void {
@@ -44,18 +53,22 @@ class Keybind {
   }
 
   notify() {
+    this.rebuildLookup()
     this.subscribers.forEach(fn => fn(this.binding));
   }
 
   save() {
-    localStorage.setItem(this.storageKey, JSON.stringify(this.binding));
+    if (typeof localStorage !== 'undefined') 
+      localStorage.setItem(this.storageKey, JSON.stringify(this.binding));
   }
 
   load() {
     try {
-      const raw = localStorage.getItem(this.storageKey);
-      if (!raw) return {};
-      return JSON.parse(raw);
+      if (typeof localStorage !== 'undefined')  {
+        const raw = localStorage.getItem(this.storageKey);
+        if (!raw) return {};
+        return JSON.parse(raw);
+      }
     } catch {
       return {};
     }
