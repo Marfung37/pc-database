@@ -156,13 +156,13 @@
   <h3>Keybinds</h3>
   <table>
     <tbody>
-    {#each Object.entries(keybinds.binding || {}) as [action, key]}
+    {#each Object.entries($keybinds || {}) as [action, key]}
       <tr>
         <td>{action}</td>
         <td>
           <input 
             value={key} 
-            on:keydown|preventDefault|stopPropagation={(e) => keybinds.rebind(action, e.code)} 
+            on:keydown|preventDefault|stopPropagation={(e) => keybinds.set(action as Action, e.code)} 
           />
         </td>
       </tr>
