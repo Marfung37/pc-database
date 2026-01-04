@@ -8,8 +8,8 @@ import { PCSIZE, BOARDHEIGHT } from '$lib/constants';
 import { get_kicks, spin_cw, spin_ccw, spin_180, PieceEnum, Rotation } from '$lib/tetris/pieceData';
 
 const PREVIEWSIZE = 5;
-const INITIALY = 18;
-const INITIALX = 5;
+const INITIALY = 19;
+const INITIALX = 4;
 
 const DEFAULT = {
   'arr': 0,
@@ -41,7 +41,7 @@ export class TetrisGame {
     this.isPrac = false;
 
     this.queue = new TetrisQueue(PREVIEWSIZE);
-    this.board = new TetrisBoard(PCSIZE, BOARDHEIGHT);
+    this.board = new TetrisBoard(PCSIZE, BOARDHEIGHT + 1);
     this.queues = [];
     this.queueIndex = -1;
 

@@ -12,6 +12,7 @@
   let boardCanvas: HTMLCanvasElement, queueCanvas: HTMLCanvasElement, holdCanvas: HTMLCanvasElement;
   let patternsText = "";
   let game: TetrisGame, actions: Set<Action> = new Set<Action>();
+  let showSettings: boolean = false;
 
   const CELL_SIZE = 25;
 
@@ -135,6 +136,7 @@
   }
 
   function drawPiece(context: CanvasRenderingContext2D, piece: TetrisBoardPiece, opacity: string = '') {
+    if (piece.type === PieceEnum.X) return;
     if (opacity === undefined) {
       opacity = "";
     }
@@ -151,22 +153,39 @@
 />
 
 <div class="flex flex-col items-center">
-  <div class="game-container">
-    <canvas bind:this={holdCanvas} id="hold" class="inline-block"></canvas>
-    <canvas bind:this={boardCanvas} id="board" class="inline-block"></canvas>
+  <div class="game-container flex items-start">
+    <canvas bind:this={holdCanvas} id="hold" class="bg-[#2e3440] py-4 px-2"></canvas>
+    <canvas bind:this={boardCanvas} id="board" class="bg-[#2e3440] mx-1"></canvas>
     
-    <canvas bind:this={queueCanvas} id="queue" class="inline-block"></canvas>
-    
-    <textarea bind:value={patternsText}></textarea>
-    <button on:click={handleGenerate}>Generate</button>
+    <canvas bind:this={queueCanvas} id="queue" class="bg-[#2e3440] py-4 px-2"></canvas>
   </div>
 
-  <h3>Keybinds</h3>
+  
+  <label for="pattern">Pattern for Queue <a class="text-blue-500 font-bold" href="github.com/Marfung37/ExtendedSfinderPieces">?</a></label>
+  <textarea id="pattern" bind:value={patternsText}></textarea>
+  <button class="btn" on:click={handleGenerate}>Generate</button>
+
+  <button class="btn" on:click={() => showSettings = true}>Show Settings</button>
+
+  {#if showSettings}
+  <div 
+    id="settings-modal" 
+    class="flex items-center justify-center z-1 fixed top-0 left-0 w-full h-full bg-gray-400/50" 
+    on:click|self={() => showSettings = false} 
+    role="button" 
+    aria-label="Close dialog"
+    tabindex="0"
+    on:keydown={(e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') showSettings = false;
+    }}
+  >
+  <div class="flex flex-col bg-white p-8 rounded">
+  <h3 class="text-lg font-bold py-2">Keybinds</h3>
   <table>
     <tbody>
     {#each Object.entries($keybinds || {}) as [action, key]}
       <tr>
-        <td>{action}</td>
+        <td class="px-2">{action}</td>
         <td>
           <input 
             value={key} 
@@ -180,7 +199,7 @@
 
 
   {#if game !== undefined}
-  <h3>Tunings</h3>
+  <h3 class="text-lg font-bold py-2">Tunings</h3>
   {#each ['das', 'arr', 'sdArr'] as tuning}
     <label for={tuning}>{tuning}</label>
     <input 
@@ -194,5 +213,8 @@
       }}
     />
   {/each}
+  {/if}
+  </div>
+  </div>
   {/if}
 </div>
