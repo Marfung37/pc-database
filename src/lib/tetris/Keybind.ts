@@ -25,7 +25,6 @@ export class Keybind {
     this.binding = binding;
     this.storageKey = storageKey;
     this.subscribers = [];
-    this.reset();
   }
 
   rebuildLookup(): void {
@@ -42,7 +41,6 @@ export class Keybind {
     if(dupAction)
       this.binding[dupAction] = '-';
     this.binding[action] = key;
-
 
     this.notify();
   }
@@ -65,18 +63,16 @@ export class Keybind {
   }
 
   save() {
-    if (typeof localStorage !== 'undefined') 
-      localStorage.setItem(this.storageKey, JSON.stringify(this.binding));
+    localStorage.setItem(this.storageKey, JSON.stringify(this.binding));
   }
 
   load() {
     try {
-      if (typeof localStorage !== 'undefined')  {
-        const raw = localStorage.getItem(this.storageKey);
-        if (!raw) return {};
-        return JSON.parse(raw);
-      }
-    } catch {
+      const raw = localStorage.getItem(this.storageKey);
+      if (!raw) return {};
+      return JSON.parse(raw);
+    } catch (e) {
+      console.error(e);
       return {};
     }
   }

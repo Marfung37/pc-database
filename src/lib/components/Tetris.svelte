@@ -3,16 +3,21 @@
   import { PCSIZE, BOARDHEIGHT } from '$lib/constants';
   import { TetrisBoardPiece } from '$lib/tetris/TetrisBoardPiece';
   import { get_colour, PieceEnum, Rotation } from '$lib/tetris/pieceData';
+  import { TetrisQueue } from '$lib/tetris/TetrisQueue';
+  import { TetrisBoard } from '$lib/tetris/TetrisBoard';
   import { TetrisGame } from '$lib/tetris/TetrisGame';
   import { type Action, keybinds } from '$lib/tetris/Keybind';
+  import { toast } from 'svelte-sonner';
 
-  let boardCanvas, queueCanvas, holdCanvas;
+  let boardCanvas: HTMLCanvasElement, queueCanvas: HTMLCanvasElement, holdCanvas: HTMLCanvasElement;
   let patternsText = "";
   let game: TetrisGame, actions: Set<Action> = new Set<Action>();
 
   const CELL_SIZE = 25;
 
   onMount(() => {
+    keybinds.reset(keybinds.load());
+
     boardCanvas.width = PCSIZE * CELL_SIZE;
     boardCanvas.height = BOARDHEIGHT * CELL_SIZE;
     queueCanvas.width = 4 * CELL_SIZE;
@@ -20,9 +25,9 @@
     holdCanvas.width = 4 * CELL_SIZE;
     holdCanvas.height = 2 * CELL_SIZE;
 
-    const boardCtx = boardCanvas.getContext('2d');
-    const queueCtx = queueCanvas.getContext('2d');
-    const holdCtx = holdCanvas.getContext('2d');
+    const boardCtx = boardCanvas.getContext('2d')!;
+    const queueCtx = queueCanvas.getContext('2d')!;
+    const holdCtx = holdCanvas.getContext('2d')!;
 
     // Set origin to bottom left
     holdCtx.setTransform(CELL_SIZE, 0, 0, -CELL_SIZE, 0, 2 * CELL_SIZE);
@@ -30,8 +35,9 @@
     queueCtx.setTransform(CELL_SIZE, 0, 0, -CELL_SIZE, 0, 14 * CELL_SIZE);
 
     game = new TetrisGame(patternsText.toUpperCase());
+    game.loadHandling();
 
-    let frame;
+    let frame: DOMHighResTimeStamp;
     const loop = (timestamp: number) => {
       game.tick(timestamp, actions);
       drawGame(boardCtx, game);
@@ -45,7 +51,7 @@
     return () => cancelAnimationFrame(frame); // Cleanup on destroy
   });
 
-  function handleKeyDown(event) {
+  function handleKeyDown(event: KeyboardEvent) {
     actions.add(keybinds.lookup[event.code]);
     // You can also stop scrolling with space/arrows here
     if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.code)) {
@@ -53,7 +59,7 @@
     }
   }
 
-  function handleKeyUp(event) {
+  function handleKeyUp(event: KeyboardEvent) {
     actions.delete(keybinds.lookup[event.code]);
   }
 
@@ -63,7 +69,7 @@
     } catch (e) { /* handle error */ }
   }
 
-  function drawGame(context, game) {
+  function drawGame(context: CanvasRenderingContext2D, game: TetrisGame) {
     drawBoard(context, game.board);
     drawPiece(context, game.active);
 
@@ -71,7 +77,7 @@
     drawPiece(context, game.getGhost(), "4D");
   }
 
-  function drawBoard(context, board) {
+  function drawBoard(context: CanvasRenderingContext2D, board: TetrisBoard) {
     context.fillStyle = get_colour(0);
     context.fillRect(0, 0, PCSIZE, BOARDHEIGHT);
 
@@ -93,7 +99,7 @@
     context.setTransform(transform);
 
     // Minos
-    for (let y = 0; y < Math.min(board.board.length, BOARDHEIGHT); y++) {
+    for (let y = 0; y < BOARDHEIGHT; y++) {
       for (let x = 0; x < PCSIZE; x++) {
         if (board.isFilled(y, x)) {
           context.fillStyle = get_colour(board.at(y, x));
@@ -107,7 +113,7 @@
     // }
   }
 
-  function drawQueue(context, queue) {
+  function drawQueue(context: CanvasRenderingContext2D, queue: TetrisQueue) {
     context.fillStyle = get_colour(PieceEnum.X);
     context.fillRect(0, 0, 4, 14);
     let preview = queue.preview();
@@ -116,7 +122,7 @@
     }
   }
 
-  function drawHold(context, hold) {
+  function drawHold(context: CanvasRenderingContext2D, hold: PieceEnum) {
     context.fillStyle = get_colour(PieceEnum.X);
     context.fillRect(0, 0, 4, 2);
 
@@ -126,7 +132,7 @@
     }
   }
 
-  function drawPiece(context, piece, opacity = '') {
+  function drawPiece(context: CanvasRenderingContext2D, piece: TetrisBoardPiece, opacity: string = '') {
     if (opacity === undefined) {
       opacity = "";
     }
@@ -162,7 +168,7 @@
         <td>
           <input 
             value={key} 
-            on:keydown|preventDefault|stopPropagation={(e) => keybinds.set(action as Action, e.code)} 
+            on:keydown|preventDefault|stopPropagation={(e) => {keybinds.set(action as Action, e.code); keybinds.save();}} 
           />
         </td>
       </tr>
@@ -178,7 +184,12 @@
     <input 
       id={tuning}
       type="number" 
-      bind:value={game[tuning]} 
+      value={game.handling[tuning]}
+      on:change={(e) => {
+        game.handling[tuning] = Number((e.target as HTMLInputElement).value);
+        game.saveHandling();
+        toast.success(tuning + ' changed!');
+      }}
     />
   {/each}
   {/if}

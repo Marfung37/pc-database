@@ -11,6 +11,12 @@ const PREVIEWSIZE = 5;
 const INITIALY = 18;
 const INITIALX = 5;
 
+const DEFAULT = {
+  'arr': 0,
+  'sdArr': 0,
+  'das': 0,
+}
+
 export class TetrisGame {
   board: TetrisBoard;
   queue: TetrisQueue;
@@ -19,9 +25,8 @@ export class TetrisGame {
 
   softReset: boolean = false;
 
-  arr: number;
-  sdArr: number;
-  das: number;
+  handling: Record<string, number>;
+  storageKey: string;
 
   private isPrac: boolean;
   private held!: boolean;
@@ -30,10 +35,9 @@ export class TetrisGame {
   private queues: Array<string>;
   private queueIndex: number;
 
-  constructor(pattern: string = '') {
-    this.arr = 0;
-    this.sdArr = 0;
-    this.das = 69;
+  constructor(pattern: string = '', handling: Record<string, number> = DEFAULT, storageKey: string = 'handling') {
+    this.handling = handling;
+    this.storageKey = storageKey;
     this.isPrac = false;
 
     this.queue = new TetrisQueue(PREVIEWSIZE);
@@ -237,43 +241,43 @@ export class TetrisGame {
       this.timers["left"] = -1;
     } else if (
       this.timers["left"] != -1 &&
-      time - this.timers["left"] >= this.das + this.arr
+      time - this.timers["left"] >= this.handling.das + this.handling.arr
     ) {
-      ldas = this.timers["left"] + this.das;
+      ldas = this.timers["left"] + this.handling.das;
     }
 
     if (!buf["right"]) {
       this.timers["right"] = -1;
     } else if (
       this.timers["right"] != -1 &&
-      time - this.timers["right"] >= this.das + this.arr
+      time - this.timers["right"] >= this.handling.das + this.handling.arr
     ) {
-      rdas = this.timers["right"] + this.das;
+      rdas = this.timers["right"] + this.handling.das;
     }
 
     // replace with arr later
     if (buf["left"] && buf["right"] && (ldas == -1 || rdas == -1)) {
     } else if (ldas != -1 && (rdas == -1 || ldas > rdas)) {
-      while (ldas + this.arr < time) {
+      while (ldas + this.handling.arr < time) {
         if (!this.movePiece(-1, 0)) {
           ldas = time;
           break;
         }
-        ldas += this.arr;
+        ldas += this.handling.arr;
       }
-      this.timers["left"] = ldas - this.das;
+      this.timers["left"] = ldas - this.handling.das;
       if (this.timers["right"] != -1) {
         this.timers["right"] = ldas - 1;
       }
     } else if (rdas != -1) {
-      while (rdas + this.arr < time) {
+      while (rdas + this.handling.arr < time) {
         if (!this.movePiece(1, 0)) {
-          rdas = time - this.das;
+          rdas = time - this.handling.das;
           break;
         }
-        rdas += this.arr;
+        rdas += this.handling.arr;
       }
-      this.timers["right"] = rdas - this.das;
+      this.timers["right"] = rdas - this.handling.das;
       if (this.timers["left"] != -1) {
         this.timers["left"] = rdas - 1;
       }
@@ -297,7 +301,7 @@ export class TetrisGame {
           sddas = time;
           break;
         }
-        sddas += this.sdArr;
+        sddas += this.handling.sdArr;
       }
       this.timers["sd"] = sddas;
     } else {
@@ -305,4 +309,17 @@ export class TetrisGame {
     }
   }
 
+  saveHandling() {
+    localStorage.setItem(this.storageKey, JSON.stringify(this.handling));
+  }
+
+  loadHandling(): void {
+    try {
+      const raw = localStorage.getItem(this.storageKey);
+      if (!raw) return;
+      this.handling = JSON.parse(raw);
+    } catch (e) {
+      console.error(e);
+    }
+  }
 }
