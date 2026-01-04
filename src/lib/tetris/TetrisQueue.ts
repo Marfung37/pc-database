@@ -1,12 +1,12 @@
 import type { Queue, Piece } from '$lib/types';
-import { get_piece_number } from '$lib/tetris/pieceData';
+import { type PieceEnum, get_piece_number } from '$lib/tetris/pieceData';
 
 // Tetris 7 bag queue generation
 const BAGSIZE = 7;
 export class TetrisQueue {
   // size in queue must mantain to have previews
   previewSize: number;
-  queue: number[];
+  queue: PieceEnum[];
   length: number;
   private pos: number;
   private fillBags: boolean;
@@ -43,6 +43,10 @@ export class TetrisQueue {
   }
 
   poll(): number {
+    if (this.length == 0) {
+      return 0;
+    }
+
     this.length--;
     const oldPos = this.pos;
     this.pos = (this.pos + 1) % this.queue.length;
@@ -54,14 +58,16 @@ export class TetrisQueue {
     return this.queue[oldPos];
   }
 
-  preview() {
-    return Array.from({ length: this.previewSize }, (_, i) =>
+  preview(): PieceEnum[] {
+    return Array.from({ length: Math.min(this.length, this.previewSize) }, (_, i) =>
       this.queue[(this.pos + i) % this.queue.length]
     );
   }
 
   // used to set the queue
-  set(queue: Queue) {
+  set(queue: Queue): void {
+    this.length = queue.length;
+    this.pos = 0;
     this.queue = ([...queue] as Piece[]).map(get_piece_number);
   }
 

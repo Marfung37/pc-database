@@ -44,6 +44,7 @@ export class TetrisGame {
     this.board = new TetrisBoard(PCSIZE, BOARDHEIGHT);
     this.queues = [];
     this.queueIndex = -1;
+
     if (pattern.length > 0) {
       this.queues = extendPieces(pattern);
       if (this.queues.length > 0) {
@@ -57,6 +58,8 @@ export class TetrisGame {
   }
 
   private setActive(piece: PieceEnum): void {
+    if (piece == PieceEnum.X) 
+      throw new Error('Unable to set active piece as gotten invalid piece')
     this.active = new TetrisBoardPiece(INITIALX, INITIALY, piece, Rotation.spawn);
   }
 
@@ -73,12 +76,17 @@ export class TetrisGame {
     this.board.reset();
 
     // soft by keeping the queue
-    if (this.queues.length > 0 && soft) 
-      this.queue.set(this.queues[this.queueIndex] as Queue);
+    if (this.queues.length > 0) {
+      if (soft)
+        this.queue.set(this.queues[this.queueIndex] as Queue);
+      else
+        this.regen();
+    }
 
     if (this.queues.length > 0 && this.queue.previewSize > 1) {
       this.holdPiece = this.queue.poll();
     }
+
 
     this.setActive(this.queue.poll());
   }
@@ -114,13 +122,18 @@ export class TetrisGame {
     }
     this.held = !this.isPrac;
     if (this.holdPiece === PieceEnum.X) {
+      if (this.queue.length == 0) {
+        this.setActive(this.active.type)
+        return;
+      }
       this.holdPiece = this.active.type;
       this.setActive(this.queue.poll());
-    } else {
-      let tmp = this.active.type;
-      this.setActive(this.holdPiece)
-      this.holdPiece = tmp;
+      return;
     }
+
+    let tmp = this.active.type;
+    this.setActive(this.holdPiece)
+    this.holdPiece = tmp;
   }
 
   private movePiece(dx: number, dy: number): boolean {
@@ -171,7 +184,6 @@ export class TetrisGame {
       if (this.holdPiece != PieceEnum.X) {
         this.setActive(this.holdPiece);
         this.holdPiece = PieceEnum.X;
-        this.held = true;
       } else {
         // no more pieces
         this.reset(this.softReset);
@@ -202,6 +214,7 @@ export class TetrisGame {
       switch (action) {
         case "hold":
           this.hold();
+          actions.delete("hold");
           break;
         case "ccw":
           this.spinCCW();

@@ -34,7 +34,7 @@
     boardCtx.setTransform(CELL_SIZE, 0, 0, -CELL_SIZE, 0, 20 * CELL_SIZE);
     queueCtx.setTransform(CELL_SIZE, 0, 0, -CELL_SIZE, 0, 14 * CELL_SIZE);
 
-    game = new TetrisGame(patternsText.toUpperCase());
+    game = new TetrisGame(patternsText);
     game.loadHandling();
 
     let frame: DOMHighResTimeStamp;
@@ -65,8 +65,10 @@
 
   function handleGenerate() {
     try {
-      game = new TetrisGame(patternsText.toUpperCase());
-    } catch (e) { /* handle error */ }
+      game = new TetrisGame(patternsText, game.handling);
+    } catch (e) { 
+      console.error(e);
+    }
   }
 
   function drawGame(context: CanvasRenderingContext2D, game: TetrisGame) {
