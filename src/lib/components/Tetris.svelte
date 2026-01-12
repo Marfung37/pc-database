@@ -55,6 +55,9 @@
   });
 
   function handleKeyDown(event: KeyboardEvent) {
+    if(event.code == "KeyZ" && event.ctrlKey)
+      actions.add("undo");
+
     actions.add(keybinds.lookup[event.code]);
     // You can also stop scrolling with space/arrows here
     if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.code)) {
