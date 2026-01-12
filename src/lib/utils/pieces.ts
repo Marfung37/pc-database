@@ -105,12 +105,6 @@ function parseInput(inputPattern: string, bsortQueues: boolean = true): Iterable
       }
     } else if (piecesFormat.startsWith('[') && piecesFormat.endsWith(']')) {
       actualPieces = piecesFormat.slice(1, -1);
-      // }
-      // Is a file
-      // else if (piecesFormat.startsWith('<') && piecesFormat.endsWith('>')) {
-      //   const filename = piecesFormat.slice(1, -1);
-      //   // In browser environment, file reading would need to be handled differently
-      //   throw new Error('File reading not implemented in browser environment');
     } else {
       // Invalid pieces format
       throw new Error(`The pieces ${piecesFormat} could not be parsed!`);
@@ -886,7 +880,7 @@ function handleExtendedSfinderFormatPieces(
 
   // Do the product of each part for one long queue
   let result = cartesianProduct(...queues).map((arr) => arr.join(''));
-
+  
   // Sort the queues
   if (sortQueuesBool) {
     result = sortQueues(result);
@@ -897,7 +891,7 @@ function handleExtendedSfinderFormatPieces(
 }
 
 // Handle user input and runs the program
-function extendPieces(customInput: string | string[]): string[] {
+function extendPieces(customInput: string | string[], sorted: boolean = true): string[] {
   /** Main function for handling user input and program */
 
   if (typeof customInput === 'string') {
@@ -921,6 +915,9 @@ function extendPieces(customInput: string | string[]): string[] {
     // Get the queues from this format
     const [queuesPart] = handleExtendedSfinderFormatPieces(extendedSfinderPieces, false);
     queues.push(queuesPart);
+  }
+  if (!sorted) {
+    return queues.flatMap((q) => [...q]);
   }
 
   // Sort the queues

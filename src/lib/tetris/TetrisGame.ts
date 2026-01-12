@@ -46,7 +46,9 @@ export class TetrisGame {
     this.queueIndex = -1;
 
     if (pattern.length > 0) {
-      this.queues = extendPieces(pattern);
+      console.log(pattern)
+      this.queues = extendPieces(pattern, false);
+      console.log(this.queues)
       if (this.queues.length > 0) {
         this.queue.setFillBags(false);
         this.isPrac = true;
@@ -277,6 +279,20 @@ export class TetrisGame {
           break;
         }
         ldas += this.handling.arr;
+        if (buf["sd"]) {
+          if (this.timers["sd"] == -1) {
+            this.timers["sd"] = time;
+          }
+          let sddas = this.timers["sd"];
+          while (sddas <= time) {
+            if (!this.movePiece(0, -1)) {
+              sddas = time;
+              break;
+            }
+            sddas += this.handling.sdArr;
+          }
+          this.timers["sd"] = sddas;
+        }
       }
       this.timers["left"] = ldas - this.handling.das;
       if (this.timers["right"] != -1) {
@@ -289,6 +305,20 @@ export class TetrisGame {
           break;
         }
         rdas += this.handling.arr;
+        if (buf["sd"]) {
+          if (this.timers["sd"] == -1) {
+            this.timers["sd"] = time;
+          }
+          let sddas = this.timers["sd"];
+          while (sddas <= time) {
+            if (!this.movePiece(0, -1)) {
+              sddas = time;
+              break;
+            }
+            sddas += this.handling.sdArr;
+          }
+          this.timers["sd"] = sddas;
+        }
       }
       this.timers["right"] = rdas - this.handling.das;
       if (this.timers["left"] != -1) {
@@ -309,7 +339,7 @@ export class TetrisGame {
         this.timers["sd"] = time;
       }
       let sddas = this.timers["sd"];
-      while (sddas < time) {
+      while (sddas <= time) {
         if (!this.movePiece(0, -1)) {
           sddas = time;
           break;

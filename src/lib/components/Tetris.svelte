@@ -161,7 +161,7 @@
   </div>
 
   
-  <label for="pattern">Pattern for Queue <a class="text-blue-500 font-bold" href="github.com/Marfung37/ExtendedSfinderPieces">?</a></label>
+  <label for="pattern">Pattern for Queue <a class="text-blue-500 font-bold" href="https://github.com/Marfung37/ExtendedSfinderPieces">?</a></label>
   <textarea id="pattern" bind:value={patternsText}></textarea>
   <button class="btn" on:click={handleGenerate}>Generate</button>
 
