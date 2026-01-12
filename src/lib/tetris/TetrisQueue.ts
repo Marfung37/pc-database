@@ -25,7 +25,7 @@ export class TetrisQueue {
     this.pos = 0;
     this.length = 0;
 
-    if(this.fillBags) {
+    if (this.fillBags) {
       for (let i = 0; i < this.previewSize; i += BAGSIZE) {
         this.addBag();
       }
@@ -66,12 +66,12 @@ export class TetrisQueue {
     } else {
       this.queue[this.pos] = piece;
     }
-
   }
 
   preview(): PieceEnum[] {
-    return Array.from({ length: Math.min(this.length, this.previewSize) }, (_, i) =>
-      this.queue[(this.pos + i) % this.queue.length]
+    return Array.from(
+      { length: Math.min(this.length, this.previewSize) },
+      (_, i) => this.queue[(this.pos + i) % this.queue.length]
     );
   }
 

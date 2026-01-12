@@ -731,5 +731,3 @@ CREATE POLICY delete_set_tags ON set_tags FOR DELETE TO authenticated USING (
       public.has_edit_permission ()
   )
 );
-
-

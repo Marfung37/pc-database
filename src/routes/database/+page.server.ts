@@ -144,8 +144,7 @@ function buildOqbTree(allSetups: ProcessedSetup[]): ProcessedSetup[] {
     if (setup.setup_oqb_paths === null) continue;
     for (const pathEntry of setup.setup_oqb_paths) {
       const pathParts = pathEntry.oqb_path.split('.');
-      if (pathParts.length === 1)
-        rootNodes.push(setup);
+      if (pathParts.length === 1) rootNodes.push(setup);
     }
   }
 
@@ -230,7 +229,7 @@ export const actions: Actions = {
         setup_oqb_paths (oqb_path)`
       )
       .eq('pc', pc)
-      .eq('statistics.kicktable', 'srs180') // Apply kicktable filter once
+      .eq('statistics.kicktable', 'srs180'); // Apply kicktable filter once
 
     if (fetchError) {
       console.error('Failed to get all setups:', fetchError.message);

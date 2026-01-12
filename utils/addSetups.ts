@@ -53,8 +53,8 @@ interface InputSetup {
 }
 
 interface SetupOQBLink {
-  child_id: string,
-  parent_id: string
+  child_id: string;
+  parent_id: string;
 }
 
 const is180: Record<string, boolean> = {
@@ -249,14 +249,7 @@ async function generateSetupID(
   prefixCount: Map<string, number>,
   build: Queue
 ): Promise<SetupID> {
-
-  const prefix = generateSetupIDPrefix(
-    row.pc,
-    row.type === 'oqb',
-    row.leftover,
-    build,
-    row.fumen
-  );
+  const prefix = generateSetupIDPrefix(row.pc, row.type === 'oqb', row.leftover, build, row.fumen);
 
   const currentCount = prefixCount.get(prefix) || 0;
   prefixCount.set(prefix, currentCount + 1);
@@ -503,9 +496,9 @@ async function parseSetupInput(
 
       const row = csvData[i];
 
-      let safeToCheck = row.parent_id === null || row.parent_id.every((id: string) => id in mirrorChecked);
-      if (!safeToCheck)
-        continue;
+      let safeToCheck =
+        row.parent_id === null || row.parent_id.every((id: string) => id in mirrorChecked);
+      if (!safeToCheck) continue;
       if (row.mirrorChecked !== undefined) {
         mirrorChecked[i] = true;
         continue;
@@ -515,7 +508,9 @@ async function parseSetupInput(
       if (mirrorRow !== null) {
         if (row.parent_id !== null) {
           // TODO: check if parent_id is type oqb, if not error
-          mirrorRow.parent_id = row.parent_id.map((id: number) => csvData[id].mirror).filter((id: number | null) => id !== null);
+          mirrorRow.parent_id = row.parent_id
+            .map((id: number) => csvData[id].mirror)
+            .filter((id: number | null) => id !== null);
         }
         csvData.push(mirrorRow);
         row.mirror = mirrorRow.id;
@@ -533,7 +528,9 @@ async function parseSetupInput(
         if (!value) falseIds.push(index);
       }
 
-      throw Error (`Setups ${falseIds} were unable to determine if mirror is needed due to possibly circular dependency in parent_id`);
+      throw Error(
+        `Setups ${falseIds} were unable to determine if mirror is needed due to possibly circular dependency in parent_id`
+      );
     }
   }
 
@@ -552,7 +549,8 @@ async function parseSetupInput(
     for (let row of csvData) {
       if (idMap[row.id] !== null) continue;
 
-      let safeToCheck = row.parent_id === null || row.parent_id.every((id: number) => idMap[id] !== null);
+      let safeToCheck =
+        row.parent_id === null || row.parent_id.every((id: number) => idMap[id] !== null);
       if (!safeToCheck) continue;
 
       const setup = await generateSetupEntry(row, prefixCount, null, see, hold);
@@ -568,7 +566,14 @@ async function parseSetupInput(
       // DEBUG
       if (stat.cover_data !== null) console.log(`Row ${row.id} does not have full coverage`);
 
-      const duplicateSetupid = await checkDuplicate(setup, stat, setups, stats, kicktable, holdtype);
+      const duplicateSetupid = await checkDuplicate(
+        setup,
+        stat,
+        setups,
+        stats,
+        kicktable,
+        holdtype
+      );
       if (duplicateSetupid !== null) {
         console.log(
           `Setup ${row.id} is a duplicate of ${duplicateSetupid} with possibly different cover pattern`
@@ -579,7 +584,7 @@ async function parseSetupInput(
 
       if (row.parent_id !== null && duplicateSetupid === null) {
         for (const id of row.parent_id) {
-          if (idMap[id] === null) 
+          if (idMap[id] === null)
             throw Error(`Somehow parent id ${id} isn\'t mapped for setup ${row.id}`);
 
           const link = {
@@ -593,7 +598,11 @@ async function parseSetupInput(
 
       idMap[row.id] = setup.setup_id;
       setups.push(setup);
-      setupTranslations.push({setup_id: setup.setup_id, language: 'en', cover_description: row.cover_description});
+      setupTranslations.push({
+        setup_id: setup.setup_id,
+        language: 'en',
+        cover_description: row.cover_description
+      });
       stats.push(stat);
       setupVariants.push(...variants);
       foundSomething = true;
@@ -606,7 +615,7 @@ async function parseSetupInput(
         if (value === null) falseIds.push(index);
       }
 
-      throw Error (`Setups ${falseIds} didn't have their ids`);
+      throw Error(`Setups ${falseIds} didn't have their ids`);
     }
   }
 

@@ -30,7 +30,7 @@
         <p>{m.cover_description()}: {setup.cover_description}</p>
       {/if}
       <div class="flex gap-1">
-        <p>{m.cover_pattern()}: </p>
+        <p>{m.cover_pattern()}:</p>
         <CopyButton textToCopy={setup.cover_pattern} />
       </div>
       <p>{m.exact_cover_pattern()}: {setup.cover_data === null ? m.yes() : m.no()}</p>

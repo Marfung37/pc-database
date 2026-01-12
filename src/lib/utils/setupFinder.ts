@@ -49,11 +49,11 @@ export async function setupFinder(
   // DEBUG
   let requestTime = 0;
   if (previousSetup) {
-    const { data: tmp, error: tmpErr} = await supabase.rpc('find_bare_setup_parent_id', {
+    const { data: tmp, error: tmpErr } = await supabase.rpc('find_bare_setup_parent_id', {
       parent_id: previousSetup,
       kicktable,
       hold_type
-    })
+    });
 
     bareSetups = tmp;
     bareErr = tmpErr;
@@ -64,19 +64,18 @@ export async function setupFinder(
     }
 
     // DEBUG
-    const start = performance.now()
-    const { data: tmp, error: tmpErr} = await supabase.rpc('find_bare_setup_leftover', {
+    const start = performance.now();
+    const { data: tmp, error: tmpErr } = await supabase.rpc('find_bare_setup_leftover', {
       p_leftover: leftover,
       kicktable,
       hold_type
-    })
-    
+    });
+
     bareSetups = tmp;
     bareErr = tmpErr;
 
     // DEBUG
-    requestTime += performance.now() - start
-
+    requestTime += performance.now() - start;
   } else {
     return {
       data: null,
@@ -89,7 +88,7 @@ export async function setupFinder(
 
   const validSetups = [];
   // DEBUG
-  let start = performance.now()
+  let start = performance.now();
   for (let setup of bareSetups) {
     // check with build if the build is within the queue first len(build) + 1 pieces
     if (!subStringSet(queue.slice(0, setup.build.length + 1), setup.build)) continue;
@@ -114,23 +113,23 @@ export async function setupFinder(
     }
   }
   // DEBUG
-  console.log("Timing validity test:", performance.now() - start, "ms")
+  console.log('Timing validity test:', performance.now() - start, 'ms');
 
   // DEBUG
   start = performance.now();
 
-  const {data: setups, error: setupErr} = await supabase.rpc('find_setup_setup_id', {
+  const { data: setups, error: setupErr } = await supabase.rpc('find_setup_setup_id', {
     p_setup_ids: validSetups.map((setup) => setup.setup_id),
     p_include_variants: include_variants,
     p_include_saves: include_saves,
     kicktable,
     hold_type,
     language
-  })
+  });
 
   // DEBUG
   requestTime += performance.now() - start;
-  console.log("Timing sql request:", requestTime, "ms")
+  console.log('Timing sql request:', requestTime, 'ms');
 
   if (setupErr) return { data: null, error: setupErr };
   return { data: setups, error: null };

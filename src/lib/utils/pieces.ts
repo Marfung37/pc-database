@@ -880,7 +880,7 @@ function handleExtendedSfinderFormatPieces(
 
   // Do the product of each part for one long queue
   let result = cartesianProduct(...queues).map((arr) => arr.join(''));
-  
+
   // Sort the queues
   if (sortQueuesBool) {
     result = sortQueues(result);
@@ -961,8 +961,7 @@ function getPiecesLength(inputPattern: string): number {
       }
       remaining = remaining.slice(index + 1);
     }
-    while (remaining.startsWith(',')) 
-      remaining = remaining.slice(1);
+    while (remaining.startsWith(',')) remaining = remaining.slice(1);
   }
 
   let length = 0;
@@ -975,7 +974,7 @@ function getPiecesLength(inputPattern: string): number {
         // ends with '!' so need to check pieces format
         if (piecesFormat.startsWith('[^') && piecesFormat.endsWith(']')) {
           const pieces = piecesFormat.slice(2, -1);
-          length += ([...BAG].filter((p) => !pieces.includes(p))).length;
+          length += [...BAG].filter((p) => !pieces.includes(p)).length;
         } else if (piecesFormat.startsWith('[') && piecesFormat.endsWith(']')) {
           length += piecesFormat.length - 2;
         } else {

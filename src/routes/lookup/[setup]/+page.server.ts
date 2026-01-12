@@ -28,7 +28,12 @@ export const load: PageServerLoad = async ({ params }) => {
     error(404, { message: m.lookup_error_invalid_setup_id() });
   }
 
-  const { data: setup, error: setupErr } = await getSetup(setupid as SetupID, false, true, getLocale());
+  const { data: setup, error: setupErr } = await getSetup(
+    setupid as SetupID,
+    false,
+    true,
+    getLocale()
+  );
 
   if (setupErr) {
     console.error('Failed to get setup:', setupErr.message);
@@ -81,7 +86,14 @@ export const actions: Actions = {
 
     const queue = queueStr as Queue;
 
-    const { data: setups, error: setupsErr } = await setupFinder(queue, null, parent_id as SetupID, true, true, getLocale());
+    const { data: setups, error: setupsErr } = await setupFinder(
+      queue,
+      null,
+      parent_id as SetupID,
+      true,
+      true,
+      getLocale()
+    );
 
     if (setupsErr) {
       console.error(
@@ -239,7 +251,7 @@ export const actions: Actions = {
         pc,
         null,
         decompressedFile
-      ); 
+      );
     } catch (e) {
       if ((e as Error).message.match(/Expression '.*' could not be tokenized/)) {
         return fail(400, {

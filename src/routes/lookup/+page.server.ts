@@ -64,7 +64,14 @@ export const actions: Actions = {
       });
     }
 
-    const { data: setups, error: setupsErr } = await setupFinder(queue, pc, null, true, true, getLocale());
+    const { data: setups, error: setupsErr } = await setupFinder(
+      queue,
+      pc,
+      null,
+      true,
+      true,
+      getLocale()
+    );
 
     if (setupsErr) {
       console.error(`Failed to find setups for pc ${pc} and queue ${queue}:`, setupsErr.message);

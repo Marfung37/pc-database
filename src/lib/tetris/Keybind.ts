@@ -1,4 +1,15 @@
-export type Action = 'left' | 'right' | 'hold' | 'cw' | 'ccw' | '180' | 'sd' | 'hd' | 'd1' | 'reset' | 'undo';
+export type Action =
+  | 'left'
+  | 'right'
+  | 'hold'
+  | 'cw'
+  | 'ccw'
+  | '180'
+  | 'sd'
+  | 'hd'
+  | 'd1'
+  | 'reset'
+  | 'undo';
 export type Bindings = Record<Action, string>;
 type Subscriber = (bindings: Bindings) => void;
 
@@ -26,6 +37,7 @@ export class Keybind {
     this.binding = binding;
     this.storageKey = storageKey;
     this.subscribers = [];
+    this.notify();
   }
 
   rebuildLookup(): void {
@@ -37,10 +49,11 @@ export class Keybind {
 
   set(action: Action, key: string): void {
     // unset if key already in use
-    const dupAction = Object.keys(this.binding).find(k => this.binding[k as Action] === key) as Action;
+    const dupAction = Object.keys(this.binding).find(
+      (k) => this.binding[k as Action] === key
+    ) as Action;
 
-    if(dupAction)
-      this.binding[dupAction] = '-';
+    if (dupAction) this.binding[dupAction] = '-';
     this.binding[action] = key;
 
     this.notify();
@@ -54,13 +67,13 @@ export class Keybind {
     this.subscribers.push(run);
     run(this.binding);
     return () => {
-      this.subscribers = this.subscribers.filter(fn => fn !== run);
+      this.subscribers = this.subscribers.filter((fn) => fn !== run);
     };
   }
 
   notify() {
-    this.rebuildLookup()
-    this.subscribers.forEach(fn => fn(this.binding));
+    this.rebuildLookup();
+    this.subscribers.forEach((fn) => fn(this.binding));
   }
 
   save() {

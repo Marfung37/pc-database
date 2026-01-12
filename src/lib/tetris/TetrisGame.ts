@@ -12,10 +12,10 @@ const INITIALY = 19;
 const INITIALX = 4;
 
 const DEFAULT = {
-  'arr': 0,
-  'sdArr': 0,
-  'das': 0,
-}
+  arr: 0,
+  sdArr: 0,
+  das: 80
+};
 
 export class TetrisGame {
   board: TetrisBoard;
@@ -36,7 +36,11 @@ export class TetrisGame {
   private queueIndex: number;
   private operations: TetrisBoardPiece[];
 
-  constructor(pattern: string = '', handling: Record<string, number> = DEFAULT, storageKey: string = 'handling') {
+  constructor(
+    pattern: string = '',
+    handling: Record<string, number> = DEFAULT,
+    storageKey: string = 'handling'
+  ) {
     this.handling = handling;
     this.storageKey = storageKey;
     this.isPrac = false;
@@ -49,7 +53,7 @@ export class TetrisGame {
 
     if (pattern.length > 0) {
       if (getPiecesLength(pattern) > PCSIZE + 1) {
-        throw new Error(`Pattern produced a queue longer than ${PCSIZE + 1}`)
+        throw new Error(`Pattern produced a queue longer than ${PCSIZE + 1}`);
       }
       this.queues = extendPieces(pattern, false);
       if (this.queues.length > 0) {
@@ -63,8 +67,7 @@ export class TetrisGame {
   }
 
   private setActive(piece: PieceEnum): void {
-    if (piece == PieceEnum.X) 
-      throw new Error('Unable to set active piece as gotten invalid piece')
+    if (piece == PieceEnum.X) throw new Error('Unable to set active piece as gotten invalid piece');
     this.active = new TetrisBoardPiece(INITIALX, INITIALY, piece, Rotation.spawn);
   }
 
@@ -73,9 +76,9 @@ export class TetrisGame {
     this.holdPiece = 0;
     this.operations = [];
     this.timers = {
-      "left": -1,
-      "right": -1,
-      "sd": -1,
+      left: -1,
+      right: -1,
+      sd: -1
     };
 
     this.queue.reset();
@@ -83,16 +86,13 @@ export class TetrisGame {
 
     // soft by keeping the queue
     if (this.queues.length > 0) {
-      if (soft)
-        this.queue.set(this.queues[this.queueIndex] as Queue);
-      else
-        this.regen();
+      if (soft) this.queue.set(this.queues[this.queueIndex] as Queue);
+      else this.regen();
     }
 
     if (this.queues.length > 0 && this.queue.previewSize > 1) {
       this.holdPiece = this.queue.poll();
     }
-
 
     this.setActive(this.queue.poll());
   }
@@ -104,10 +104,7 @@ export class TetrisGame {
 
   checkCollide(piece: TetrisBoardPiece): boolean {
     for (let pos of piece.getMinos()) {
-      if (
-        pos.x < 0 || pos.x >= PCSIZE || pos.y < 0 ||
-        this.board.isFilled(pos.y, pos.x)
-      ) {
+      if (pos.x < 0 || pos.x >= PCSIZE || pos.y < 0 || this.board.isFilled(pos.y, pos.x)) {
         return true;
       }
     }
@@ -129,7 +126,7 @@ export class TetrisGame {
     this.held = !this.isPrac;
     if (this.holdPiece === PieceEnum.X) {
       if (this.queue.length == 0) {
-        this.setActive(this.active.type)
+        this.setActive(this.active.type);
         return;
       }
       this.holdPiece = this.active.type;
@@ -138,7 +135,7 @@ export class TetrisGame {
     }
 
     let tmp = this.active.type;
-    this.setActive(this.holdPiece)
+    this.setActive(this.holdPiece);
     this.holdPiece = tmp;
   }
 
@@ -147,7 +144,7 @@ export class TetrisGame {
 
     this.active.move(dx, dy);
     // didn't collide at that location
-    if(!this.checkCollide(this.active)) {
+    if (!this.checkCollide(this.active)) {
       return true;
     }
     // reverse action
@@ -182,7 +179,7 @@ export class TetrisGame {
 
   lock(): void {
     // move piece as far down as possible (hd)
-    while(this.movePiece(0, -1));
+    while (this.movePiece(0, -1));
     this.held = false;
     this.operations.push(this.active.copy());
     this.board.place(this.active, true);
@@ -212,7 +209,7 @@ export class TetrisGame {
   }
 
   undo(): void {
-    if(this.operations.length == 0) return;
+    if (this.operations.length == 0) return;
 
     let piece = this.operations.pop() as TetrisBoardPiece;
     this.queue.enqueue(this.active.type);
@@ -222,47 +219,47 @@ export class TetrisGame {
 
   tick(time: number, actions: Set<Action>) {
     let buf = {
-      "left": false,
-      "right": false,
-      "sd": false,
+      left: false,
+      right: false,
+      sd: false
     };
     for (let action of actions) {
       switch (action) {
-        case "hold":
+        case 'hold':
           this.hold();
-          actions.delete("hold");
+          actions.delete('hold');
           break;
-        case "undo":
+        case 'undo':
           this.undo();
-          actions.delete("undo");
+          actions.delete('undo');
           break;
-        case "ccw":
+        case 'ccw':
           this.spinCCW();
-          actions.delete("ccw");
+          actions.delete('ccw');
           break;
-        case "cw":
+        case 'cw':
           this.spinCW();
-          actions.delete("cw");
+          actions.delete('cw');
           break;
-        case "180":
+        case '180':
           this.spin180();
-          actions.delete("180");
+          actions.delete('180');
           break;
-        case "hd":
+        case 'hd':
           this.lock();
-          actions.delete("hd");
+          actions.delete('hd');
           break;
-        case "d1":
+        case 'd1':
           this.down();
-          actions.delete("d1");
+          actions.delete('d1');
           break;
-        case "reset":
+        case 'reset':
           this.reset();
-          actions.delete("reset");
+          actions.delete('reset');
           break;
-        case "left":
-        case "right":
-        case "sd":
+        case 'left':
+        case 'right':
+        case 'sd':
           buf[action] = true;
           break;
       }
@@ -270,26 +267,26 @@ export class TetrisGame {
     let ldas = -1;
     let rdas = -1;
 
-    if (!buf["left"]) {
-      this.timers["left"] = -1;
+    if (!buf['left']) {
+      this.timers['left'] = -1;
     } else if (
-      this.timers["left"] != -1 &&
-      time - this.timers["left"] >= this.handling.das + this.handling.arr
+      this.timers['left'] != -1 &&
+      time - this.timers['left'] >= this.handling.das + this.handling.arr
     ) {
-      ldas = this.timers["left"] + this.handling.das;
+      ldas = this.timers['left'] + this.handling.das;
     }
 
-    if (!buf["right"]) {
-      this.timers["right"] = -1;
+    if (!buf['right']) {
+      this.timers['right'] = -1;
     } else if (
-      this.timers["right"] != -1 &&
-      time - this.timers["right"] >= this.handling.das + this.handling.arr
+      this.timers['right'] != -1 &&
+      time - this.timers['right'] >= this.handling.das + this.handling.arr
     ) {
-      rdas = this.timers["right"] + this.handling.das;
+      rdas = this.timers['right'] + this.handling.das;
     }
 
     // replace with arr later
-    if (buf["left"] && buf["right"] && (ldas == -1 || rdas == -1)) {
+    if (buf['left'] && buf['right'] && (ldas == -1 || rdas == -1)) {
     } else if (ldas != -1 && (rdas == -1 || ldas > rdas)) {
       while (ldas + this.handling.arr < time) {
         if (!this.movePiece(-1, 0)) {
@@ -297,11 +294,11 @@ export class TetrisGame {
           break;
         }
         ldas += this.handling.arr;
-        if (buf["sd"]) {
-          if (this.timers["sd"] == -1) {
-            this.timers["sd"] = time;
+        if (buf['sd']) {
+          if (this.timers['sd'] == -1) {
+            this.timers['sd'] = time;
           }
-          let sddas = this.timers["sd"];
+          let sddas = this.timers['sd'];
           while (sddas <= time) {
             if (!this.movePiece(0, -1)) {
               sddas = time;
@@ -309,12 +306,12 @@ export class TetrisGame {
             }
             sddas += this.handling.sdArr;
           }
-          this.timers["sd"] = sddas;
+          this.timers['sd'] = sddas;
         }
       }
-      this.timers["left"] = ldas - this.handling.das;
-      if (this.timers["right"] != -1) {
-        this.timers["right"] = ldas - 1;
+      this.timers['left'] = ldas - this.handling.das;
+      if (this.timers['right'] != -1) {
+        this.timers['right'] = ldas - 1;
       }
     } else if (rdas != -1) {
       while (rdas + this.handling.arr < time) {
@@ -323,11 +320,11 @@ export class TetrisGame {
           break;
         }
         rdas += this.handling.arr;
-        if (buf["sd"]) {
-          if (this.timers["sd"] == -1) {
-            this.timers["sd"] = time;
+        if (buf['sd']) {
+          if (this.timers['sd'] == -1) {
+            this.timers['sd'] = time;
           }
-          let sddas = this.timers["sd"];
+          let sddas = this.timers['sd'];
           while (sddas <= time) {
             if (!this.movePiece(0, -1)) {
               sddas = time;
@@ -335,28 +332,28 @@ export class TetrisGame {
             }
             sddas += this.handling.sdArr;
           }
-          this.timers["sd"] = sddas;
+          this.timers['sd'] = sddas;
         }
       }
-      this.timers["right"] = rdas - this.handling.das;
-      if (this.timers["left"] != -1) {
-        this.timers["left"] = rdas - 1;
+      this.timers['right'] = rdas - this.handling.das;
+      if (this.timers['left'] != -1) {
+        this.timers['left'] = rdas - 1;
       }
     }
-    if (buf["left"] && this.timers["left"] == -1) {
+    if (buf['left'] && this.timers['left'] == -1) {
       this.movePiece(-1, 0);
-      this.timers["left"] = time;
+      this.timers['left'] = time;
     }
-    if (buf["right"] && this.timers["right"] == -1) {
+    if (buf['right'] && this.timers['right'] == -1) {
       this.movePiece(1, 0);
-      this.timers["right"] = time;
+      this.timers['right'] = time;
     }
 
-    if (buf["sd"]) {
-      if (this.timers["sd"] == -1) {
-        this.timers["sd"] = time;
+    if (buf['sd']) {
+      if (this.timers['sd'] == -1) {
+        this.timers['sd'] = time;
       }
-      let sddas = this.timers["sd"];
+      let sddas = this.timers['sd'];
       while (sddas <= time) {
         if (!this.movePiece(0, -1)) {
           sddas = time;
@@ -364,9 +361,9 @@ export class TetrisGame {
         }
         sddas += this.handling.sdArr;
       }
-      this.timers["sd"] = sddas;
+      this.timers['sd'] = sddas;
     } else {
-      this.timers["sd"] = -1;
+      this.timers['sd'] = -1;
     }
   }
 

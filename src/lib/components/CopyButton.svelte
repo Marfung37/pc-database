@@ -23,32 +23,23 @@
       setTimeout(() => {
         isCopy = false;
       }, 1000); // Display feedback for 1 seconds
-
     } catch (err) {
       console.error('Failed to copy content:', err);
     }
   }
 </script>
 
-<button
-  class="relative group"
-  on:click={handleCopyClick}
-  tabindex="0"
->
+<button class="group relative" on:click={handleCopyClick} tabindex="0">
   <!-- The main icon, changes color on hover and click -->
   {#if isCopy}
-    <CopyCheck 
-      class="text-blue-500 hover:text-blue-700 hover:cursor-pointer"
-    />
+    <CopyCheck class="text-blue-500 hover:cursor-pointer hover:text-blue-700" />
   {:else}
-    <Copy 
-      class="text-blue-500 hover:text-blue-700 hover:cursor-pointer"
-    />
+    <Copy class="text-blue-500 hover:cursor-pointer hover:text-blue-700" />
   {/if}
-  
+
   <!-- The tooltip for hover state -->
-  <span 
-    class="invisible z-99 absolute bg-gray-100 p-1 rounded-md text-nowrap shadow-xl border-b-2 border-r-2 border-gray-200 transition-opacity top-[-150%] -ml-[50%] group-hover:visible " 
+  <span
+    class="invisible absolute top-[-150%] z-99 -ml-[50%] rounded-md border-r-2 border-b-2 border-gray-200 bg-gray-100 p-1 text-nowrap shadow-xl transition-opacity group-hover:visible"
   >
     {hoverText}
   </span>

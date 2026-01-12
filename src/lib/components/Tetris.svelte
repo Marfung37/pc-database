@@ -1,4 +1,4 @@
-<script lang='ts'>
+<script lang="ts">
   import { onMount } from 'svelte';
   import { PCSIZE, BOARDHEIGHT } from '$lib/constants';
   import { TetrisBoardPiece } from '$lib/tetris/TetrisBoardPiece';
@@ -10,16 +10,16 @@
   import { toast } from 'svelte-sonner';
 
   let boardCanvas: HTMLCanvasElement, queueCanvas: HTMLCanvasElement, holdCanvas: HTMLCanvasElement;
-  let patternsText = "";
-  let game: TetrisGame, actions: Set<Action> = new Set<Action>();
+  let patternsText = '';
+  let game: TetrisGame,
+    actions: Set<Action> = new Set<Action>();
   let showSettings: boolean = false;
 
   const CELL_SIZE = 25;
 
   onMount(() => {
     let oldKeybinds = keybinds.load();
-    if (Object.keys(oldKeybinds).length !== 0)
-      keybinds.reset(oldKeybinds);
+    if (Object.keys(oldKeybinds).length !== 0) keybinds.reset(oldKeybinds);
 
     boardCanvas.width = PCSIZE * CELL_SIZE;
     boardCanvas.height = BOARDHEIGHT * CELL_SIZE;
@@ -38,6 +38,7 @@
     queueCtx.setTransform(CELL_SIZE, 0, 0, -CELL_SIZE, 0, 14 * CELL_SIZE);
 
     game = new TetrisGame(patternsText);
+
     game.loadHandling();
 
     let frame: DOMHighResTimeStamp;
@@ -50,14 +51,14 @@
     };
 
     frame = requestAnimationFrame(loop);
-    
+
     return () => cancelAnimationFrame(frame); // Cleanup on destroy
   });
 
   function handleKeyDown(event: KeyboardEvent) {
     actions.add(keybinds.lookup[event.code]);
     // You can also stop scrolling with space/arrows here
-    if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.code)) {
+    if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) {
       event.preventDefault();
     }
   }
@@ -69,7 +70,7 @@
   function handleGenerate() {
     try {
       game = new TetrisGame(patternsText, game.handling);
-    } catch (e) { 
+    } catch (e) {
       toast.error((e as Error).message);
       console.error(e);
     }
@@ -80,7 +81,7 @@
     drawPiece(context, game.active);
 
     // Ghost
-    drawPiece(context, game.getGhost(), "4D");
+    drawPiece(context, game.getGhost(), '4D');
   }
 
   function drawBoard(context: CanvasRenderingContext2D, board: TetrisBoard) {
@@ -99,7 +100,7 @@
     }
     let transform = context.getTransform();
     context.resetTransform();
-    context.strokeStyle = "#ffffff0E";
+    context.strokeStyle = '#ffffff0E';
     context.lineWidth = 1;
     context.stroke();
     context.setTransform(transform);
@@ -138,86 +139,93 @@
     }
   }
 
-  function drawPiece(context: CanvasRenderingContext2D, piece: TetrisBoardPiece, opacity: string = '') {
+  function drawPiece(
+    context: CanvasRenderingContext2D,
+    piece: TetrisBoardPiece,
+    opacity: string = ''
+  ) {
     if (piece.type === PieceEnum.X) return;
     if (opacity === undefined) {
-      opacity = "";
+      opacity = '';
     }
-    for (let {x, y} of piece.getMinos()) {
+    for (let { x, y } of piece.getMinos()) {
       context.fillStyle = get_colour(piece.type) + opacity;
       context.fillRect(x, y, 1, 1);
     }
   }
 </script>
 
-<svelte:window 
-  on:keydown={handleKeyDown} 
-  on:keyup={handleKeyUp} 
-/>
+<svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
 
 <div class="flex flex-col items-center">
   <div class="game-container flex items-start">
-    <canvas bind:this={holdCanvas} id="hold" class="bg-[#2e3440] py-4 px-2"></canvas>
-    <canvas bind:this={boardCanvas} id="board" class="bg-[#2e3440] mx-1"></canvas>
-    
-    <canvas bind:this={queueCanvas} id="queue" class="bg-[#2e3440] py-4 px-2"></canvas>
+    <canvas bind:this={holdCanvas} id="hold" class="bg-[#2e3440] px-2 py-4"></canvas>
+    <canvas bind:this={boardCanvas} id="board" class="mx-1 bg-[#2e3440]"></canvas>
+
+    <canvas bind:this={queueCanvas} id="queue" class="bg-[#2e3440] px-2 py-4"></canvas>
   </div>
 
-  
-  <label for="pattern">Pattern for Queue <a class="text-blue-500 font-bold" href="https://github.com/Marfung37/ExtendedSfinderPieces">?</a></label>
+  <label for="pattern"
+    >Pattern for Queue <a
+      class="font-bold text-blue-500"
+      href="https://github.com/Marfung37/ExtendedSfinderPieces">?</a
+    ></label
+  >
   <textarea id="pattern" bind:value={patternsText}></textarea>
   <button class="btn" on:click={handleGenerate}>Generate</button>
 
-  <button class="btn" on:click={() => showSettings = true}>Show Settings</button>
+  <button class="btn" on:click={() => (showSettings = true)}>Show Settings</button>
 
   {#if showSettings}
-  <div 
-    id="settings-modal" 
-    class="flex items-center justify-center z-1 fixed top-0 left-0 w-full h-full bg-gray-400/50" 
-    on:click|self={() => showSettings = false} 
-    role="button" 
-    aria-label="Close dialog"
-    tabindex="0"
-    on:keydown={(e: KeyboardEvent) => {
-      if (e.key === 'Enter' || e.key === ' ') showSettings = false;
-    }}
-  >
-  <div class="flex flex-col bg-white p-8 rounded">
-  <h3 class="text-lg font-bold py-2">Keybinds</h3>
-  <table>
-    <tbody>
-    {#each Object.entries($keybinds || {}) as [action, key]}
-      <tr>
-        <td class="px-2">{action}</td>
-        <td>
-          <input 
-            value={key} 
-            on:keydown|preventDefault|stopPropagation={(e) => {keybinds.set(action as Action, e.code); keybinds.save();}} 
-          />
-        </td>
-      </tr>
-    {/each}
-    </tbody>
-  </table>
-
-
-  {#if game !== undefined}
-  <h3 class="text-lg font-bold py-2">Tunings</h3>
-  {#each ['das', 'arr', 'sdArr'] as tuning}
-    <label for={tuning}>{tuning}</label>
-    <input 
-      id={tuning}
-      type="number" 
-      value={game.handling[tuning]}
-      on:change={(e) => {
-        game.handling[tuning] = Number((e.target as HTMLInputElement).value);
-        game.saveHandling();
-        toast.success(tuning + ' changed!');
+    <div
+      id="settings-modal"
+      class="fixed top-0 left-0 z-1 flex h-full w-full items-center justify-center bg-gray-400/50"
+      on:click|self={() => (showSettings = false)}
+      role="button"
+      aria-label="Close dialog"
+      tabindex="0"
+      on:keydown={(e: KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') showSettings = false;
       }}
-    />
-  {/each}
-  {/if}
-  </div>
-  </div>
+    >
+      <div class="flex flex-col rounded bg-white p-8">
+        <h3 class="py-2 text-lg font-bold">Keybinds</h3>
+        <table>
+          <tbody>
+            {#each Object.entries($keybinds || {}) as [action, key]}
+              <tr>
+                <td class="px-2">{action}</td>
+                <td>
+                  <input
+                    value={key}
+                    on:keydown|preventDefault|stopPropagation={(e) => {
+                      keybinds.set(action as Action, e.code);
+                      keybinds.save();
+                    }}
+                  />
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+
+        {#if game !== undefined}
+          <h3 class="py-2 text-lg font-bold">Tunings</h3>
+          {#each ['das', 'arr', 'sdArr'] as tuning}
+            <label for={tuning}>{tuning}</label>
+            <input
+              id={tuning}
+              type="number"
+              value={game.handling[tuning]}
+              on:change={(e) => {
+                game.handling[tuning] = Number((e.target as HTMLInputElement).value);
+                game.saveHandling();
+                toast.success(tuning + ' changed!');
+              }}
+            />
+          {/each}
+        {/if}
+      </div>
+    </div>
   {/if}
 </div>

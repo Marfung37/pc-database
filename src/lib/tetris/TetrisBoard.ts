@@ -15,22 +15,22 @@ export class TetrisBoard {
   }
 
   /**
-    * Check if given row is full
-    */
+   * Check if given row is full
+   */
   lineFull(row: number): boolean {
     if (row < 0 || row >= this.height) {
-      throw new RangeError(`Given row out of bounds of 0-${this.height}`)
+      throw new RangeError(`Given row out of bounds of 0-${this.height}`);
     }
 
-    return this.board[row].every((cell) => cell != 0)
+    return this.board[row].every((cell) => cell != 0);
   }
 
   /**
-    * Clears a row, doesn't check if filled
-    */
+   * Clears a row, doesn't check if filled
+   */
   lineclear(row: number): void {
     if (row < 0 || row >= this.height) {
-      throw new RangeError(`Given row out of bounds of 0-${this.height}`)
+      throw new RangeError(`Given row out of bounds of 0-${this.height}`);
     }
 
     this.board[this.height - 1] = new Array(this.width).fill(0);
@@ -41,10 +41,10 @@ export class TetrisBoard {
 
   at(row: number, col: number): number {
     if (row < 0 || row >= this.height) {
-      throw new RangeError(`Given row out of bounds of 0-${this.height}`)
+      throw new RangeError(`Given row out of bounds of 0-${this.height}`);
     }
     if (col < 0 || col >= this.width) {
-      throw new RangeError(`Given col out of bounds of 0-${this.width}`)
+      throw new RangeError(`Given col out of bounds of 0-${this.width}`);
     }
 
     return this.board[row][col];
@@ -55,7 +55,7 @@ export class TetrisBoard {
   }
 
   place(piece: TetrisBoardPiece, clear: boolean = false): void {
-    for(let {x, y} of piece.getMinos()) {
+    for (let { x, y } of piece.getMinos()) {
       this.board[y][x] = piece.type;
       if (clear && this.lineFull(y)) {
         this.lineclear(y);
@@ -64,8 +64,7 @@ export class TetrisBoard {
   }
 
   clearPiece(piece: TetrisBoardPiece): void {
-    for(let {x, y} of piece.getMinos())
-      this.board[y][x] = PieceEnum.X;
+    for (let { x, y } of piece.getMinos()) this.board[y][x] = PieceEnum.X;
   }
 
   isEmpty(): boolean {

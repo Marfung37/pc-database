@@ -19,7 +19,10 @@ export class TetrisBoardPiece {
   }
 
   getMinos(): Pos[] {
-    return get_offsets(this.type, this.rotation).map(([dx, dy]) => ({x: this.x + dx, y: this.y + dy}));
+    return get_offsets(this.type, this.rotation).map(([dx, dy]) => ({
+      x: this.x + dx,
+      y: this.y + dy
+    }));
   }
 
   getColor(): string {

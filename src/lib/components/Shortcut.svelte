@@ -8,14 +8,14 @@
   export let href;
 </script>
 
-<article class="border rounded-md border-black flex flex-col w-80 m-4 p-4">
-  <div class="flex-1 flex flex-col items-center gap-4 pb-4">
-    <svelte:component this={icon} size={32}/>
+<article class="m-4 flex w-80 flex-col rounded-md border border-black p-4">
+  <div class="flex flex-1 flex-col items-center gap-4 pb-4">
+    <svelte:component this={icon} size={32} />
     <h2 class="text-2xl font-bold">{name}</h2>
-    <p class="text-lg text-center">{description}</p>
+    <p class="text-center text-lg">{description}</p>
   </div>
-  
+
   <div class="flex justify-center">
-    <a class="btn border border-black text-lg" href={href}>{m.shortcut_go()}</a>
+    <a class="btn border border-black text-lg" {href}>{m.shortcut_go()}</a>
   </div>
 </article>

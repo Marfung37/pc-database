@@ -114,10 +114,7 @@ CREATE TABLE "setup_variants" (
 
 CREATE TABLE "sets" ("set_id" SERIAL PRIMARY KEY);
 
-CREATE TABLE "tags" (
-  "tag_id"  SERIAL PRIMARY KEY,
-  "name" text NOT NULL
-);
+CREATE TABLE "tags" ("tag_id" SERIAL PRIMARY KEY, "name" text NOT NULL);
 
 CREATE TABLE "setup_sets" (
   "setup_id" setupid NOT NULL,

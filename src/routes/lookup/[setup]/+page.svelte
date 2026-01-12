@@ -50,7 +50,7 @@
   </div>
 </div>
 
-<div class="container mx-auto flex flex-col gap-2 p-2 text-left pb-20">
+<div class="container mx-auto flex flex-col gap-2 p-2 pb-20 text-left">
   <h1 class="py-2 text-3xl">{m.lookup_current_setup()}</h1>
   <SetupInfo {setup} submittedQueue={subbuild} baseUrl="" next={false} />
 
