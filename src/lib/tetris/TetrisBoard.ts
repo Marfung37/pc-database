@@ -63,6 +63,11 @@ export class TetrisBoard {
     }
   }
 
+  clearPiece(piece: TetrisBoardPiece): void {
+    for(let {x, y} of piece.getMinos())
+      this.board[y][x] = PieceEnum.X;
+  }
+
   isEmpty(): boolean {
     return this.board.flat().reduce((sum, c) => sum + c, 0) == 0;
   }

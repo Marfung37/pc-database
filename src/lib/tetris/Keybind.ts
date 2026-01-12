@@ -1,4 +1,4 @@
-export type Action = 'left' | 'right' | 'hold' | 'cw' | 'ccw' | '180' | 'sd' | 'hd' | 'd1' | 'reset';
+export type Action = 'left' | 'right' | 'hold' | 'cw' | 'ccw' | '180' | 'sd' | 'hd' | 'd1' | 'reset' | 'undo';
 export type Bindings = Record<Action, string>;
 type Subscriber = (bindings: Bindings) => void;
 
@@ -12,7 +12,8 @@ const DEFAULT: Bindings = {
   sd: 'ArrowDown',
   hd: 'Space',
   d1: 'KeyH',
-  reset: 'KeyR'
+  reset: 'KeyR',
+  undo: 'KeyZ'
 };
 
 export class Keybind {

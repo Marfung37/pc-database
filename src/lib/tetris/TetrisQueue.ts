@@ -42,7 +42,7 @@ export class TetrisQueue {
     this.length += BAGSIZE;
   }
 
-  poll(): number {
+  poll(): PieceEnum {
     if (this.length == 0) {
       return 0;
     }
@@ -56,6 +56,17 @@ export class TetrisQueue {
     }
 
     return this.queue[oldPos];
+  }
+
+  enqueue(piece: PieceEnum): void {
+    this.pos = (this.pos - 1 + this.queue.length) % this.queue.length;
+    this.length++;
+    if (this.length == this.queue.length) {
+      this.queue.splice(this.pos, 0, piece);
+    } else {
+      this.queue[this.pos] = piece;
+    }
+
   }
 
   preview(): PieceEnum[] {

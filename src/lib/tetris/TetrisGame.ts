@@ -34,6 +34,7 @@ export class TetrisGame {
 
   private queues: Array<string>;
   private queueIndex: number;
+  private operations: TetrisBoardPiece[];
 
   constructor(pattern: string = '', handling: Record<string, number> = DEFAULT, storageKey: string = 'handling') {
     this.handling = handling;
@@ -44,6 +45,7 @@ export class TetrisGame {
     this.board = new TetrisBoard(PCSIZE, BOARDHEIGHT + 1);
     this.queues = [];
     this.queueIndex = -1;
+    this.operations = [];
 
     if (pattern.length > 0) {
       console.log(pattern)
@@ -68,6 +70,7 @@ export class TetrisGame {
   reset(soft: boolean = false): void {
     this.held = false;
     this.holdPiece = 0;
+    this.operations = [];
     this.timers = {
       "left": -1,
       "right": -1,
@@ -180,6 +183,7 @@ export class TetrisGame {
     // move piece as far down as possible (hd)
     while(this.movePiece(0, -1));
     this.held = false;
+    this.operations.push(this.active.copy());
     this.board.place(this.active, true);
 
     if (this.queue.length == 0) {
@@ -206,6 +210,15 @@ export class TetrisGame {
     }
   }
 
+  undo(): void {
+    if(this.operations.length == 0) return;
+
+    let piece = this.operations.pop() as TetrisBoardPiece;
+    this.queue.enqueue(this.active.type);
+    this.setActive(piece.type);
+    this.board.clearPiece(piece);
+  }
+
   tick(time: number, actions: Set<Action>) {
     let buf = {
       "left": false,
@@ -217,6 +230,10 @@ export class TetrisGame {
         case "hold":
           this.hold();
           actions.delete("hold");
+          break;
+        case "undo":
+          this.undo();
+          actions.delete("undo");
           break;
         case "ccw":
           this.spinCCW();

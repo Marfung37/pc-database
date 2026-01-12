@@ -17,7 +17,10 @@
   const CELL_SIZE = 25;
 
   onMount(() => {
-    keybinds.reset(keybinds.load());
+    let oldKeybinds = keybinds.load();
+    if (Object.keys(oldKeybinds).length !== 0)
+      keybinds.reset(oldKeybinds);
+    console.log(keybinds.binding)
 
     boardCanvas.width = PCSIZE * CELL_SIZE;
     boardCanvas.height = BOARDHEIGHT * CELL_SIZE;
