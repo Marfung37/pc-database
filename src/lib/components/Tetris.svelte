@@ -20,7 +20,6 @@
     let oldKeybinds = keybinds.load();
     if (Object.keys(oldKeybinds).length !== 0)
       keybinds.reset(oldKeybinds);
-    console.log(keybinds.binding)
 
     boardCanvas.width = PCSIZE * CELL_SIZE;
     boardCanvas.height = BOARDHEIGHT * CELL_SIZE;
@@ -71,6 +70,7 @@
     try {
       game = new TetrisGame(patternsText, game.handling);
     } catch (e) { 
+      toast.error((e as Error).message);
       console.error(e);
     }
   }

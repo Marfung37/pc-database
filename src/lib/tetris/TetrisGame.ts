@@ -3,7 +3,7 @@ import { TetrisQueue } from '$lib/tetris/TetrisQueue';
 import { TetrisBoard } from '$lib/tetris/TetrisBoard';
 import { TetrisBoardPiece } from '$lib/tetris/TetrisBoardPiece';
 import type { Action } from '$lib/tetris/Keybind';
-import { extendPieces } from '$lib/utils/pieces';
+import { extendPieces, getPiecesLength } from '$lib/utils/pieces';
 import { PCSIZE, BOARDHEIGHT } from '$lib/constants';
 import { get_kicks, spin_cw, spin_ccw, spin_180, PieceEnum, Rotation } from '$lib/tetris/pieceData';
 
@@ -48,9 +48,10 @@ export class TetrisGame {
     this.operations = [];
 
     if (pattern.length > 0) {
-      console.log(pattern)
+      if (getPiecesLength(pattern) > PCSIZE + 1) {
+        throw new Error(`Pattern produced a queue longer than ${PCSIZE + 1}`)
+      }
       this.queues = extendPieces(pattern, false);
-      console.log(this.queues)
       if (this.queues.length > 0) {
         this.queue.setFillBags(false);
         this.isPrac = true;

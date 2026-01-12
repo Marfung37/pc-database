@@ -926,5 +926,71 @@ function extendPieces(customInput: string | string[], sorted: boolean = true): s
   return result;
 }
 
+function getPiecesLength(inputPattern: string): number {
+  // Two sections with prefix of pieces and suffix of permutate
+  const prefixPattern = /([*TILJSZO]|\[\^?[TILJSZO]+\]|<.*>)/;
+  const suffixPattern = /(p[1-7]|!)?/;
+
+  // Regex find all the parts
+  const patternParts: [string, string][] = [];
+  let remaining = inputPattern;
+
+  while (remaining.length > 0) {
+    const prefixMatch = remaining.match(prefixPattern);
+    if (!prefixMatch || prefixMatch.index !== 0) {
+      throw new Error('Failed to separate input into parts');
+    }
+
+    const prefix = prefixMatch[0];
+    remaining = remaining.slice(prefix.length);
+
+    const suffixMatch = remaining.match(suffixPattern);
+    if (!suffixMatch || suffixMatch.index !== 0) {
+      throw new Error('Failed to separate input into parts');
+    }
+
+    const suffix = suffixMatch[0];
+    remaining = remaining.slice(suffix.length);
+
+    patternParts.push([prefix, suffix]);
+
+    if (remaining.startsWith('{')) {
+      let index = remaining.indexOf('}');
+      if (index === -1) {
+        throw new Error('Missing closing }');
+      }
+      remaining = remaining.slice(index + 1);
+    }
+    while (remaining.startsWith(',')) 
+      remaining = remaining.slice(1);
+  }
+
+  let length = 0;
+  for (const [piecesFormat, permutateFormat] of patternParts) {
+    if (permutateFormat !== '') {
+      let lastChar = permutateFormat[permutateFormat.length - 1];
+      if (lastChar >= '1' && lastChar <= '7') {
+        length += parseInt(lastChar);
+      } else {
+        // ends with '!' so need to check pieces format
+        if (piecesFormat.startsWith('[^') && piecesFormat.endsWith(']')) {
+          const pieces = piecesFormat.slice(2, -1);
+          length += ([...BAG].filter((p) => !pieces.includes(p))).length;
+        } else if (piecesFormat.startsWith('[') && piecesFormat.endsWith(']')) {
+          length += piecesFormat.length - 2;
+        } else {
+          // Invalid pieces format
+          throw new Error(`The pieces ${piecesFormat} could not be parsed!`);
+        }
+      }
+    } else {
+      // should be just a piece
+      length++;
+    }
+  }
+
+  return length;
+}
+
 // Export the main function
-export { extendPieces };
+export { extendPieces, getPiecesLength };
