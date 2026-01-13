@@ -15,7 +15,7 @@
     actions: Set<Action> = new Set<Action>();
   let showSettings: boolean = false;
 
-  const CELL_SIZE = 25;
+  const CELL_SIZE = 24;
 
   onMount(() => {
     let oldKeybinds = keybinds.load();
@@ -134,7 +134,15 @@
     context.fillRect(0, 0, 4, 14);
     let preview = queue.preview();
     for (let i = 0; i < Math.min(preview.length, 5); i++) {
-      drawPiece(context, new TetrisBoardPiece(1, 12 - 3 * i, preview[i], Rotation.spawn));
+      let shiftX = 0;
+      let shiftY = 0;
+      if (preview[i] != PieceEnum.I && preview[i] != PieceEnum.O) {
+        shiftX = 0.5;
+      }
+      if (preview[i] == PieceEnum.I) {
+        shiftY = 0.5;
+      }
+      drawPiece(context, new TetrisBoardPiece(1 + shiftX, 12 - 3 * i + shiftY, preview[i], Rotation.spawn));
     }
   }
 
@@ -143,8 +151,17 @@
     context.fillRect(0, 0, 4, 2);
 
     if (hold != PieceEnum.X) {
+      let shiftX = 0;
+      let shiftY = 0;
+      if (hold != PieceEnum.I && hold != PieceEnum.O) {
+        shiftX = 0.5;
+      }
+      if (hold == PieceEnum.I) {
+        shiftY = 0.5;
+      }
+
       context.fillStyle = get_colour(hold);
-      drawPiece(context, new TetrisBoardPiece(1, 0, hold, Rotation.spawn));
+      drawPiece(context, new TetrisBoardPiece(1 + shiftX, shiftY, hold, Rotation.spawn));
     }
   }
 
