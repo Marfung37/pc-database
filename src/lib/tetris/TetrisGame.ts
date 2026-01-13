@@ -74,7 +74,6 @@ export class TetrisGame {
   reset(soft: boolean = false): void {
     this.held = false;
     this.holdPiece = 0;
-    this.operations = [];
     this.timers = {
       left: -1,
       right: -1,
@@ -214,7 +213,23 @@ export class TetrisGame {
     let piece = this.operations.pop() as TetrisBoardPiece;
     this.queue.enqueue(this.active.type);
     this.setActive(piece.type);
-    this.board.clearPiece(piece);
+
+    // run all the operations and simulate with the current board state should be now
+    this.board.reset();
+    for (let piece of this.operations) {
+      // practice pc
+      if (this.isPrac && this.board.isEmpty()) {
+        this.regen();
+        this.reset(this.softReset);
+      }
+
+      // topped out
+      if (this.checkCollide(piece)) {
+        this.reset(this.softReset);
+      }
+
+      this.board.place(piece, true);
+    }
   }
 
   tick(time: number, actions: Set<Action>) {
@@ -227,35 +242,28 @@ export class TetrisGame {
       switch (action) {
         case 'hold':
           this.hold();
-          actions.delete('hold');
           break;
         case 'undo':
           this.undo();
-          actions.delete('undo');
           break;
         case 'ccw':
           this.spinCCW();
-          actions.delete('ccw');
           break;
         case 'cw':
           this.spinCW();
-          actions.delete('cw');
           break;
         case '180':
           this.spin180();
-          actions.delete('180');
           break;
         case 'hd':
           this.lock();
-          actions.delete('hd');
           break;
         case 'd1':
           this.down();
-          actions.delete('d1');
           break;
         case 'reset':
           this.reset();
-          actions.delete('reset');
+          this.operations = [];
           break;
         case 'left':
         case 'right':
