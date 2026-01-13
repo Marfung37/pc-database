@@ -44,6 +44,12 @@
     let frame: DOMHighResTimeStamp;
     const loop = (timestamp: number) => {
       game.tick(timestamp, actions);
+      let tmpActions = new Set<Action>();
+      if(actions.has("left")) tmpActions.add("left");
+      if(actions.has("right")) tmpActions.add("right");
+      if(actions.has("sd")) tmpActions.add("sd");
+      actions = tmpActions;
+
       drawGame(boardCtx, game);
       drawQueue(queueCtx, game.queue);
       drawHold(holdCtx, game.holdPiece);
