@@ -58,8 +58,8 @@
   function handleKeyDown(event: KeyboardEvent) {
     if(event.code == "KeyZ" && event.ctrlKey)
       actions.add("undo");
-
-    actions.add(keybinds.lookup[event.code]);
+    else
+      actions.add(keybinds.lookup[event.code]);
     // You can also stop scrolling with space/arrows here
     if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) {
       event.preventDefault();
@@ -183,7 +183,10 @@
     <div
       id="settings-modal"
       class="fixed top-0 left-0 z-1 flex h-full w-full items-center justify-center bg-gray-400/50"
-      on:click|self={() => (showSettings = false)}
+      on:click|self={() => {
+        showSettings = false
+        game.saveHandling();
+      }}
       role="button"
       aria-label="Close dialog"
       tabindex="0"
@@ -191,7 +194,7 @@
         if (e.key === 'Enter' || e.key === ' ') showSettings = false;
       }}
     >
-      <div class="flex flex-col rounded bg-white p-8">
+      <div class="flex flex-col rounded bg-white p-8 h-7/8 w-auto">
         <h3 class="py-2 text-lg font-bold">Keybinds</h3>
         <table>
           <tbody>
