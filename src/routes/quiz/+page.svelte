@@ -239,7 +239,8 @@
         if (e.key === 'Enter' || e.key === ' ') showSettings = false;
       }}
     >
-      <div class="flex flex-col rounded bg-white p-8 h-7/8 w-auto">
+      <div class="flex flex-col justify-evenly rounded bg-white py-2 px-6 h-7/8 w-auto">
+        <div>
         <h3 class="py-2 text-lg font-bold">Keybinds</h3>
         <table>
           <tbody>
@@ -248,23 +249,30 @@
                 <td class="px-2">{action}</td>
                 <td>
                   <input
+                    class={"text-sm caret-transparent disabled:bg-slate-200 disabled:text-slate-700 disabled:cursor-not-allowed"}
                     value={key}
                     on:keydown|preventDefault|stopPropagation={(e) => {
                       keybinds.set(action as Action, e.code);
                       keybinds.save();
                     }}
+                    readonly
+                    disabled={action == 'undo'}
                   />
                 </td>
               </tr>
             {/each}
           </tbody>
         </table>
+        </div>
 
+        <div>
         {#if game !== undefined}
           <h3 class="py-2 text-lg font-bold">Tunings</h3>
           {#each ['das', 'arr', 'sdArr'] as tuning}
+            <div class="flex justify-between">
             <label for={tuning}>{tuning}</label>
             <input
+              class="text-sm"
               id={tuning}
               type="number"
               value={game.handling[tuning]}
@@ -274,8 +282,10 @@
                 toast.success(tuning + ' changed!');
               }}
             />
+            </div>
           {/each}
         {/if}
+        </div>
       </div>
     </div>
   {/if}
