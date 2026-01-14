@@ -9,6 +9,7 @@
   import { type Action, keybinds } from '$lib/tetris/Keybind';
   import { toast } from 'svelte-sonner';
 
+  let gameCtn: HTMLDivElement;
   let boardCanvas: HTMLCanvasElement, queueCanvas: HTMLCanvasElement, holdCanvas: HTMLCanvasElement;
   let patternsText = '';
   let game: TetrisGame,
@@ -37,7 +38,13 @@
     boardCtx.setTransform(CELL_SIZE, 0, 0, -CELL_SIZE, 0, 20 * CELL_SIZE);
     queueCtx.setTransform(CELL_SIZE, 0, 0, -CELL_SIZE, 0, 14 * CELL_SIZE);
 
-    game = new TetrisGame(patternsText);
+    try {
+      game = new TetrisGame(patternsText);
+    } catch (e) {
+      toast.error('Invalid pattern for queue: ' + (e as Error).message);
+      console.error(e);
+      game = new TetrisGame();
+    }
 
     game.loadHandling();
 
@@ -80,7 +87,7 @@
     try {
       game = new TetrisGame(patternsText, game.handling);
     } catch (e) {
-      toast.error((e as Error).message);
+      toast.error('Invalid pattern for queue: ' + (e as Error).message);
       console.error(e);
     }
   }
@@ -123,10 +130,10 @@
         }
       }
     }
-    // let game_div = document.getElementById("game");
-    // if (!(document.activeElement === game_div)) {
-    //   draw_oof(context);
-    // }
+
+    if(document.activeElement !== gameCtn) {
+      drawOOF(context)
+    }
   }
 
   function drawQueue(context: CanvasRenderingContext2D, queue: TetrisQueue) {
@@ -179,16 +186,31 @@
       context.fillRect(x, y, 1, 1);
     }
   }
+
+  function drawOOF(context: CanvasRenderingContext2D) {
+    let transform = context.getTransform();
+    context.resetTransform();
+    context.font = `bold ${CELL_SIZE + 5}px Arial`;
+    context.fillStyle = "rgba(235, 203, 139, 0.7)";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(
+        "OUT OF FOCUS",
+        context.canvas.width / 2,
+        context.canvas.height / 2,
+    );
+    context.setTransform(transform);
+  }
 </script>
 
-<svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
+<svelte:window  />
 
 <div class="flex flex-col items-center">
-  <div class="game-container flex items-start">
-    <canvas bind:this={holdCanvas} id="hold" class="bg-[#2e3440] px-2 py-4"></canvas>
-    <canvas bind:this={boardCanvas} id="board" class="mx-1 bg-[#2e3440]"></canvas>
+  <div bind:this={gameCtn} class="game-container flex items-start" on:keydown={handleKeyDown} on:keyup={handleKeyUp} tabindex="0" aria-label="Play game" role="button">
+    <canvas bind:this={holdCanvas} id="hold" class="bg-[#2e3440] px-2 py-4 rounded"></canvas>
+    <canvas bind:this={boardCanvas} id="board" class="mx-1 bg-[#2e3440] border-0 rounded"></canvas>
 
-    <canvas bind:this={queueCanvas} id="queue" class="bg-[#2e3440] px-2 py-4"></canvas>
+    <canvas bind:this={queueCanvas} id="queue" class="bg-[#2e3440] px-2 py-4 rounded"></canvas>
   </div>
 
   <label for="pattern"
