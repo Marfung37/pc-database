@@ -206,7 +206,7 @@
 <svelte:window  />
 
 <div class="flex flex-col items-center">
-  <div bind:this={gameCtn} class="game-container flex items-start" on:keydown={handleKeyDown} on:keyup={handleKeyUp} tabindex="0" aria-label="Play game" role="button">
+  <div bind:this={gameCtn} class="game-container flex items-start" on:keydown={handleKeyDown} on:keyup={handleKeyUp} tabindex="0" aria-label="Tetris game" role="button">
     <canvas bind:this={holdCanvas} id="hold" class="bg-[#2e3440] px-2 py-4 rounded"></canvas>
     <canvas bind:this={boardCanvas} id="board" class="mx-1 bg-[#2e3440] border-0 rounded"></canvas>
 
@@ -233,7 +233,7 @@
         game.saveHandling();
       }}
       role="button"
-      aria-label="Close dialog"
+      aria-label="Close keybind dialog"
       tabindex="0"
       on:keydown={(e: KeyboardEvent) => {
         if (e.key === 'Enter' || e.key === ' ') showSettings = false;
