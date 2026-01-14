@@ -208,24 +208,36 @@ export class TetrisGame {
   }
 
   undo(): void {
-    if (this.operations.length == 0) return;
+    if (!this.isPrac || this.operations.length == 0) return;
 
     let piece = this.operations.pop() as TetrisBoardPiece;
-    this.queue.enqueue(this.active.type);
+
+    const queueLength = this.queues[0].length;
+    if (this.isPrac && (this.operations.length + 1) % queueLength == 0) {
+      this.queue.reset();
+      this.holdPiece = PieceEnum.X;
+    } else if (this.holdPiece == PieceEnum.X) {
+      this.holdPiece = this.active.type;
+    } else {
+      this.queue.enqueue(this.active.type);
+    }
     this.setActive(piece.type);
 
     // run all the operations and simulate with the current board state should be now
     this.board.reset();
-    for (let piece of this.operations) {
+    for (let [i, piece] of this.operations.entries()) {
+      if (this.isPrac && i % queueLength == 0) {
+        this.board.reset();
+      }
+
       // practice pc
       if (this.isPrac && this.board.isEmpty()) {
-        this.regen();
-        this.reset(this.softReset);
+        this.board.reset();
       }
 
       // topped out
       if (this.checkCollide(piece)) {
-        this.reset(this.softReset);
+        this.board.reset();
       }
 
       this.board.place(piece, true);
