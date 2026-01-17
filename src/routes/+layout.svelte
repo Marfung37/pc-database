@@ -29,6 +29,7 @@
 
 <Toaster position="top-right" closeButton />
 
+<div class="flex flex-col h-screen">
 <div class="navbar bg-base-100 container mx-auto">
   <div class="flex flex-1 items-center">
     <a class="btn btn-ghost text-xl normal-case" href="/">{m.website_name()}</a>
@@ -76,6 +77,7 @@
   </div>
 </div>
 
-<div class="">
+<div class="flex-grow">
   <slot />
+</div>
 </div>
