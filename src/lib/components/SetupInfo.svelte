@@ -8,10 +8,10 @@
   import ChevronRight from '@lucide/svelte/icons/chevron-right';
 
   export let setup: SetupData;
-  export let submittedQueue;
-  export let baseUrl;
+  export let submittedQueue = '';
+  export let baseUrl = '';
   export let next = true;
-  const oqb = setup.type === 'oqb';
+  $: oqb = setup.type === 'oqb';
 </script>
 
 <div class="flex min-h-60 w-full rounded-3xl bg-white shadow-lg">

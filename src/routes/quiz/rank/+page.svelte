@@ -1,5 +1,8 @@
 <script lang='ts'>
   import { m } from '$lib/paraglide/messages.js';
+  import type { SubmitFunction } from './$types.ts';
+  import { enhance, applyAction } from '$app/forms';
+  import type { SetupID, SetupData } from '$lib/types';
   import SetupInfo from '$lib/components/SetupInfo.svelte';
 
   const pcs = [
@@ -17,11 +20,10 @@
   type Phase = 'intro' | 'filter' | 'rank-intro' | 'rank' | 'results';
   let phase: Phase = 'intro';
 
-  let pile: string[][] = [];
-  pile.push(Array.from({length: 26}, (_, i) => String.fromCharCode(97 + i)).reverse());
-  pile.push(Array.from({length: 10}, (_, i) => i.toString()).reverse());
-  let keepPile: string[][] = [[]];
-  let discardPile: string[][] = [[]];
+  let pile: SetupID[];
+  let leftoverIndex: Map<string, number> = new Map<string, number>();
+  let keepPile: string[][] = [];
+  let discardPile: string[] = [];
 
   let left = false;
   let right = false;
@@ -39,16 +41,22 @@
   let rankedList: RankableItem[][] = [];
   let currentStep = 0;
   let totalSteps = 0;
+  let currentSetup: SetupData;
 
-  function handleKeyDown(event: KeyboardEvent) {
+  async function handleKeyDown(event: KeyboardEvent) {
     if (phase == 'filter' && pile.length == 0) return;
 
     if (event.code == 'ArrowLeft' && !left) {
       left = true;
       if (phase == 'filter') {
-        keepPile[groupIndex].push(pile[groupIndex].pop()!)
+        if (!(currentSetup.leftover in leftoverIndex)) {
+          leftoverIndex.set(currentSetup.leftover, keepPile.length);
+          keepPile.push([]);
+        }
+        keepPile[leftoverIndex.get(currentSetup.leftover)!].push(pile.pop()!)
         pile = pile;
         keepPile = keepPile;
+        currentSetup = await getSetup(pile[pile.length - 1]);
       }
       if (phase == 'rank') {
         currentComparison?.resolve(currentComparison.a);
@@ -57,20 +65,15 @@
     if (event.code == 'ArrowRight' && !right) {
       right = true;
       if (phase == 'filter') {
-        discardPile[groupIndex].push(pile[groupIndex].pop()!)
+        discardPile.push(pile.pop()!)
         pile = pile;
         discardPile = discardPile;
+        currentSetup = await getSetup(pile[pile.length - 1]);
       }
       if (phase == 'rank') {
         currentComparison?.resolve(currentComparison.b);
       }
     }
-    if (pile[groupIndex].length == 0) {
-      keepPile.push([]);
-      discardPile.push([]);
-      groupIndex++;
-    }
-
   } 
 
   function handleKeyUp(event: KeyboardEvent) {
@@ -78,11 +81,18 @@
     if (event.code == 'ArrowRight') right = false;
   } 
 
+  async function getSetup(setupid: SetupID): Promise<SetupData> {
+    const res = await fetch('/api/setup?setupid=' + setupid)
+    const data = res.json();
+
+    return data;
+  }
+
   async function humanCompare(a: RankableItem, b: RankableItem) {
     return new Promise((resolve) => {
       currentComparison = { 
-        a, 
-        b, 
+          a, 
+          b, 
         resolve: (winner) => {
           currentStep++;
           resolve(winner);
@@ -145,6 +155,18 @@
     currentComparison = null; 
     phase = 'results';
   };
+
+  const handleSubmit: SubmitFunction = () => {
+    return async ({ result }) => {
+      if (result.type === 'success' && result.data) {
+        pile = result.data.setup_ids;
+        phase = 'filter';
+        currentSetup = await getSetup(pile[pile.length - 1]);
+      }
+
+      applyAction(result);
+    };
+  };
 </script>
 
 <style>
@@ -163,6 +185,11 @@
     <p>To be able to quiz you on setups, a ranking of the setups is needed.</p>
     <p>After going through this process, you will get a file that can be imported into the quiz, which can determine if the setup is correct based on your rankings.</p>
     <p>The process will consist of a filter phase, which you will decide if the setup is even worth being ranked, and then the ranking phase.</p>
+    <form 
+      method="POST"
+      action="?/getSetups"
+      use:enhance={handleSubmit}
+    >
     <div class="flex gap-2 py-4">
       <label for="pc-select" class="block text-lg font-medium"> {m.lookup_pc_number()} </label>
       <select
@@ -176,10 +203,10 @@
       </select>
     </div>
     <button 
+      type="submit"
       class="flex w-full cursor-pointer justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
-      on:click={() => phase = 'filter'}
-
     >Next</button>
+    </form>
     </div>
   </div>
 {:else if phase == 'filter'}
@@ -188,21 +215,23 @@
     <div class="border border-green-500 rounded">
     <div class="overflow-y-scroll flex flex-wrap font-mono text-center">
       {#each keepPile.flat() as item}
-        <span class="border basis-1/5 lg:basis-1/8 bg-white rounded py-2">{item}</span>
+        <span class="border basis-1/3 lg:basis-1/6 bg-white rounded py-2">{item}</span>
       {/each}
     </div>
     </div>
     <div class="border border-red-500 rounded">
     <div class="overflow-y-scroll flex flex-wrap font-mono text-center">
-      {#each discardPile.flat() as item}
-        <span class="border basis-1/5 lg:basis-1/8 bg-white rounded py-2">{item}</span>
+      {#each discardPile as item}
+        <span class="border basis-1/3 lg:basis-1/6 bg-white rounded py-2">{item}</span>
       {/each}
     </div>
     </div>
   </div>
   <div class="grid-area-1 z-1 h-full w-full flex justify-center items-center">
-    {#if groupIndex < pile.length}
-      <p class="border rounded bg-white p-8">{pile[groupIndex][pile[groupIndex].length - 1]}</p>
+    {#if groupIndex < pile.length && currentSetup}
+      <div class="w-2/3 opacity-70">
+        <SetupInfo setup={currentSetup} next={false}/>
+      </div>
     {:else}
       <button on:click={async () => {
         phase = 'rank';
