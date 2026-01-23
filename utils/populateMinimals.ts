@@ -12,10 +12,6 @@ import {
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const PLATFORM_HARD_TIMEOUT_MS = Infinity; // 6 * 60 * 60 * 1000; // 5 hours
-const SAFETY_MARGIN_MS = 60 * 60 * 1000; // 1 hour
-const EFFECTIVE_MAX_RUNTIME_MS = PLATFORM_HARD_TIMEOUT_MS - SAFETY_MARGIN_MS;
-
 const currentFilePath = fileURLToPath(import.meta.url);
 
 // Get the directory name from the file path
@@ -88,6 +84,10 @@ async function generateMinimalData(row: StatPathData): Promise<boolean> {
     console.error(`Failed to generate data for ${row.stat_id}:`, e);
     return false;
   }
+  if (Object.keys(data).length === 0) {
+    console.log(`Skipped ${row.stat_id} as predicted to take too long`)
+    return true;
+  }
 
   await fsPromises.appendFile(outputFile, `UPDATE statistics SET minimal_solves = '${data.minimalSolves}', true_minimal = ${data.trueMinimal} WHERE stat_id = '${row.stat_id}';\n`)
 
@@ -95,7 +95,6 @@ async function generateMinimalData(row: StatPathData): Promise<boolean> {
 }
 
 async function runUploads(batchSize: number = 1000) {
-  const startTime = Date.now();
   let from = 0;
 
   await fsPromises.writeFile(outputFile, '');
@@ -104,7 +103,8 @@ async function runUploads(batchSize: number = 1000) {
     const { data, error: dataError } = await supabaseAdmin
       .from('statistics')
       .select('stat_id, setup_id, hold_type, kicktable')
-      .is('minimal_solves', null)
+      // .is('minimal_solves', null)
+      .eq('true_minimal', false)
       .eq('path_file', true)
       .range(from, batchSize);
     if (dataError) {
@@ -114,12 +114,6 @@ async function runUploads(batchSize: number = 1000) {
     if (data.length === 0) break;
 
     for (let row of data) {
-      const elapsedTime = Date.now() - startTime;
-
-      if (elapsedTime >= EFFECTIVE_MAX_RUNTIME_MS) {
-        return;
-      }
-
       if (!(await generateMinimalData(row))) return;
     }
     from += batchSize;

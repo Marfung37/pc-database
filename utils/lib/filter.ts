@@ -28,11 +28,12 @@ const pathFilterFilepath = path.join(pathFilterDir, 'path-filter.jar');
 
 const execPromise = promisify(exec);
 
-const NODE_LIMIT_HEURISTIC = 450; // heurestic on number of nodes that is maximum to expect the true minimal program to complete in a reasonable amount of time
+const NODE_LIMIT_HEURISTIC = 350; // 450; // heurestic on number of nodes that is maximum to expect the true minimal program to complete in a reasonable amount of time
 const PATH_ITERATIONS = 3; // number of times path-filter is run to try to get a reasonable minimal set
 const MAX_PATH_ITERATIONS = 5; // number of times running path-filter before giving it an error instead
+const PATH_FILTER = false; // whether will run the path filter
 const PATH_TIME_LIMIT = 30 * 60 * 1000; // 30 minute time limit
-const MINIMAL_TIME_LIMIT = 30 * 60 * 1000; // 30 minute time limit
+const MINIMAL_TIME_LIMIT = Infinity; // 30 * 60 * 1000; // 30 minute time limit
 
 export interface FilterOutput {
   fractions: Fraction[];
@@ -154,12 +155,17 @@ export async function generateMinimalSet(
 
       minimalSet = set.map((n) => n.key) as Fumen[];
     } catch (e) {
+      if (PATH_FILTER) {
+        minimalSet = await runPathFilter(patterns, filteredPathFile, pathFilterOutput);
+        trueMinimal = false;
+      } else return {};
+    }
+  } else {
+    if (PATH_FILTER) {
       minimalSet = await runPathFilter(patterns, filteredPathFile, pathFilterOutput);
       trueMinimal = false;
     }
-  } else {
-    minimalSet = await runPathFilter(patterns, filteredPathFile, pathFilterOutput);
-    trueMinimal = false;
+    else return {};
   }
 
   const solutionMap = new Map();
