@@ -1,7 +1,7 @@
 import fsPromises from 'fs/promises';
 import { generateMinimalSet, type MinimalOutput } from './lib/filter';
 import * as csv from 'csv-parse/sync';
-import type { SetupID, Kicktable, HoldType } from './lib/types';
+import type { Queue, Fumen, SetupID, Kicktable, HoldType } from './lib/types';
 import { decompressPath, generateBucketPathFilename } from './lib/compression';
 import { supabaseAdmin } from './lib/supabaseAdmin';
 import {
@@ -71,15 +71,21 @@ async function generateMinimalData(row: StatPathData): Promise<boolean> {
   const parsed = csv.parse(decompressedFile, {
     columns: true,
     skip_empty_lines: true
-  })
+  }).filter((row: any) => row[COLUMN_FUMENS].length > 0);
 
-  const patterns = parsed
-    .filter((row: any) => row[COLUMN_FUMENS].length > 0)
-    .map((row: any) => {return {pattern: row[COLUMN_QUEUE], fumens: row[COLUMN_FUMENS].split(COLUMN_FUMENS_DELIMITER)}});
+  const queues: Queue[] = [];
+  const fumens: Set<Fumen> = new Set();
+  const queueToFumens: Map<Queue, Fumen[]> = new Map();
+  for (let row of parsed) {
+    queues.push(row[COLUMN_QUEUE]);
+    const newFumens = row[COLUMN_FUMENS].split(COLUMN_FUMENS_DELIMITER) as Fumen[];
+    newFumens.forEach(item => fumens.add(item));
+    queueToFumens.set(row[COLUMN_QUEUE], newFumens);
+  }
 
   let data: MinimalOutput;
   try {
-    data = await generateMinimalSet(patterns, parsed.length, path.join(outputPath, 'path.csv'), path.join(outputPath, 'path.txt'));
+    data = await generateMinimalSet(queues, fumens, queueToFumens, parsed.length);
   } catch (e) {
     console.error(`Failed to generate data for ${row.stat_id}:`, e);
     return false;

@@ -5,7 +5,7 @@ import { promisify } from 'util';
 import { fileURLToPath } from 'url';
 import { Parser as WantedSavesParser, evaluateAstAll, type AST } from './saves/parser';
 import { SavesReader } from './saves/savesReader';
-import { patternsToGraph, findMinimalNodes } from './saves/minimal';
+import { patternsToGraph, findMinimalNodes, solveSetCover } from './saves/minimal';
 import { Fraction } from './saves/fraction';
 import { fumenCombine, fumenCombineComments } from './fumenUtils';
 import { createObjectCsvWriter as createCsvWriter } from 'csv-writer';
@@ -75,7 +75,9 @@ export async function filter(
 
   const saveReader = new SavesReader(build, leftover, pcNum, filepath, fileData, twoline);
 
-  const patterns: pathRow[] = [];
+  const queues: Queue[] = [];
+  const fumens: Set<Fumen> = new Set();
+  const queueToFumens: Map<Queue, Fumen[]> = new Map();
 
   for (let row of saveReader.read(true, true)) {
     total++;
@@ -106,11 +108,9 @@ export async function filter(
     if (uniqueSolves) unionInPlace(uniqueFumens, new Set(newFumens));
 
     if (minimalSolves) {
-      const newRow: pathRow = {
-        pattern: row.queue,
-        fumens: newFumens
-      };
-      patterns.push(newRow);
+      queues.push(row.queue as Queue);
+      newFumens.forEach(item => fumens.add(item));
+      queueToFumens.set(row.queue as Queue, newFumens);
     }
   }
 
@@ -120,12 +120,12 @@ export async function filter(
 
   if (uniqueSolves && uniqueFumens.size > 0) returnData.uniqueSolves = fumenCombine(uniqueFumens);
 
-  if (minimalSolves && patterns.length > 0) {
+  if (minimalSolves && queues.length > 0) {
     const minimalData = await generateMinimalSet(
-      patterns,
-      total,
-      path.join(pathFilterDir, identifier + '.csv'),
-      path.join(pathFilterDir, identifier + '.txt')
+      queues,
+      fumens,
+      queueToFumen,
+      total
     );
     returnData.minimalSolves = minimalData.minimalSolves;
     returnData.trueMinimal = minimalData.trueMinimal;
@@ -135,42 +135,21 @@ export async function filter(
 }
 
 export async function generateMinimalSet(
-  patterns: pathRow[],
+  queues: Queue[],
+  fumens: Set<Fumen>,
+  queueToFumens: Map<Queue, Fumen[]>,
   total: number,
-  filteredPathFile: string,
-  pathFilterOutput: string
 ): Promise<MinimalOutput> {
-  const graph = patternsToGraph(patterns);
 
-  console.log(`Edges ${graph.edges.length}, Nodes ${graph.nodes.length}`);
+  const solution = await solveSetCover(queues, Array.from(fumens), queueToFumens);
 
-  let minimalSet: Fumen[];
-  let trueMinimal: boolean = true;
-  if (graph.nodes.length < NODE_LIMIT_HEURISTIC) {
-    try {
-      const { sets } = findMinimalNodes(graph.edges, MINIMAL_TIME_LIMIT);
-
-      // TODO: decide if something better than pick arbitarily first set
-      const set = sets[0];
-
-      minimalSet = set.map((n) => n.key) as Fumen[];
-    } catch (e) {
-      if (PATH_FILTER) {
-        minimalSet = await runPathFilter(patterns, filteredPathFile, pathFilterOutput);
-        trueMinimal = false;
-      } else return {};
-    }
-  } else {
-    if (PATH_FILTER) {
-      minimalSet = await runPathFilter(patterns, filteredPathFile, pathFilterOutput);
-      trueMinimal = false;
-    }
-    else return {};
+  if (solution.selected == null) {
+    throw new Error(`Unable to find minimal set due to ${solution.status}`);
   }
 
   const solutionMap = new Map();
-  for (const pattern of patterns) {
-    for (const fumen of pattern.fumens) {
+  for (const queue of queueToFumens.keys()) {
+    for (const fumen of queueToFumens.get(queue)) {
       let sol = solutionMap.get(fumen);
       if (!sol) {
         sol = {
@@ -179,11 +158,11 @@ export async function generateMinimalSet(
         };
         solutionMap.set(fumen, sol);
       }
-      sol.patterns.push(pattern.pattern);
+      sol.patterns.push(queue);
     }
   }
 
-  const solutions = minimalSet.map((f) => {
+  const solutions = solution.selected.map((f) => {
     const sol = solutionMap.get(f);
     return {
       fumen: sol.fumen,
@@ -220,7 +199,7 @@ export async function generateMinimalSet(
     return `${percent.toFixed(2)}% (${f.numerator}/${f.denominator})`;
   });
 
-  return { minimalSolves: fumenCombineComments(fumenOrder, labels), trueMinimal };
+  return { minimalSolves: fumenCombineComments(fumenOrder, labels), trueMinimal: solution.status == "Optimal" };
 }
 
 async function writeFilteredPath(filepath: string, patterns: pathRow[]): Promise<void> {
