@@ -161,9 +161,10 @@ CREATE TABLE "statistics" (
   "solve_fraction" fraction,
   "all_solves" fumen,
   "minimal_solves" fumen,
-  "true_minimal" bool,
+  "minimal_count" smallint,
   "path_file" bool NOT NULL DEFAULT FALSE,
   UNIQUE ("setup_id", "kicktable", "hold_type"),
+  CHECK (minimal_count > 0),
   FOREIGN KEY (setup_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -190,7 +191,7 @@ CREATE TABLE "save_data" (
   "priority_save_fraction" fraction[],
   "all_solves" fumen,
   "minimal_solves" fumen,
-  "true_minimal" bool,
+  "minimal_count" smallint,
   "status" status NOT NULL,
   UNIQUE ("stat_id", "save_id"),
   CHECK (
@@ -215,16 +216,7 @@ CREATE TABLE "save_data" (
       AND priority_save_fraction IS NOT NULL
     )
   ),
-  CHECK (
-    (
-      minimal_solves IS NULL
-      AND true_minimal IS NULL
-    )
-    OR (
-      minimal_solves IS NOT NULL
-      AND true_minimal IS NOT NULL
-    )
-  ),
+  CHECK (minimal_count > 0),
   FOREIGN KEY (stat_id) REFERENCES statistics (stat_id) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (save_id) REFERENCES saves (save_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -301,7 +293,7 @@ COMMENT ON COLUMN "statistics"."all_solves" IS 'All solves for the setup';
 
 COMMENT ON COLUMN "statistics"."minimal_solves" IS 'Minimal set of solves. NULL if not created';
 
-COMMENT ON COLUMN "statistics"."true_minimal" IS 'Whether algorithm for minimal gurantees minimality';
+COMMENT ON COLUMN "statistics"."minimal_count" IS 'Cardinality of the minimal set';
 
 COMMENT ON COLUMN "statistics"."path_file" IS 'Whether path file exist. Follows [setup-id]-[kicktable].csvd.xz format';
 
@@ -317,7 +309,7 @@ COMMENT ON COLUMN "save_data"."all_solves" IS 'All solves for save';
 
 COMMENT ON COLUMN "save_data"."minimal_solves" IS 'Minimal set of solves for save';
 
-COMMENT ON COLUMN "save_data"."true_minimal" IS 'Whether algorithm for minimal gurantees minimality';
+COMMENT ON COLUMN "save_data"."minimal_count" IS 'Cardinality of the minimal set';
 
 COMMENT ON COLUMN "save_data"."status" IS 'Status of the populating data';
 

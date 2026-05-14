@@ -2,13 +2,19 @@ import { is2Line } from './lib/fumenUtils';
 import { filter, type FilterOutput } from './lib/filter';
 import { Fraction } from './lib/saves/fraction';
 import { WANTED_SAVE_DELIMITER } from './lib/saves/constants';
-import type { SetupID, SaveData } from './lib/types';
+import type { SetupID, SaveData, Fumen } from './lib/types';
 import { decompressPath, generateBucketPathFilename } from './lib/compression';
 import { supabaseAdmin } from './lib/supabaseAdmin';
+import { fumenGetNumPages } from './lib/fumenUtils';
 
 if (process.env.PATH_UPLOAD_BUCKET === undefined) {
   console.error('PATH_UPLOAD_BUCKET expected');
   process.exit(1);
+}
+
+interface SavesMinimalData {
+  save_data_id: string,
+  minimal_solves: Fumen
 }
 
 async function generateSaveData(row): Promise<boolean> {
@@ -125,6 +131,22 @@ async function generateSaveData(row): Promise<boolean> {
   return true;
 }
 
+async function getMinimalCounts(row: SavesMinimalData): Promise<boolean> {
+  console.log(`Processing save_data_id: ${row.save_data_id} for minimal count`);
+  const count = fumenGetNumPages(row.minimal_solves);
+
+  const { error: updateError } = await supabaseAdmin
+    .from('save_data')
+    .update({minimal_count: count})
+    .eq('save_data_id', row.save_data_id);
+  if (updateError) {
+    console.error(`Failed to update ${row.save_data_id}:`, updateError);
+    return false;
+  }
+
+  return true;
+}
+
 async function runUploads(batchSize: number = 1000) {
   while (true) {
     const { data, error: dataError } = await supabaseAdmin.rpc('find_uncalculated_saves', {
@@ -138,6 +160,25 @@ async function runUploads(batchSize: number = 1000) {
 
     for (let row of data) {
       if (!(await generateSaveData(row))) return;
+    }
+  }
+
+  // populate minimal counts
+  while (true) {
+    const { data, error: dataError } = await supabaseAdmin
+      .from('save_data')
+      .select('save_data_id, minimal_solves')
+      .is('minimal_count', null)
+      .not('minimal_solves', 'is', null)
+      .range(0, batchSize);
+    if (dataError) {
+      console.error('Failed to get save data to calculate:', dataError.message);
+      return;
+    }
+    if (data.length === 0) break;
+
+    for (let row of data) {
+      if (!(await getMinimalCounts(row))) return;
     }
   }
 }

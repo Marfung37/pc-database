@@ -14,7 +14,7 @@ CREATE TYPE setup_saves_data AS (
   priority_save_fraction fraction[],
   all_solves fumen,
   minimal_solves fumen,
-  true_miniaml boolean
+  minimal_count smallint
 );
 
 -- bare minimal data to determine if a given setup is actually buildable based on leftover
@@ -182,7 +182,7 @@ BEGIN
       sd.priority_save_fraction,
       sd.all_solves,
       sd.minimal_solves,
-      sd.true_minimal
+      sd.minimal_count
     )::setup_saves_data ORDER BY sa.importance) AS saves
     FROM save_data sd
     JOIN saves sa ON sd.save_id = sa.save_id
@@ -295,7 +295,7 @@ BEGIN
       sd.priority_save_fraction,
       sd.all_solves,
       sd.minimal_solves,
-      sd.true_minimal
+      sd.minimal_count
     )::setup_saves_data ORDER BY sa.importance) AS saves
     FROM save_data sd
     JOIN saves sa ON sd.save_id = sa.save_id
@@ -397,7 +397,7 @@ BEGIN
       sd.priority_save_fraction,
       sd.all_solves,
       sd.minimal_solves,
-      sd.true_minimal
+      sd.minimal_count
     )::setup_saves_data ORDER BY sa.importance) AS saves
     FROM save_data sd
     JOIN saves sa ON sd.save_id = sa.save_id

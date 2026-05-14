@@ -210,3 +210,9 @@ export function fumenMirror(fumen: Fumen): Fumen {
 
   return encoder.encode(pages) as Fumen;
 }
+
+export function fumenGetNumPages(fumen: Fumen): number {
+  const pages = decodeWrapper(fumen);
+
+  return pages.length;
+}
