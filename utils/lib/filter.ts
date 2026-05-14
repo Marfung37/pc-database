@@ -124,7 +124,7 @@ export async function filter(
     const minimalData = await generateMinimalSet(
       queues,
       fumens,
-      queueToFumen,
+      queueToFumens,
       total
     );
     returnData.minimalSolves = minimalData.minimalSolves;
