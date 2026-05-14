@@ -1,5 +1,5 @@
 import fsPromises from 'fs/promises';
-import { generateMinimalSet, type MinimalOutput } from './lib/filter';
+import { generateMinimalSet } from './lib/filter';
 import * as csv from 'csv-parse/sync';
 import type { Queue, Fumen, SetupID, Kicktable, HoldType } from './lib/types';
 import { decompressPath, generateBucketPathFilename } from './lib/compression';
@@ -83,19 +83,15 @@ async function generateMinimalData(row: StatPathData): Promise<boolean> {
     queueToFumens.set(row[COLUMN_QUEUE], newFumens);
   }
 
-  let data: MinimalOutput;
+  let minimalSolves: Fumen;
   try {
-    data = await generateMinimalSet(queues, fumens, queueToFumens, parsed.length);
+    minimalSolves = await generateMinimalSet(queues, fumens, queueToFumens, parsed.length);
   } catch (e) {
     console.error(`Failed to generate data for ${row.stat_id}:`, e);
     return false;
   }
-  if (Object.keys(data).length === 0) {
-    console.log(`Skipped ${row.stat_id} as predicted to take too long`)
-    return true;
-  }
 
-  await fsPromises.appendFile(outputFile, `UPDATE statistics SET minimal_solves = '${data.minimalSolves}', true_minimal = ${data.trueMinimal} WHERE stat_id = '${row.stat_id}';\n`)
+  await fsPromises.appendFile(outputFile, `UPDATE statistics SET minimal_solves = '${minimalSolves}' WHERE stat_id = '${row.stat_id}';\n`)
 
   return true;
 }

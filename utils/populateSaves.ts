@@ -6,10 +6,6 @@ import type { SetupID, SaveData } from './lib/types';
 import { decompressPath, generateBucketPathFilename } from './lib/compression';
 import { supabaseAdmin } from './lib/supabaseAdmin';
 
-const PLATFORM_HARD_TIMEOUT_MS = Infinity; // 6 * 60 * 60 * 1000; // 5 hours
-const SAFETY_MARGIN_MS = 60 * 60 * 1000; // 1 hour
-const EFFECTIVE_MAX_RUNTIME_MS = PLATFORM_HARD_TIMEOUT_MS - SAFETY_MARGIN_MS;
-
 if (process.env.PATH_UPLOAD_BUCKET === undefined) {
   console.error('PATH_UPLOAD_BUCKET expected');
   process.exit(1);
@@ -90,8 +86,7 @@ async function generateSaveData(row): Promise<boolean> {
       decompressedFile,
       is2Line(row.fumen),
       row.gen_all_saves,
-      row.gen_minimal,
-      saveDataID.save_data_id
+      row.gen_minimal
     );
   } catch (e) {
     console.error(`Failed to generate data for ${saveDataID.save_data_id}:`, e);
@@ -108,8 +103,7 @@ async function generateSaveData(row): Promise<boolean> {
     priority_save_percent: null,
     priority_save_fraction: null,
     all_solves: data.uniqueSolves ?? null,
-    minimal_solves: data.minimalSolves ?? null,
-    true_minimal: data.trueMinimal ?? null
+    minimal_solves: data.minimalSolves ?? null
   };
   if (percents.length == 1) {
     newRow.save_percent = percents[0];
@@ -132,8 +126,6 @@ async function generateSaveData(row): Promise<boolean> {
 }
 
 async function runUploads(batchSize: number = 1000) {
-  const startTime = Date.now();
-
   while (true) {
     const { data, error: dataError } = await supabaseAdmin.rpc('find_uncalculated_saves', {
       max_rows: batchSize
@@ -145,12 +137,6 @@ async function runUploads(batchSize: number = 1000) {
     if (data.length === 0) break;
 
     for (let row of data) {
-      const elapsedTime = Date.now() - startTime;
-
-      if (elapsedTime >= EFFECTIVE_MAX_RUNTIME_MS) {
-        return;
-      }
-
       if (!(await generateSaveData(row))) return;
     }
   }
