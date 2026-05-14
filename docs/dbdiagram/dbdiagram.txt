@@ -118,7 +118,7 @@ table statistics {
   solve_fraction    fraction      [note: 'Precise solve fraction. NULL if internal node in oqb']
   all_solves        text          [note: 'All solves for the setup']
   minimal_solves    text          [note: 'Minimal set of solves. NULL if not created']
-  true_minimal      bool          [note: 'Whether algorithm for minimal gurantees minimality']
+  minimal_count     small_int     [note: 'Cardinality of the minimal set']
   path_file         bool          [note: 'Whether path file exist. Follows [setup-id]-[kicktable].csvd.xz format']
 
   indexes {
@@ -136,7 +136,7 @@ table save_data {
   priority_save_fraction  fraction      [note: 'Array of fraction for giving priority for saves. NULL if one save']
   all_solves        text          [note: 'All solves for save']
   minimal_solves    text          [note: 'Minimal set of solves for save']
-  true_minimal      bool          [note: 'Whether algorithm for minimal gurantees minimality']
+  minimal_count     smallint      [note: 'Cardinality of the minimal set']
   status            status        [not null, note: 'Status of the populating data']
 }
 
