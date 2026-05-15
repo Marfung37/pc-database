@@ -36,6 +36,7 @@
   "fumen_copy_failed": "コピー失敗",
   "copy_not_supported": "クリップボードAPIはサポートされていません",
   "copy_minimal": "コピーミニマムfumen",
+  "minimal_solves_count": "ミニマムカウント",
   "lookup_solve_pattern": "パフェパータン",
   "cover_description": "カバー記述",
   "lookup_pc_number": "PC番号",

@@ -38,6 +38,7 @@
   "fumen_copy_failed": "Failed to copy",
   "copy_not_supported": "Clipboard API not supported",
   "copy_minimal": "Copy Minimal Fumen",
+  "minimal_solves_count": "Minimal Solves Count",
   "lookup_pc_number": "PC Number",
   "lookup_queue": "Queue",
   "lookup_solve_percent": "Solve Percent",

@@ -34,11 +34,11 @@
         <CopyButton textToCopy={setup.cover_pattern} />
       </div>
       <p>{m.exact_cover_pattern()}: {setup.cover_data === null ? m.yes() : m.no()}</p>
+      <p>{m.minimal_solves_count()}: {setup.minimal_count}</p>
       <p>{m.lookup_credit()}: {setup.credit ? setup.credit : m.lookup_unknown()}</p>
       {#if setup.solve_pattern}
         <PathDownload setupid={setup.setup_id as SetupID} />
       {/if}
-      <!-- <p>Minimal Solves</p> -->
       <!-- <p>Variants</p> -->
     </div>
     {#if setup.saves}

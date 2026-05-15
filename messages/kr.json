@@ -38,6 +38,7 @@
   "fumen_copy_failed": "후멘 복사 실패",
   "copy_not_supported": "클립보드 API가 지원되지 않습니다",
   "copy_minimal": "최소해법 복사하기",
+  "minimal_solves_count": "Minimal Solves Count",
   "lookup_pc_number": "회차",
   "lookup_queue": "큐",
   "lookup_solve_percent": "퍼클 확률",
