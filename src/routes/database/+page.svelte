@@ -1,14 +1,13 @@
 <script lang="ts">
   import type { SubmitFunction } from './$types.ts';
   import { enhance, applyAction } from '$app/forms';
+  import { goto } from '$app/navigation';
   import { m } from '$lib/paraglide/messages.js';
   import { Grid } from 'wx-svelte-grid';
   import { Willow } from 'wx-svelte-grid';
 
-  export let data;
   export let form;
 
-  const { columns } = data;
   let loading = false;
 
   const pcs = [
@@ -30,6 +29,68 @@
       applyAction(result);
     };
   };
+
+  const columns = [
+    {
+      id: 'setup_id',
+      header: ['Setup ID', {filter: "text"}],
+      footer: 'Setup ID',
+      width: 150,
+      treetoggle: true,
+      resize: true
+    },
+    {
+      id: 'leftover',
+      width: 100,
+      header: ['Leftover', {filter: "text"}],
+      footer: 'Leftover'
+    },
+    {
+      id: 'build',
+      header: ['Build', {filter: "text"}],
+      footer: 'Build',
+      width: 100
+    },
+    {
+      id: 'cover_pattern',
+      header: ['Cover Pattern', {filter: "text"}],
+      footer: 'Cover Pattern',
+      width: 150,
+      flexgrow: 1,
+      resize: true,
+      editor: 'text'
+    },
+    {
+      id: 'fumen',
+      header: ['Fumen', {filter: "text"}],
+      footer: 'Fumen',
+      width: 200,
+      flexgrow: 1,
+      resize: true,
+      editor: 'text'
+    },
+    {
+      id: 'solve_pattern',
+      header: ['Solve Pattern', {filter: "text"}],
+      footer: 'Solve Pattern',
+      width: 100,
+      flexgrow: 1,
+      resize: true,
+      editor: 'text'
+    },
+    {
+      id: 'mirror',
+      header: ['Mirror', {filter: "text"}],
+      footer: 'Mirror',
+      width: 120
+    },
+    {
+      id: 'solve_percent',
+      header: ['Solve %', {filter: "text"}],
+      footer: 'Solve %',
+      width: 100
+    }
+  ];
 </script>
 
 <div class="hero min-h-[60vh]">
@@ -90,7 +151,7 @@
       {/if}
 
       <Willow>
-        <Grid tree={true} footer={true} data={form?.gridData ?? []} {columns} />
+        <Grid tree={true} footer={true} data={form?.gridData ?? []} {columns}/>
       </Willow>
     </div>
   </div>

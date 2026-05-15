@@ -1,81 +1,6 @@
 import { fail } from '@sveltejs/kit';
 import { m } from '$lib/paraglide/messages.js';
-import type { Actions, PageServerLoad } from './$types';
-
-export const load: PageServerLoad = async () => {
-  const columns = [
-    {
-      id: 'setup_id',
-      header: 'Setup ID',
-      footer: 'Setup ID',
-      width: 150,
-      treetoggle: true,
-      resize: true
-    },
-    {
-      id: 'leftover',
-      width: 100,
-      header: 'Leftover',
-      footer: 'Leftover'
-    },
-    {
-      id: 'build',
-      header: 'Build',
-      footer: 'Build',
-      width: 100
-    },
-    {
-      id: 'cover_pattern',
-      header: 'Cover Pattern',
-      footer: 'Cover Pattern',
-      width: 150,
-      flexgrow: 1,
-      resize: true,
-      editor: 'text'
-    },
-    {
-      id: 'fumen',
-      header: 'Fumen',
-      footer: 'Fumen',
-      width: 200,
-      flexgrow: 1,
-      resize: true,
-      editor: 'text'
-    },
-    {
-      id: 'solve_pattern',
-      header: 'Solve Pattern',
-      footer: 'Solve Pattern',
-      width: 100,
-      flexgrow: 1,
-      resize: true,
-      editor: 'text'
-    },
-    {
-      id: 'mirror',
-      header: 'Mirror',
-      footer: 'Mirror',
-      width: 120
-    },
-    {
-      id: 'oqb_path',
-      header: 'OQB Path',
-      footer: 'OQB Path',
-      width: 150,
-      flexgrow: 1,
-      resize: true,
-      editor: 'text'
-    },
-    {
-      id: 'solve_percent',
-      header: 'Solve %',
-      footer: 'Solve %',
-      width: 100
-    }
-  ];
-
-  return { columns };
-};
+import type { Actions } from './$types';
 
 // 1. Define Types
 // Extend the base Setup interface to include the nested 'data' for the tree structure
@@ -92,7 +17,7 @@ interface BaseSetup {
 
 // Define the shape of the statistics data when embedded
 interface StatisticsData {
-  solve_percent: number;
+  solve_percent: string;
 }
 
 interface PathsData {
@@ -107,7 +32,7 @@ interface RawSetup extends BaseSetup {
 
 // Type for data after processing (flattened statistics and nested 'data' for children)
 interface ProcessedSetup extends BaseSetup {
-  solve_percent: number | null; // Flattened solve_percent, can be null
+  solve_percent: string | null; // Flattened solve_percent, can be null
   setup_oqb_paths: PathsData[] | null; // Null if no related statistics due to UNIQUE constraint
   data?: ProcessedSetup[]; // Children in the tree structure
   open?: boolean; // For UI state if you plan to use it (e.g., in a tree view)
@@ -118,7 +43,7 @@ function processSetupData(rawSetups: RawSetup[] | null): ProcessedSetup[] {
   if (!rawSetups) return [];
   return rawSetups.map((s) => ({
     ...s,
-    solve_percent: s.statistics?.[0].solve_percent || null // Safely access and default to null
+    solve_percent: s.statistics?.[0].solve_percent?.toString() || null // Safely access and default to null
   }));
 }
 
