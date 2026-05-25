@@ -1,5 +1,7 @@
 import { TetrisBoardPiece } from '$lib/tetris/TetrisBoardPiece';
 import { PieceEnum } from '$lib/tetris/pieceData';
+import { encoder, Field, type Page } from 'tetris-fumen';
+import type { Fumen } from '$lib/types';
 
 export class TetrisBoard {
   public width: number;
@@ -61,6 +63,9 @@ export class TetrisBoard {
         this.lineclear(y);
       }
     }
+
+    // DEBUG
+    console.log(this.toFumen());
   }
 
   clearPiece(piece: TetrisBoardPiece): void {
@@ -69,6 +74,11 @@ export class TetrisBoard {
 
   isEmpty(): boolean {
     return this.board.flat().reduce((sum, c) => sum + c, 0) == 0;
+  }
+
+  toFumen(): Fumen {
+    const field = this.board.map((row) => row.map((cell) => PieceEnum[cell]).join('')).join('');
+    return encoder.encode([{field: Field.create(field)}]) as Fumen;
   }
 
   reset(): void {
