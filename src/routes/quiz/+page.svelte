@@ -229,7 +229,8 @@
         const jsonString = e.target?.result as string;
         const parsedData = JSON.parse(jsonString);
 
-        game.getSetupData(parsedData.setups, parsedData.tree);
+        game.getSetupData(parsedData.setups, parsedData.tree, parsedData.pattern);
+        patternsText = parsedData.pattern;
       } catch (err) {
         console.error(err);
         errorMessage = "Failed to parse JSON. Check file formatting.";

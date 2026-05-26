@@ -50,7 +50,7 @@ function insertSetupCover(tree: Tree, coverData: string, coverPattern: string, v
   }
 }
 
-async function getCoverTree(ranking: SetupID[], kicktable: Kicktable = 'srs180', hold_type: HoldType = 'any'): Promise<string | null> {
+async function getCoverTree(ranking: SetupID[], coverPattern: string, kicktable: Kicktable = 'srs180', hold_type: HoldType = 'any'): Promise<string | null> {
   let targets = ranking
     .map(t => {return {setup_id: t, kicktable, hold_type}})
  
@@ -70,6 +70,7 @@ async function getCoverTree(ranking: SetupID[], kicktable: Kicktable = 'srs180',
   }
 
   return JSON.stringify({
+    pattern: coverPattern,
     setups,
     tree: tree.root
   })
@@ -77,12 +78,14 @@ async function getCoverTree(ranking: SetupID[], kicktable: Kicktable = 'srs180',
 
 import { readFileSync, writeFileSync } from 'fs';
 
-let lines: SetupID[] = readFileSync('tmp/2ndranking.txt', 'utf-8')
+let lines: string[] = readFileSync('tmp/2ndranking.txt', 'utf-8')
   .split(/\r?\n/)          
   .map(line => line.trim()) 
   .filter(line => line !== "")
-  .map(line => line as SetupID) 
+const coverPattern = lines[0];
+const setups: SetupID[] = lines.slice(1)
+  .map(line => line as SetupID)
 
-const data = await getCoverTree(lines);
+const data = await getCoverTree(setups, coverPattern);
 if (data !== null) 
   writeFileSync('tmp/output.json', data);

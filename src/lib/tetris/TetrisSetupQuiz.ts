@@ -42,15 +42,15 @@ export class TetrisSetupQuiz extends TetrisGame {
     this.isSetupQuiz = false;
   }
 
-  getSetupData(setups: Fumen[], setupTree: TreeNode) {
+  getSetupData(setups: Fumen[], setupTree: TreeNode, pattern: string) {
     // DEBUG
     console.log("setup data gotten");
 
     this.isSetupQuiz = true;
     this.setups = setups;
     this.setupTree = setupTree;
+    this.setPattern(pattern);
 
-    // TODO: needs pattern for queue to be set
     this.seed = this.random.reseed();
     this.operations = [];
     this.reset();
@@ -85,16 +85,17 @@ export class TetrisSetupQuiz extends TetrisGame {
   lock(piece: TetrisBoardPiece | null = null) {
     super.lock(piece);
   
-    console.log('Pieces placed:', this.pieceCount);
-  
     if (this.isSetupQuiz && 
         this.correctSetup !== null && 
         this.correctSetupPieceLength == this.pieceCount) {
-      if (isCongruentFumen(this.board.toFumen(), this.correctSetup, 1)) {
-        // correct setup
-        console.log("Correct!");
-      } else {
-        console.log("Wrong!");
+      if (!this.simulating) {
+        if (isCongruentFumen(this.board.toFumen(), this.correctSetup, 1)) {
+          // correct setup
+          console.log("Correct!");
+        } else {
+          console.log("Wrong!");
+        }
+
       }
     
       this.reset(this.softReset);
