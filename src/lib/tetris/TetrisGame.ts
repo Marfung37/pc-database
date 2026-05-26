@@ -2,6 +2,7 @@ import type { Queue } from '$lib/types';
 import { TetrisQueue } from '$lib/tetris/TetrisQueue';
 import { TetrisBoard } from '$lib/tetris/TetrisBoard';
 import { TetrisBoardPiece } from '$lib/tetris/TetrisBoardPiece';
+import { PRNG, type Seed } from '$lib/tetris/random';
 import type { Action } from '$lib/tetris/Keybind';
 import { extendPieces, getPiecesLength } from '$lib/utils/pieces';
 import { PCSIZE, BOARDHEIGHT } from '$lib/constants';
@@ -11,7 +12,7 @@ const PREVIEWSIZE = 5;
 const INITIALY = 19;
 const INITIALX = 4;
 
-const DEFAULT = {
+export const DEFAULT = {
   arr: 0,
   sdArr: 0,
   das: 80
@@ -28,13 +29,18 @@ export class TetrisGame {
   handling: Record<string, number>;
   storageKey: string;
 
-  private isPrac: boolean;
-  private held!: boolean;
+  pieceCount: number;
+
+  protected random: PRNG;
+  protected seed: Seed;
+
+  protected isPrac: boolean;
+  protected held!: boolean;
   private timers!: Record<Action, number>;
 
-  private queues: Array<string>;
-  private queueIndex: number;
-  private operations: TetrisBoardPiece[];
+  protected queues: Array<string>;
+  protected queueIndex: number;
+  protected operations: TetrisBoardPiece[];
 
   constructor(
     pattern: string = '',
@@ -44,12 +50,23 @@ export class TetrisGame {
     this.handling = handling;
     this.storageKey = storageKey;
     this.isPrac = false;
+    this.pieceCount = 0;
 
-    this.queue = new TetrisQueue(PREVIEWSIZE);
+    this.random = new PRNG();
+    this.seed = this.random.reseed();
+
+    this.queue = new TetrisQueue(PREVIEWSIZE, this.random);
     this.board = new TetrisBoard(PCSIZE, BOARDHEIGHT + 1);
     this.queues = [];
     this.queueIndex = -1;
     this.operations = [];
+
+    this.setPattern(pattern);
+  }
+
+  setPattern(pattern: string): void {
+    this.seed = this.random.reseed();
+
 
     if (pattern.length > 0) {
       if (getPiecesLength(pattern) > PCSIZE + 1) {
@@ -59,7 +76,6 @@ export class TetrisGame {
       if (this.queues.length > 0) {
         this.queue.setFillBags(false);
         this.isPrac = true;
-        this.regen();
       }
     }
 
@@ -82,11 +98,14 @@ export class TetrisGame {
 
     this.queue.reset();
     this.board.reset();
+    this.pieceCount = 0;
 
     // soft by keeping the queue
     if (this.queues.length > 0) {
       if (soft) this.queue.set(this.queues[this.queueIndex] as Queue);
-      else this.regen();
+      else {
+        this.regen();
+      }
     }
 
     if (this.queues.length > 0 && this.queue.previewSize > 1) {
@@ -97,7 +116,7 @@ export class TetrisGame {
   }
 
   regen(): void {
-    this.queueIndex = Math.floor(Math.random() * this.queues.length);
+    this.queueIndex = Math.floor(this.random.random() * this.queues.length);
     this.queue.set(this.queues[this.queueIndex] as Queue);
   }
 
@@ -176,12 +195,23 @@ export class TetrisGame {
     this.movePiece(0, -1);
   }
 
-  lock(): void {
+  lock(piece: TetrisBoardPiece | null = null): void {
     // move piece as far down as possible (hd)
-    while (this.movePiece(0, -1));
-    this.held = false;
-    this.operations.push(this.active.copy());
+    if (piece !== null) {
+      this.active.x = piece.x;
+      this.active.y = piece.y;
+      if (this.active.type !== piece.type) {
+        // DEBUG
+        console.error("Incorrect piece passed to locked")
+      }
+      this.board.place(this.active, true);
+    } else {
+      while (this.movePiece(0, -1));
+      this.held = false;
+      this.operations.push(this.active.copy());
+    }
     this.board.place(this.active, true);
+    this.pieceCount++;
 
     if (this.queue.length == 0) {
       if (this.holdPiece != PieceEnum.X) {
@@ -197,7 +227,6 @@ export class TetrisGame {
 
     // practice pc
     if (this.isPrac && this.board.isEmpty()) {
-      this.regen();
       this.reset(this.softReset);
     }
 
@@ -208,12 +237,14 @@ export class TetrisGame {
   }
 
   undo(): void {
+    this.random.seed(this.seed);
     if (!this.isPrac || this.operations.length == 0) return;
 
-    let piece = this.operations.pop() as TetrisBoardPiece;
+    // remove last piece placed
+    this.operations.pop();
 
     const queueLength = this.queues[0].length;
-    if (this.isPrac && (this.operations.length + 1) % queueLength == 0) {
+    if ((this.operations.length + 1) % queueLength == 0) {
       this.queue.reset();
       this.holdPiece = PieceEnum.X;
     } else if (this.holdPiece == PieceEnum.X) {
@@ -221,26 +252,17 @@ export class TetrisGame {
     } else {
       this.queue.enqueue(this.active.type);
     }
-    this.setActive(piece.type);
 
     // run all the operations and simulate with the current board state should be now
-    this.board.reset();
-    for (let [i, piece] of this.operations.entries()) {
-      if (this.isPrac && i % queueLength == 0) {
-        this.board.reset();
+    this.reset();
+    for (let piece of this.operations) {
+      if (this.active.type !== piece.type) {
+        if (this.holdPiece !== piece.type) {
+          console.error("Wrong piece from hold also");
+        }
+        this.hold();
       }
-
-      // practice pc
-      if (this.isPrac && this.board.isEmpty()) {
-        this.board.reset();
-      }
-
-      // topped out
-      if (this.checkCollide(piece)) {
-        this.board.reset();
-      }
-
-      this.board.place(piece, true);
+      this.lock(piece);
     }
   }
 
@@ -274,8 +296,9 @@ export class TetrisGame {
           this.down();
           break;
         case 'reset':
-          this.reset();
+          this.seed = this.random.reseed();
           this.operations = [];
+          this.reset();
           break;
         case 'left':
         case 'right':

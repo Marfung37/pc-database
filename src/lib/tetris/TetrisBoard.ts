@@ -63,9 +63,6 @@ export class TetrisBoard {
         this.lineclear(y);
       }
     }
-
-    // DEBUG
-    console.log(this.toFumen());
   }
 
   clearPiece(piece: TetrisBoardPiece): void {
@@ -77,7 +74,8 @@ export class TetrisBoard {
   }
 
   toFumen(): Fumen {
-    const field = this.board.map((row) => row.map((cell) => PieceEnum[cell]).join('')).join('');
+    const cellToFumenCell = (cell: number) => (cell == 0) ? '_': PieceEnum[cell];
+    const field = this.board.map((row) => row.map(cellToFumenCell).join('')).toReversed().join('');
     return encoder.encode([{field: Field.create(field)}]) as Fumen;
   }
 

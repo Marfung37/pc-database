@@ -1,3 +1,4 @@
+import { PRNG } from '$lib/tetris/random';
 import type { Queue, Piece } from '$lib/types';
 import { type PieceEnum, get_piece_number } from '$lib/tetris/pieceData';
 
@@ -10,15 +11,15 @@ export class TetrisQueue {
   length: number;
   private pos: number;
   private fillBags: boolean;
+  private random: PRNG;
 
-  constructor(previewSize: number, fillBags: boolean = true) {
+  constructor(previewSize: number, random: PRNG, fillBags: boolean = true) {
     this.previewSize = previewSize;
     this.fillBags = fillBags;
     this.queue = Array<number>(this.previewSize + BAGSIZE - 1);
     this.pos = 0;
     this.length = 0;
-
-    this.reset();
+    this.random = random;
   }
 
   reset(): void {
@@ -35,7 +36,7 @@ export class TetrisQueue {
   private addBag(): void {
     let bag = Array.from({ length: BAGSIZE }, (_, i) => i + 1);
     for (let i = BAGSIZE - 1; i >= 0; i--) {
-      const rand = Math.floor(Math.random() * (i + 1));
+      const rand = Math.floor(this.random.random() * (i + 1));
       this.queue[this.pos + this.length + BAGSIZE - 1 - i] = bag[rand];
       bag[rand] = bag[i];
     }

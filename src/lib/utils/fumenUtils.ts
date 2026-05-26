@@ -131,6 +131,14 @@ export function fumenGetMinos(fumen: Fumen): Mino[] {
   return minos;
 }
 
+/**
+ * Get number of filled cells in the first page
+ */
+export function fumenCountFilledCells(fumen: Fumen): number {
+  const page = decodeWrapper(fumen)[0];
+  return page.field.str({ reduced: true, garbage: false }).replaceAll(/[_\r\n]/g, '').length;
+}
+
 export function isCongruentFumen(
   fumen1: Fumen,
   fumen2: Fumen,
