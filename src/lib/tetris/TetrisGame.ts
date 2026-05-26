@@ -19,6 +19,7 @@ export const DEFAULT = {
 };
 
 export type Event = string;
+export type Mode = string | 'pure' | 'practice';
 
 export class TetrisGame {
   board: TetrisBoard;
@@ -40,7 +41,7 @@ export class TetrisGame {
 
   protected simulating: boolean;
 
-  protected isPrac: boolean;
+  protected mode: string | 'pure' | 'practice';
   protected held!: boolean;
   private timers!: Record<Action, number>;
 
@@ -55,7 +56,7 @@ export class TetrisGame {
   ) {
     this.handling = handling;
     this.storageKey = storageKey;
-    this.isPrac = false;
+    this.mode = 'pure';
     this.pieceCount = 0;
 
     this.pendingEvents = [];
@@ -71,14 +72,18 @@ export class TetrisGame {
     this.queueIndex = -1;
     this.operations = [];
 
-
     this.setPattern(pattern);
   }
 
-  setPattern(pattern: string): void {
-    this.seed = this.random.reseed();
+  setPractice(pattern: string): void {
+    if (pattern === '') 
+      this.mode = 'pure';
+    else
+      this.mode = 'practice';
+    this.setPattern(pattern);
+  }
 
-
+  protected setPattern(pattern: string): void {
     if (pattern.length > 0) {
       if (getPiecesLength(pattern) > PCSIZE + 1) {
         throw new Error(`Pattern produced a queue longer than ${PCSIZE + 1}`);
@@ -86,11 +91,12 @@ export class TetrisGame {
       this.queues = extendPieces(pattern, false);
       if (this.queues.length > 0) {
         this.queue.setFillBags(false);
-        this.isPrac = true;
       }
     }
 
-    this.reset(this.softReset);
+    this.seed = this.random.reseed();
+    this.operations = [];
+    this.reset();
   }
 
   private setActive(piece: PieceEnum): void {
@@ -152,7 +158,7 @@ export class TetrisGame {
     if (this.held) {
       return;
     }
-    this.held = !this.isPrac;
+    this.held = this.mode === 'pure';
     if (this.holdPiece === PieceEnum.X) {
       if (this.queue.length == 0) {
         this.setActive(this.active.type);
@@ -238,7 +244,7 @@ export class TetrisGame {
     }
 
     // practice pc
-    if (this.isPrac && this.board.isEmpty()) {
+    if (this.mode === 'practice' && this.board.isEmpty()) {
       this.reset(this.softReset);
     }
 
@@ -250,7 +256,7 @@ export class TetrisGame {
 
   undo(): void {
     this.random.seed(this.seed);
-    if (!this.isPrac || this.operations.length == 0) return;
+    if (this.mode === 'pure' || this.operations.length == 0) return;
 
     // remove last piece placed
     this.operations.pop();

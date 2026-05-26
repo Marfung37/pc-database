@@ -1,4 +1,4 @@
-import { TetrisGame, DEFAULT, type Event } from '$lib/tetris/TetrisGame';
+import { TetrisGame, DEFAULT, type Event, type Mode } from '$lib/tetris/TetrisGame';
 import { TetrisBoardPiece } from '$lib/tetris/TetrisBoardPiece';
 import { BAG } from '$lib/constants';
 import { fumenCountFilledCells, isCongruentFumen } from '$lib/utils/fumenUtils';
@@ -13,6 +13,7 @@ type TreeNode = {
 }
 
 type SetupQuizEvent = Event | 'correct' | 'wrong' | 'missing setup';
+type SetupQuizMode = Mode | 'setup quiz';
 
 function traverseTree(root: TreeNode, queue: Queue): number {
   let currentNode: TreeNode = root;
@@ -30,7 +31,7 @@ function traverseTree(root: TreeNode, queue: Queue): number {
 
 export class TetrisSetupQuiz extends TetrisGame {
   declare pendingEvents: SetupQuizEvent[];
-  isSetupQuiz: boolean;
+  declare mode: SetupQuizMode;
   private setupTree: TreeNode | null = null;
   private setups: Fumen[] | null = null;
   correctSetup: Fumen | null = null;
@@ -42,19 +43,24 @@ export class TetrisSetupQuiz extends TetrisGame {
     storageKey: string = 'handling'
   ) {
     super(pattern, handling, storageKey);
-    this.isSetupQuiz = false;
     this.pendingEvents = [];
   }
 
+  setPractice(pattern: string) {
+    if (this.mode !== 'setup quiz') {
+      if (pattern === '') 
+        this.mode = 'pure';
+      else
+        this.mode = 'practice';
+    }
+    this.setPattern(pattern);
+  }
+
   getSetupData(setups: Fumen[], setupTree: TreeNode, pattern: string) {
-    this.isSetupQuiz = true;
+    this.mode = 'setup quiz';
     this.setups = setups;
     this.setupTree = setupTree;
     this.setPattern(pattern);
-
-    this.seed = this.random.reseed();
-    this.operations = [];
-    this.reset();
   }
 
   getCorrectSetup(index: number) {
@@ -71,7 +77,8 @@ export class TetrisSetupQuiz extends TetrisGame {
   reset(soft: boolean = false): void {
     super.reset(soft);
 
-    if (this.isSetupQuiz && this.setups !== null && this.setupTree !== null) {
+    console.log(this.mode);
+    if (this.mode == 'setup quiz' && this.setups !== null && this.setupTree !== null) {
       const queue = this.queue.queue.map((piece) => PieceEnum[piece]).join('') as Queue;
       const index = traverseTree(this.setupTree, queue);
       if (index == -1) {
@@ -87,11 +94,17 @@ export class TetrisSetupQuiz extends TetrisGame {
 
   lock(piece: TetrisBoardPiece | null = null) {
     super.lock(piece);
+
+    console.log('Pieces placed:', this.pieceCount);
   
-    if (this.isSetupQuiz && 
+    if (this.mode === 'setup quiz' && 
         this.correctSetup !== null && 
         this.correctSetupPieceLength == this.pieceCount) {
       let soft: boolean;
+
+      // DEBUG
+      console.log(this.board.toFumen());
+
       if (isCongruentFumen(this.board.toFumen(), this.correctSetup, 1)) {
         soft = false;
         if(!this.simulating)
