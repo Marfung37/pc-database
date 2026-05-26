@@ -1,4 +1,4 @@
-import { TetrisGame, DEFAULT } from '$lib/tetris/TetrisGame';
+import { TetrisGame, DEFAULT, type Event } from '$lib/tetris/TetrisGame';
 import { TetrisBoardPiece } from '$lib/tetris/TetrisBoardPiece';
 import { BAG } from '$lib/constants';
 import { fumenCountFilledCells, isCongruentFumen } from '$lib/utils/fumenUtils';
@@ -11,6 +11,8 @@ type TreeNode = {
 } & {
   default?: number;
 }
+
+type SetupQuizEvent = Event | 'correct' | 'wrong' | 'missing setup';
 
 function traverseTree(root: TreeNode, queue: Queue): number {
   let currentNode: TreeNode = root;
@@ -27,12 +29,12 @@ function traverseTree(root: TreeNode, queue: Queue): number {
 }
 
 export class TetrisSetupQuiz extends TetrisGame {
+  declare pendingEvents: SetupQuizEvent[];
   isSetupQuiz: boolean;
   private setupTree: TreeNode | null = null;
   private setups: Fumen[] | null = null;
   correctSetup: Fumen | null = null;
   private correctSetupPieceLength: number = -1;
-  private showCorrectSetup: boolean;
 
   constructor(
     pattern: string = '',
@@ -41,7 +43,7 @@ export class TetrisSetupQuiz extends TetrisGame {
   ) {
     super(pattern, handling, storageKey);
     this.isSetupQuiz = false;
-    this.showCorrectSetup = false;
+    this.pendingEvents = [];
   }
 
   getSetupData(setups: Fumen[], setupTree: TreeNode, pattern: string) {
@@ -76,6 +78,7 @@ export class TetrisSetupQuiz extends TetrisGame {
         // error
         console.error('Unable to get correct setup for this queue');
         this.correctSetup = null;
+        this.pendingEvents.push('missing setup');
         return;
       }
       this.getCorrectSetup(index);
@@ -88,7 +91,16 @@ export class TetrisSetupQuiz extends TetrisGame {
     if (this.isSetupQuiz && 
         this.correctSetup !== null && 
         this.correctSetupPieceLength == this.pieceCount) {
-      const soft = !isCongruentFumen(this.board.toFumen(), this.correctSetup, 1);
+      let soft: boolean;
+      if (isCongruentFumen(this.board.toFumen(), this.correctSetup, 1)) {
+        soft = false;
+        if(!this.simulating)
+          this.pendingEvents.push('correct');
+      } else {
+        soft = true;
+        if(!this.simulating)
+          this.pendingEvents.push('wrong');
+      }
       this.reset(soft);
     }
   }

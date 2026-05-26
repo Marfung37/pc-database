@@ -18,6 +18,8 @@ export const DEFAULT = {
   das: 80
 };
 
+export type Event = string;
+
 export class TetrisGame {
   board: TetrisBoard;
   queue: TetrisQueue;
@@ -30,6 +32,8 @@ export class TetrisGame {
   storageKey: string;
 
   pieceCount: number;
+
+  pendingEvents: Event[]; // bridge to frontend
 
   protected random: PRNG;
   protected seed: Seed;
@@ -54,6 +58,8 @@ export class TetrisGame {
     this.isPrac = false;
     this.pieceCount = 0;
 
+    this.pendingEvents = [];
+
     this.random = new PRNG();
     this.seed = this.random.reseed();
 
@@ -64,6 +70,7 @@ export class TetrisGame {
     this.queues = [];
     this.queueIndex = -1;
     this.operations = [];
+
 
     this.setPattern(pattern);
   }
