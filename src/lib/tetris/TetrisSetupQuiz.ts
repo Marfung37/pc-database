@@ -27,11 +27,12 @@ function traverseTree(root: TreeNode, queue: Queue): number {
 }
 
 export class TetrisSetupQuiz extends TetrisGame {
-  private isSetupQuiz: boolean;
+  isSetupQuiz: boolean;
   private setupTree: TreeNode | null = null;
   private setups: Fumen[] | null = null;
-  private correctSetup: Fumen | null = null;
+  correctSetup: Fumen | null = null;
   private correctSetupPieceLength: number = -1;
+  private showCorrectSetup: boolean;
 
   constructor(
     pattern: string = '',
@@ -40,12 +41,10 @@ export class TetrisSetupQuiz extends TetrisGame {
   ) {
     super(pattern, handling, storageKey);
     this.isSetupQuiz = false;
+    this.showCorrectSetup = false;
   }
 
   getSetupData(setups: Fumen[], setupTree: TreeNode, pattern: string) {
-    // DEBUG
-    console.log("setup data gotten");
-
     this.isSetupQuiz = true;
     this.setups = setups;
     this.setupTree = setupTree;
@@ -62,7 +61,8 @@ export class TetrisSetupQuiz extends TetrisGame {
       this.correctSetupPieceLength = fumenCountFilledCells(this.correctSetup) / 4;
 
       // DEBUG
-      console.log('Correct Setup:', this.correctSetup, 'with', this.correctSetupPieceLength, 'pieces');
+      if (!this.simulating)
+        console.log('Correct Setup:', this.correctSetup, 'with', this.correctSetupPieceLength, 'pieces');
     }
   }
 
@@ -88,17 +88,8 @@ export class TetrisSetupQuiz extends TetrisGame {
     if (this.isSetupQuiz && 
         this.correctSetup !== null && 
         this.correctSetupPieceLength == this.pieceCount) {
-      if (!this.simulating) {
-        if (isCongruentFumen(this.board.toFumen(), this.correctSetup, 1)) {
-          // correct setup
-          console.log("Correct!");
-        } else {
-          console.log("Wrong!");
-        }
-
-      }
-    
-      this.reset(this.softReset);
+      const soft = !isCongruentFumen(this.board.toFumen(), this.correctSetup, 1);
+      this.reset(soft);
     }
   }
 }

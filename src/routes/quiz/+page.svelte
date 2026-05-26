@@ -5,9 +5,10 @@
   import { get_colour, PieceEnum, Rotation } from '$lib/tetris/pieceData';
   import { TetrisQueue } from '$lib/tetris/TetrisQueue';
   import { TetrisBoard } from '$lib/tetris/TetrisBoard';
-  import { TetrisGame } from '$lib/tetris/TetrisGame';
   import { TetrisSetupQuiz } from '$lib/tetris/TetrisSetupQuiz';
+  import { decodeWrapper } from '$lib/utils/fumenUtils';
   import { type Action, keybinds } from '$lib/tetris/Keybind';
+  import type { Fumen, Piece } from '$lib/types';
   import { toast } from 'svelte-sonner';
 
   let gameCtn: HTMLDivElement;
@@ -18,6 +19,8 @@
   let showSettings: boolean = false;
 
   let errorMessage = "";
+
+  let showAnswer = false;
 
   const CELL_SIZE = 24;
 
@@ -95,9 +98,13 @@
     }
   }
 
-  function drawGame(context: CanvasRenderingContext2D, game: TetrisGame) {
+  function drawGame(context: CanvasRenderingContext2D, game: TetrisSetupQuiz) {
     drawBoard(context, game.board);
     drawPiece(context, game.active);
+
+    if (showAnswer && game.correctSetup !== null) {
+      drawFumen(context, game.correctSetup, '4D', game.board);
+    }
 
     // Ghost
     drawPiece(context, game.getGhost(), '4D');
@@ -190,6 +197,28 @@
     }
   }
 
+  function drawFumen(
+    context: CanvasRenderingContext2D,
+    fumen: Fumen,
+    opacity: string = '',
+    board: TetrisBoard | null = null
+  ) {
+    const page = decodeWrapper(fumen)[0];
+    const field = page.field.str({reduced: true, garbage: false}).split('\n').toReversed();
+    for (let row = 0; row < field.length; row++) {
+      for (let col = 0; col < PCSIZE; col++) {
+        if (board !== null && board.isFilled(row, col)) {
+          continue;
+        }
+        const cell = field[row][col];
+        const index = (cell == '_') ? PieceEnum.X: PieceEnum[cell as Piece];
+          
+        context.fillStyle = get_colour(index) + opacity;
+        context.fillRect(col, row, 1, 1);
+      }
+    }
+  }
+
   function drawOOF(context: CanvasRenderingContext2D) {
     let transform = context.getTransform();
     context.resetTransform();
@@ -248,7 +277,12 @@
     <canvas bind:this={holdCanvas} id="hold" class="bg-[#2e3440] px-2 py-4 rounded"></canvas>
     <canvas bind:this={boardCanvas} id="board" class="mx-1 bg-[#2e3440] border-0 rounded"></canvas>
 
-    <canvas bind:this={queueCanvas} id="queue" class="bg-[#2e3440] px-2 py-4 rounded"></canvas>
+    <div class="flex flex-col gap-2">
+      <div>
+        <canvas bind:this={queueCanvas} id="queue" class="bg-[#2e3440] px-2 py-4 rounded"></canvas>
+      </div>
+      <button class="btn" on:click={() => showAnswer = !showAnswer}>Show Answer</button>
+    </div>
   </div>
 
   <label for="pattern"
