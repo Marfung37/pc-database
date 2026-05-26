@@ -63,6 +63,8 @@
       if(actions.has("sd")) tmpActions.add("sd");
       actions = tmpActions;
 
+      handleEvents();
+
       drawGame(boardCtx, game);
       drawQueue(queueCtx, game.queue);
       drawHold(holdCtx, game.holdPiece);
@@ -96,6 +98,21 @@
       toast.error('Invalid pattern for queue: ' + (e as Error).message);
       console.error(e);
     }
+  }
+
+  function handleEvents() {
+    for (let event of game.pendingEvents) {
+      switch (event) {
+        case 'correct':
+          showAnswer = false;
+          toast.message('Correct!');
+          break;
+        case 'missing setup':
+          toast.error('No setup found in json for this queue. Restart to continue')
+          break;
+      }
+    }
+    game.pendingEvents = [];
   }
 
   function drawGame(context: CanvasRenderingContext2D, game: TetrisSetupQuiz) {
