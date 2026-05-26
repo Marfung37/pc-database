@@ -6,15 +6,18 @@
   import { TetrisQueue } from '$lib/tetris/TetrisQueue';
   import { TetrisBoard } from '$lib/tetris/TetrisBoard';
   import { TetrisGame } from '$lib/tetris/TetrisGame';
+  import { TetrisSetupQuiz } from '$lib/tetris/TetrisSetupQuiz';
   import { type Action, keybinds } from '$lib/tetris/Keybind';
   import { toast } from 'svelte-sonner';
 
   let gameCtn: HTMLDivElement;
   let boardCanvas: HTMLCanvasElement, queueCanvas: HTMLCanvasElement, holdCanvas: HTMLCanvasElement;
   let patternsText = '';
-  let game: TetrisGame,
-    actions: Set<Action> = new Set<Action>();
+  let game: TetrisSetupQuiz;
+  let actions: Set<Action> = new Set<Action>();
   let showSettings: boolean = false;
+
+  let errorMessage = "";
 
   const CELL_SIZE = 24;
 
@@ -39,11 +42,11 @@
     queueCtx.setTransform(CELL_SIZE, 0, 0, -CELL_SIZE, 0, 14 * CELL_SIZE);
 
     try {
-      game = new TetrisGame(patternsText);
+      game = new TetrisSetupQuiz(patternsText);
     } catch (e) {
       toast.error('Invalid pattern for queue: ' + (e as Error).message);
       console.error(e);
-      game = new TetrisGame();
+      game = new TetrisSetupQuiz();
     }
 
     game.loadHandling();
@@ -85,7 +88,7 @@
 
   function handleGenerate() {
     try {
-      game = new TetrisGame(patternsText, game.handling);
+      game.setPattern(patternsText);
     } catch (e) {
       toast.error('Invalid pattern for queue: ' + (e as Error).message);
       console.error(e);
@@ -201,6 +204,40 @@
     );
     context.setTransform(transform);
   }
+
+  function handleFileChange(event: Event) {
+    const target = event.target as HTMLInputElement;
+    const files = target.files;
+
+    // Reset states on a new attempt
+    errorMessage = "";
+
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+
+    // Validation
+    if (file.type !== "application/json" && !file.name.endsWith('.json')) {
+      errorMessage = "Please upload a valid .json file.";
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      try {
+        const jsonString = e.target?.result as string;
+        const parsedData = JSON.parse(jsonString);
+
+        game.getSetupData(parsedData.setups, parsedData.tree);
+      } catch (err) {
+        console.error(err);
+        errorMessage = "Failed to parse JSON. Check file formatting.";
+      }
+    };
+
+    reader.readAsText(file);
+  }
 </script>
 
 <svelte:window  />
@@ -223,6 +260,24 @@
   <button class="btn" on:click={handleGenerate}>Generate</button>
 
   <button class="btn" on:click={() => (showSettings = true)}>Show Settings</button>
+
+  <div class="upload-container">
+    <input 
+      type="file" 
+      id="json-file" 
+      accept=".json" 
+      on:change={handleFileChange}
+      style="display: none;" 
+    />
+    
+    <label for="json-file" class="btn">
+      Upload Setup Quiz JSON
+    </label>
+
+    {#if errorMessage}
+      <p class="error">{errorMessage}</p>
+    {/if}
+  </div>
 
   {#if showSettings}
     <div

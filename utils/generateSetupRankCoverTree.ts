@@ -7,6 +7,8 @@ import { BAG } from './lib/constants';
 // TreeNode has keys of pieces and can be another node or index of array
 type TreeNode = {
   [K in typeof BAG[number]]?: TreeNode | number;
+} & {
+  default?: number;
 }
 
 class Tree {
@@ -35,6 +37,7 @@ class Tree {
       // go to next node
       currentNode = currentNode[step];
     }
+    currentNode.default = value;
   }
 }
 
