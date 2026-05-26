@@ -7,6 +7,7 @@
   import { TetrisBoard } from '$lib/tetris/TetrisBoard';
   import { TetrisSetupQuiz } from '$lib/tetris/TetrisSetupQuiz';
   import { decodeWrapper } from '$lib/utils/fumenUtils';
+  import FumenRender from '$lib/components/FumenRender.svelte';
   import { type Action, keybinds } from '$lib/tetris/Keybind';
   import type { Fumen, Piece } from '$lib/types';
   import { toast } from 'svelte-sonner';
@@ -93,7 +94,7 @@
 
   function handleGenerate() {
     try {
-      game.setPattern(patternsText);
+      game.setPractice(patternsText);
     } catch (e) {
       toast.error('Invalid pattern for queue: ' + (e as Error).message);
       console.error(e);
@@ -289,52 +290,65 @@
 
 <svelte:window  />
 
-<div class="flex flex-col items-center">
-  <div bind:this={gameCtn} class="game-container flex items-start" on:keydown={handleKeyDown} on:keyup={handleKeyUp} tabindex="0" aria-label="Tetris game" role="button">
-    <canvas bind:this={holdCanvas} id="hold" class="bg-[#2e3440] px-2 py-4 rounded"></canvas>
-    <canvas bind:this={boardCanvas} id="board" class="mx-1 bg-[#2e3440] border-0 rounded"></canvas>
+<div>
+<div class="grid grid-cols-1 grid-cols-[1fr_auto_1fr]">
+  <div></div>
+  <div class="flex flex-col items-center relative z-1">
+    <div bind:this={gameCtn} class="game-container flex items-start" on:keydown={handleKeyDown} on:keyup={handleKeyUp} tabindex="0" aria-label="Tetris game" role="button">
+      <canvas bind:this={holdCanvas} id="hold" class="bg-[#2e3440] px-2 py-4 rounded"></canvas>
+      <canvas bind:this={boardCanvas} id="board" class="mx-1 bg-[#2e3440] border-0 rounded"></canvas>
 
-    <div class="flex flex-col gap-2">
-      <div>
-        <canvas bind:this={queueCanvas} id="queue" class="bg-[#2e3440] px-2 py-4 rounded"></canvas>
+      <div class="flex flex-col gap-2">
+        <div>
+          <canvas bind:this={queueCanvas} id="queue" class="bg-[#2e3440] px-2 py-4 rounded"></canvas>
+        </div>
+        <button class="btn" on:click={() => showAnswer = !showAnswer}>Show Answer</button>
       </div>
-      <button class="btn" on:click={() => showAnswer = !showAnswer}>Show Answer</button>
+    </div>
+
+    <label for="pattern"
+      >Pattern for Queue <a
+        class="font-bold text-blue-500"
+        href="https://github.com/Marfung37/ExtendedSfinderPieces">?</a
+      ></label
+    >
+    <textarea id="pattern" bind:value={patternsText}></textarea>
+    <button class="btn" on:click={handleGenerate}>Generate</button>
+
+    <button class="btn" on:click={() => (showSettings = true)}>Show Settings</button>
+
+    <div class="upload-container">
+      <input 
+        type="file" 
+        id="json-file" 
+        accept=".json" 
+        on:change={handleFileChange}
+        style="display: none;" 
+      />
+      
+      <label for="json-file" class="btn">
+        Upload Setup Quiz JSON
+      </label>
+
+      {#if errorMessage}
+        <p class="error">{errorMessage}</p>
+      {/if}
     </div>
   </div>
 
-  <label for="pattern"
-    >Pattern for Queue <a
-      class="font-bold text-blue-500"
-      href="https://github.com/Marfung37/ExtendedSfinderPieces">?</a
-    ></label
-  >
-  <textarea id="pattern" bind:value={patternsText}></textarea>
-  <button class="btn" on:click={handleGenerate}>Generate</button>
-
-  <button class="btn" on:click={() => (showSettings = true)}>Show Settings</button>
-
-  <div class="upload-container">
-    <input 
-      type="file" 
-      id="json-file" 
-      accept=".json" 
-      on:change={handleFileChange}
-      style="display: none;" 
-    />
-    
-    <label for="json-file" class="btn">
-      Upload Setup Quiz JSON
-    </label>
-
-    {#if errorMessage}
-      <p class="error">{errorMessage}</p>
-    {/if}
+  <div class="flex justify-center items-center">
+  {#if showAnswer && game.correctSetup !== null}
+    <div class='w-2/3 max-w-[500px]'>
+      <FumenRender fumen={game.correctSetup}/>
+    </div>
+  {/if}
   </div>
-
+</div>
+  
   {#if showSettings}
     <div
       id="settings-modal"
-      class="fixed top-0 left-0 z-1 flex h-full w-full items-center justify-center bg-gray-400/50"
+      class="fixed top-0 left-0 z-99 flex h-full w-full items-center justify-center bg-gray-400/50"
       on:click|self={() => {
         showSettings = false
         game.saveHandling();
