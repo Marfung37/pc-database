@@ -34,6 +34,8 @@ export class TetrisGame {
   protected random: PRNG;
   protected seed: Seed;
 
+  protected simulating: boolean;
+
   protected isPrac: boolean;
   protected held!: boolean;
   private timers!: Record<Action, number>;
@@ -54,6 +56,8 @@ export class TetrisGame {
 
     this.random = new PRNG();
     this.seed = this.random.reseed();
+
+    this.simulating = false;
 
     this.queue = new TetrisQueue(PREVIEWSIZE, this.random);
     this.board = new TetrisBoard(PCSIZE, BOARDHEIGHT + 1);
@@ -200,9 +204,10 @@ export class TetrisGame {
     if (piece !== null) {
       this.active.x = piece.x;
       this.active.y = piece.y;
+      this.active.rotation = piece.rotation;
       if (this.active.type !== piece.type) {
         // DEBUG
-        console.error("Incorrect piece passed to locked")
+        console.error("Incorrect piece passed to be locked")
       }
       this.board.place(this.active, true);
     } else {
@@ -255,6 +260,7 @@ export class TetrisGame {
 
     // run all the operations and simulate with the current board state should be now
     this.reset();
+    this.simulating = true;
     for (let piece of this.operations) {
       if (this.active.type !== piece.type) {
         if (this.holdPiece !== piece.type) {
@@ -264,6 +270,7 @@ export class TetrisGame {
       }
       this.lock(piece);
     }
+    this.simulating = false;
   }
 
   tick(time: number, actions: Set<Action>) {

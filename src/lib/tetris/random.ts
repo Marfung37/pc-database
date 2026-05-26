@@ -38,7 +38,6 @@ export class PRNG {
   }
 
   random(): number {
-    console.log("Random called");
     return this.sfc32Rand();
   }
 }
