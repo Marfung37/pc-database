@@ -108,6 +108,9 @@
           showAnswer = false;
           toast.message('Correct!');
           break;
+        case 'wrong':
+          toast.message('Wrong');
+          break;
         case 'missing setup':
           toast.error('No setup found in json for this queue. Restart to continue')
           break;
