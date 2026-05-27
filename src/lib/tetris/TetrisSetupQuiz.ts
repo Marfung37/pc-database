@@ -1,7 +1,8 @@
 import { TetrisGame, DEFAULT, type Event, type Mode } from '$lib/tetris/TetrisGame';
 import { TetrisBoardPiece } from '$lib/tetris/TetrisBoardPiece';
 import { BAG } from '$lib/constants';
-import { fumenCountFilledCells, isCongruentFumen } from '$lib/utils/fumenUtils';
+import { fumenCountFilledCells, isCongruentFumen, fumenSplit } from '$lib/utils/fumenUtils';
+import glueFumen from '$lib/utils/GluingFumens/src/lib/glueFumen';
 import { PieceEnum } from '$lib/tetris/pieceData';
 import type { Fumen, Queue } from '$lib/types';
 
@@ -65,7 +66,20 @@ export class TetrisSetupQuiz extends TetrisGame {
 
   getCorrectSetup(index: number) {
     if(this.setups !== null) {
-      this.correctSetup = this.setups[index];
+      const fullFumen = this.setups[index];
+      const fumens = fumenSplit(fullFumen);
+      let pageIndex = 0;
+      if (fumens.length > 1) {
+        // determine which page could be the correct setup
+        const queue = this.queue.queue.map((piece) => PieceEnum[piece]).join('') as Queue;
+
+        for (let fumen of fumens) {
+          if (glueFumen(fumen, -1, false, queue, 1).length > 0)
+            continue
+          pageIndex++;
+        }
+      }
+      this.correctSetup = fumens[pageIndex];
       this.correctSetupPieceLength = fumenCountFilledCells(this.correctSetup) / 4;
 
       // DEBUG

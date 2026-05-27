@@ -170,6 +170,9 @@ export function isCongruentFumen(
       // check if row2 of substring of row1 + row1
       const row2 = field2[j].replaceAll(/[TILJSZOX]/g, '[TILJSZOX]');
       let shiftSize = (field1[j] + field1[j]).search(new RegExp(row2));
+
+      if (shiftSize == -1) return false; 
+
       // move to range [-4,5]
       if (shiftSize > PCSIZE / 2) shiftSize -= PCSIZE;
 
