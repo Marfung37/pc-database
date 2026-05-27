@@ -4,7 +4,7 @@ import { extendPieces } from './lib/pieces';
 import { fumenGetMinos, isCongruentFumen, fumenMirror, fumenSplit } from './lib/fumenUtils';
 import { mirrorQueue, sortQueue } from './lib/queueUtils';
 import { piecesMirror } from './lib/piecesUtils';
-import glueFumenModule from './lib/GluingFumens/src/lib/glueFumen';
+import glueFumen from './lib/utils/GluingFumens/src/lib/glueFumen';
 import { generateSetupIDPrefix, getPrefix } from './lib/id';
 import { PIECEVAL } from './lib/constants';
 import { exec } from 'child_process';
@@ -24,7 +24,6 @@ import type {
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const glueFumen = glueFumenModule.default;
 const currentFilePath = fileURLToPath(import.meta.url);
 
 // Get the directory name from the file path
