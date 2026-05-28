@@ -2,9 +2,12 @@ import { TetrisGame, DEFAULT, type Event, type Mode } from '$lib/tetris/TetrisGa
 import { TetrisBoardPiece } from '$lib/tetris/TetrisBoardPiece';
 import { BAG } from '$lib/constants';
 import { fumenCountFilledCells, isCongruentFumen, fumenSplit } from '$lib/utils/fumenUtils';
+import type { Operation } from '$lib/utils/GluingFumens/src/lib/defines';
 import glueFumen from '$lib/utils/GluingFumens/src/lib/glueFumen';
-import { PieceEnum } from '$lib/tetris/pieceData';
+import unglueFumen from '$lib/utils/GluingFumens/src/lib/unglueFumen';
+import { PieceEnum, Rotation } from '$lib/tetris/pieceData';
 import type { Fumen, Queue } from '$lib/types';
+import { encoder, Field} from 'tetris-fumen';
 
 // TreeNode has keys of pieces and can be another node or index of array
 type TreeNode = {
@@ -74,7 +77,7 @@ export class TetrisSetupQuiz extends TetrisGame {
         const queue = this.queue.queue.map((piece) => PieceEnum[piece]).join('') as Queue;
 
         for (let fumen of fumens) {
-          if (glueFumen(fumen, -1, false, queue, 1, true).length > 0)
+          if (glueFumen(fumen, 1, false, queue, 1, true).length > 0)
             break;
           pageIndex++;
         }
@@ -113,7 +116,18 @@ export class TetrisSetupQuiz extends TetrisGame {
         this.correctSetupPieceLength == this.pieceCount) {
       let soft: boolean;
 
-      if (isCongruentFumen(this.board.toFumen(), this.correctSetup, 1)) {
+      const pages = this.operations.slice(-this.pieceCount).map(operation => {
+        return {operation: {
+          ...operation, 
+          type: PieceEnum[operation.type], 
+          rotation: Rotation[operation.rotation]
+        } as Operation} as {field?: Field, operation: Operation};
+      });
+      pages[0].field = Field.create();
+      const fumen = unglueFumen(encoder.encode(pages)) as Fumen;
+      console.log(fumen);
+
+      if (isCongruentFumen(fumen, this.correctSetup, 1)) {
         soft = false;
         if(!this.simulating)
           this.pendingEvents.push('correct');
