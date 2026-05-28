@@ -236,7 +236,7 @@ export class TetrisGame {
       if (this.holdPiece != PieceEnum.X) {
         this.setActive(this.holdPiece);
         this.holdPiece = PieceEnum.X;
-      } else {
+      } else if (this.mode === 'practice'){
         // no more pieces
         this.reset(this.softReset);
       }
