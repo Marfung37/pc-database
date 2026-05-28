@@ -190,6 +190,7 @@ export class TetrisGame {
   spin(rotation: Rotation): void {
     const init = this.active.rotation;
     this.active.rotation = rotation;
+
     for (let [dx, dy] of get_kicks(this.active.type, init, rotation)) {
       if (this.movePiece(dx, dy)) return;
     }
