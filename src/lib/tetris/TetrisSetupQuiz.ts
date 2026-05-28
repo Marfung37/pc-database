@@ -45,7 +45,7 @@ export class TetrisSetupQuiz extends TetrisGame {
   private setupTree: TreeNode | null = null;
   private setups: Fumen[] | null = null;
   private correctBuild: Record<string, number>;
-  private correctSetup: Fumen | null = null;
+  private correctSetups: Fumen[] | null = null;
   runningCorrectSetup: Fumen | null = null;
   private correctSetupPieceLength: number = -1;
 
@@ -91,14 +91,14 @@ export class TetrisSetupQuiz extends TetrisGame {
           pageIndex++;
         }
       }
-      this.correctSetup = fumens[pageIndex];
-      this.runningCorrectSetup = this.correctSetup;
-      this.correctBuild = fumenCountPieces(this.correctSetup);
-      this.correctSetupPieceLength = fumenCountFilledCells(this.correctSetup) / 4;
+      this.correctSetups = fumens;
+      this.runningCorrectSetup = this.correctSetups[pageIndex];
+      this.correctBuild = fumenCountPieces(this.correctSetups[pageIndex]);
+      this.correctSetupPieceLength = fumenCountFilledCells(this.correctSetups[pageIndex]) / 4;
 
       // DEBUG
       if (!this.simulating)
-        console.log('Correct Setup:', this.correctSetup, 'with', this.correctSetupPieceLength, 'pieces');
+        console.log('Correct Setup:', this.correctSetups[pageIndex], 'with', this.correctSetupPieceLength, 'pieces');
     }
   }
 
@@ -111,7 +111,8 @@ export class TetrisSetupQuiz extends TetrisGame {
       if (index == -1) {
         // error
         console.error('Unable to get correct setup for this queue');
-        this.correctSetup = null;
+        this.correctSetups = null;
+        this.runningCorrectSetup = null;
         this.pendingEvents.push('missing setup');
         return;
       }
@@ -166,7 +167,7 @@ export class TetrisSetupQuiz extends TetrisGame {
     }
 
     if (this.mode === 'setup quiz' && 
-        this.correctSetup !== null && 
+        this.correctSetups !== null && 
         this.correctSetupPieceLength == this.pieceCount) {
       let soft: boolean;
 
@@ -197,7 +198,14 @@ export class TetrisSetupQuiz extends TetrisGame {
       pages[0].field = Field.create();
       const fumen = unglueFumen(encoder.encode(pages)) as Fumen;
 
-      if (correctPieces && isCongruentFumen(fumen, this.correctSetup, 1)) {
+      let congruent: boolean = false;
+      if (correctPieces) {
+        for (let correctFumen of this.correctSetups) {
+          congruent ||= isCongruentFumen(fumen, correctFumen, 1)
+        }
+      }
+
+      if (correctPieces && congruent) {
         soft = false;
         if(!this.simulating)
           this.pendingEvents.push('correct');
