@@ -74,8 +74,8 @@ export class TetrisSetupQuiz extends TetrisGame {
         const queue = this.queue.queue.map((piece) => PieceEnum[piece]).join('') as Queue;
 
         for (let fumen of fumens) {
-          if (glueFumen(fumen, -1, false, queue, 1).length > 0)
-            continue
+          if (glueFumen(fumen, -1, false, queue, 1, true).length > 0)
+            break;
           pageIndex++;
         }
       }
@@ -91,7 +91,6 @@ export class TetrisSetupQuiz extends TetrisGame {
   reset(soft: boolean = false): void {
     super.reset(soft);
 
-    console.log(this.mode);
     if (this.mode == 'setup quiz' && this.setups !== null && this.setupTree !== null) {
       const queue = this.queue.queue.map((piece) => PieceEnum[piece]).join('') as Queue;
       const index = traverseTree(this.setupTree, queue);
@@ -109,15 +108,10 @@ export class TetrisSetupQuiz extends TetrisGame {
   lock(piece: TetrisBoardPiece | null = null) {
     super.lock(piece);
 
-    console.log('Pieces placed:', this.pieceCount);
-  
     if (this.mode === 'setup quiz' && 
         this.correctSetup !== null && 
         this.correctSetupPieceLength == this.pieceCount) {
       let soft: boolean;
-
-      // DEBUG
-      console.log(this.board.toFumen());
 
       if (isCongruentFumen(this.board.toFumen(), this.correctSetup, 1)) {
         soft = false;

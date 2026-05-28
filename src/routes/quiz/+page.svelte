@@ -7,7 +7,6 @@
   import { TetrisBoard } from '$lib/tetris/TetrisBoard';
   import { TetrisSetupQuiz } from '$lib/tetris/TetrisSetupQuiz';
   import { decodeWrapper } from '$lib/utils/fumenUtils';
-  import FumenRender from '$lib/components/FumenRender.svelte';
   import { type Action, keybinds } from '$lib/tetris/Keybind';
   import type { Fumen, Piece } from '$lib/types';
   import { toast } from 'svelte-sonner';
@@ -109,10 +108,10 @@
           toast.message('Correct!');
           break;
         case 'wrong':
-          toast.message('Wrong');
+          toast.message('Wrong!');
           break;
         case 'missing setup':
-          toast.error('No setup found in json for this queue. Restart to continue')
+          toast.warning('No setup found in json for this queue. Restart to continue')
           break;
       }
     }
@@ -339,13 +338,7 @@
     </div>
   </div>
 
-  <div class="flex justify-center items-center">
-  {#if showAnswer && game.correctSetup !== null}
-    <div class='w-2/3 max-w-[500px]'>
-      <FumenRender fumen={game.correctSetup}/>
-    </div>
-  {/if}
-  </div>
+  <div></div>
 </div>
   
   {#if showSettings}
