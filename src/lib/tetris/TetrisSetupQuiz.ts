@@ -1,7 +1,13 @@
 import { TetrisGame, DEFAULT, type Event, type Mode } from '$lib/tetris/TetrisGame';
 import { TetrisBoardPiece } from '$lib/tetris/TetrisBoardPiece';
 import { BAG } from '$lib/constants';
-import { fumenCountFilledCells, isCongruentFumen, fumenSplit } from '$lib/utils/fumenUtils';
+import { 
+  fumenCountFilledCells, 
+  isCongruentFumen, 
+  fumenSplit, 
+  fumenCountPieces,
+  fumenClearLines
+} from '$lib/utils/fumenUtils';
 import type { Operation } from '$lib/utils/GluingFumens/src/lib/defines';
 import glueFumen from '$lib/utils/GluingFumens/src/lib/glueFumen';
 import unglueFumen from '$lib/utils/GluingFumens/src/lib/unglueFumen';
@@ -38,7 +44,9 @@ export class TetrisSetupQuiz extends TetrisGame {
   declare mode: SetupQuizMode;
   private setupTree: TreeNode | null = null;
   private setups: Fumen[] | null = null;
-  correctSetup: Fumen | null = null;
+  private correctBuild: Record<string, number>;
+  private correctSetup: Fumen | null = null;
+  runningCorrectSetup: Fumen | null = null;
   private correctSetupPieceLength: number = -1;
 
   constructor(
@@ -48,6 +56,7 @@ export class TetrisSetupQuiz extends TetrisGame {
   ) {
     super(pattern, handling, storageKey);
     this.pendingEvents = [];
+    this.correctBuild = {};
   }
 
   setPractice(pattern: string) {
@@ -83,6 +92,8 @@ export class TetrisSetupQuiz extends TetrisGame {
         }
       }
       this.correctSetup = fumens[pageIndex];
+      this.runningCorrectSetup = this.correctSetup;
+      this.correctBuild = fumenCountPieces(this.correctSetup);
       this.correctSetupPieceLength = fumenCountFilledCells(this.correctSetup) / 4;
 
       // DEBUG
@@ -109,25 +120,84 @@ export class TetrisSetupQuiz extends TetrisGame {
   }
 
   lock(piece: TetrisBoardPiece | null = null) {
-    super.lock(piece);
+    // move piece as far down as possible (hd)
+    if (piece !== null) {
+      this.active.x = piece.x;
+      this.active.y = piece.y;
+      this.active.rotation = piece.rotation;
+    } else {
+      while (this.movePiece(0, -1));
+      this.held = false;
+      this.operations.push(this.active.copy());
+    }
+    const lineclears = this.board.place(this.active, true);
+
+    // clear lines so correct setup shows up with the lines cleared
+    if (
+      this.mode === 'setup quiz' && 
+      this.runningCorrectSetup !== null && 
+      lineclears.length > 0
+    ) {
+      this.runningCorrectSetup = fumenClearLines(this.runningCorrectSetup, lineclears);
+    }
+
+    this.pieceCount++;
+
+    if (this.queue.length == 0) {
+      if (this.holdPiece != PieceEnum.X) {
+        this.setActive(this.holdPiece);
+        this.holdPiece = PieceEnum.X;
+      } else if (this.mode === 'practice'){
+        // no more pieces
+        this.reset(this.softReset);
+      }
+    } else {
+      this.setActive(this.queue.poll());
+    }
+
+    // practice pc
+    if (this.mode === 'practice' && this.board.isEmpty()) {
+      this.reset(this.softReset);
+    }
+
+    // topped out
+    if (this.checkCollide(this.active)) {
+      this.reset(this.softReset);
+    }
 
     if (this.mode === 'setup quiz' && 
         this.correctSetup !== null && 
         this.correctSetupPieceLength == this.pieceCount) {
       let soft: boolean;
 
-      const pages = this.operations.slice(-this.pieceCount).map(operation => {
-        return {operation: {
+      const pages = [];
+      const pieceCounts: Record<string, number> = {
+        'T': 0, 'I': 0, 'L': 0, 'J': 0, 'S': 0, 'Z': 0, 'O': 0
+      };
+
+      for (let operation of this.operations.slice(-this.pieceCount)) {
+        const piece = PieceEnum[operation.type];
+        pages.push({operation: {
           ...operation, 
-          type: PieceEnum[operation.type], 
+          type: piece,
           rotation: Rotation[operation.rotation]
-        } as Operation} as {field?: Field, operation: Operation};
-      });
+        } as Operation} as {field?: Field, operation: Operation});
+        pieceCounts[piece]++;
+      };
+
+      // check if correct pieces used
+      let correctPieces: boolean = true;
+      for (const piece in this.correctBuild) {
+        if (pieceCounts[piece] != this.correctBuild[piece]) {
+          correctPieces = false;
+          break;
+        }
+      }
+
       pages[0].field = Field.create();
       const fumen = unglueFumen(encoder.encode(pages)) as Fumen;
-      console.log(fumen);
 
-      if (isCongruentFumen(fumen, this.correctSetup, 1)) {
+      if (correctPieces && isCongruentFumen(fumen, this.correctSetup, 1)) {
         soft = false;
         if(!this.simulating)
           this.pendingEvents.push('correct');

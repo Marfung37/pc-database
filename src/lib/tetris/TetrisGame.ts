@@ -99,7 +99,7 @@ export class TetrisGame {
     this.reset();
   }
 
-  private setActive(piece: PieceEnum): void {
+  protected setActive(piece: PieceEnum): void {
     if (piece == PieceEnum.X) throw new Error('Unable to set active piece as gotten invalid piece');
     this.active = new TetrisBoardPiece(INITIALX, INITIALY, piece, Rotation.spawn);
   }
@@ -174,7 +174,7 @@ export class TetrisGame {
     this.holdPiece = tmp;
   }
 
-  private movePiece(dx: number, dy: number): boolean {
+  protected movePiece(dx: number, dy: number): boolean {
     // move piece directly to location and checks if collides there
 
     this.active.move(dx, dy);
@@ -223,7 +223,6 @@ export class TetrisGame {
         // DEBUG
         console.error("Incorrect piece passed to be locked")
       }
-      this.board.place(this.active, true);
     } else {
       while (this.movePiece(0, -1));
       this.held = false;

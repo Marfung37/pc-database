@@ -56,13 +56,17 @@ export class TetrisBoard {
     return this.at(row, col) !== 0;
   }
 
-  place(piece: TetrisBoardPiece, clear: boolean = false): void {
+  // return lines that are cleared
+  place(piece: TetrisBoardPiece, clear: boolean = false): number[] {
+    const lineclears: number[] = [];
     for (let { x, y } of piece.getMinos()) {
       this.board[y][x] = piece.type;
       if (clear && this.lineFull(y)) {
+        lineclears.push(y);
         this.lineclear(y);
       }
     }
+    return lineclears;
   }
 
   clearPiece(piece: TetrisBoardPiece): void {
