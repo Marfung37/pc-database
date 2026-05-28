@@ -460,7 +460,7 @@ export enum PieceEnum {
 export enum Rotation {
   spawn,
   right,
-  reversed,
+  reverse,
   left
 }
 

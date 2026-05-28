@@ -1,6 +1,7 @@
 import { decoder, encoder, Field, type Page, type Mino } from 'tetris-fumen';
 import type { Fumen } from '$lib/types';
 import { PCSIZE, mirrorPieces } from '$lib/constants';
+import { isMinoPiece } from '$lib/utils/GluingFumens/src/lib/defines';
 
 function getFieldHeight(field: Field): number {
   return field.str({ reduced: true, garbage: false }).split('\n').length;
@@ -63,7 +64,7 @@ export function decodeWrapper(fumen: Fumen): Page[] {
   return pages;
 }
 
-export function grayFumen(fumen: Fumen): string {
+export function grayFumen(fumen: Fumen): Fumen {
   // gray out all colored minos
   const pages = decodeWrapper(fumen);
 
@@ -78,7 +79,7 @@ export function grayFumen(fumen: Fumen): string {
     }
   }
 
-  return encoder.encode(pages);
+  return encoder.encode(pages) as Fumen;
 }
 
 export function fumenGetComments(fumen: Fumen): string[] {
@@ -226,4 +227,47 @@ export function fumenGetNumPages(fumen: Fumen): number {
   const pages = decodeWrapper(fumen);
 
   return pages.length;
+}
+
+// count from first page number of each piece
+export function fumenCountPieces(fumen: Fumen): Record<string, number> {
+  const pages = decodeWrapper(fumen);
+  const field = pages[0].field;
+  const height = getFieldHeight(field);
+
+  // check if there's enough minos of each color to place pieces
+  const frequencyCounter: Record<string, number> = {
+    'T': 0, 'I': 0, 'L': 0, 'J': 0, 'S': 0, 'Z': 0, 'O': 0
+  };
+
+  for (let y = 0; y < height; y++) {
+    for(let x = 0; x < PCSIZE; x++) {
+      let mino = field.at(x, y);
+      if (isMinoPiece(mino)) {
+        frequencyCounter[mino]++;
+      }
+    }
+  }
+
+  for (const piece in frequencyCounter){
+    frequencyCounter[piece] >>= 2;
+  }
+
+  return frequencyCounter;
+}
+
+// clear only lines specify in lines
+export function fumenClearLines(fumen: Fumen, lines: number[]): Fumen {
+  const pages = decodeWrapper(fumen);
+
+  for (let page of pages) {
+    const rows = page.field.str({garbage: false}).split('\n');
+    const height = rows.length;
+    for (let line of lines) {
+      rows.splice(height - 1 - line, 1);
+    }
+    page.field = Field.create(rows.join(''));
+  }
+
+  return encoder.encode(pages) as Fumen;
 }

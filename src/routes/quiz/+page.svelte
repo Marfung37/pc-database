@@ -122,8 +122,8 @@
     drawBoard(context, game.board);
     drawPiece(context, game.active);
 
-    if (showAnswer && game.correctSetup !== null) {
-      drawFumen(context, game.correctSetup, '4D', game.board);
+    if (showAnswer && game.runningCorrectSetup !== null) {
+      drawFumen(context, game.runningCorrectSetup, '4D', game.board);
     }
 
     // Ghost
