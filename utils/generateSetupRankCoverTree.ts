@@ -78,7 +78,7 @@ async function getCoverTree(ranking: SetupID[], coverPattern: string, kicktable:
 
 import { readFileSync, writeFileSync } from 'fs';
 
-let lines: string[] = readFileSync('tmp/2ndranking.txt', 'utf-8')
+let lines: string[] = readFileSync('tmp/7thranking.txt', 'utf-8')
   .split(/\r?\n/)          
   .map(line => line.trim()) 
   .filter(line => line !== "")
@@ -88,4 +88,4 @@ const setups: SetupID[] = lines.slice(1)
 
 const data = await getCoverTree(setups, coverPattern);
 if (data !== null) 
-  writeFileSync('tmp/output.json', data);
+  writeFileSync('tmp/output7.json', data);
