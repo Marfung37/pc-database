@@ -33,6 +33,7 @@ export class TetrisGame {
   storageKey: string;
 
   pieceCount: number;
+  totalPieceCount: number;
 
   pendingEvents: Event[]; // bridge to frontend
 
@@ -58,6 +59,7 @@ export class TetrisGame {
     this.storageKey = storageKey;
     this.mode = 'pure';
     this.pieceCount = 0;
+    this.totalPieceCount = 0;
 
     this.pendingEvents = [];
 
@@ -93,15 +95,19 @@ export class TetrisGame {
         this.queue.setFillBags(false);
       }
     }
-
-    this.seed = this.random.reseed();
-    this.operations = [];
-    this.reset();
+    this.fullReset();
   }
 
   protected setActive(piece: PieceEnum): void {
     if (piece == PieceEnum.X) throw new Error('Unable to set active piece as gotten invalid piece');
     this.active = new TetrisBoardPiece(INITIALX, INITIALY, piece, Rotation.spawn);
+  }
+
+  fullReset(): void {
+    this.seed = this.random.reseed();
+    this.operations = [];
+    this.totalPieceCount = 0;
+    this.reset();
   }
 
   reset(soft: boolean = false): void {
@@ -230,6 +236,7 @@ export class TetrisGame {
     }
     this.board.place(this.active, true);
     this.pieceCount++;
+    this.totalPieceCount++;
 
     if (this.queue.length == 0) {
       if (this.holdPiece != PieceEnum.X) {
@@ -274,7 +281,9 @@ export class TetrisGame {
     // run all the operations and simulate with the current board state should be now
     this.reset();
     this.simulating = true;
+    this.totalPieceCount = 0;
     for (let piece of this.operations) {
+
       if (this.active.type !== piece.type) {
         if (this.holdPiece !== piece.type) {
           console.error("Wrong piece from hold also");
@@ -316,9 +325,7 @@ export class TetrisGame {
           this.down();
           break;
         case 'reset':
-          this.seed = this.random.reseed();
-          this.operations = [];
-          this.reset();
+          this.fullReset();
           break;
         case 'left':
         case 'right':
