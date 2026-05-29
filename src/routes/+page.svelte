@@ -1,7 +1,7 @@
 <script lang="ts">
   import { m } from '$lib/paraglide/messages.js';
   import Shortcut from '$lib/components/Shortcut.svelte';
-  import { Database, Search, PackageSearch } from '@lucide/svelte';
+  import { Database, Search, BookOpenCheck } from '@lucide/svelte';
 </script>
 
 <div class="hero mt-12 min-h-[20vh]">
@@ -29,5 +29,10 @@
     description={m.home_lookup_description()}
     href="./lookup"
   />
-  <!-- <Shortcut icon={PackageSearch} name={m.nav_quiz()} description={m.home_quiz_description()} href="."/> -->
+  <Shortcut 
+    icon={BookOpenCheck} 
+    name={m.nav_quiz()} 
+    description={m.home_quiz_description()} 
+    href="./quiz"
+  />
 </div>
