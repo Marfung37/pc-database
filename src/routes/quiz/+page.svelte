@@ -314,7 +314,7 @@
         href="https://github.com/Marfung37/ExtendedSfinderPieces">?</a
       ></label
     >
-    <textarea id="pattern" bind:value={patternsText}></textarea>
+    <textarea id="pattern" class="bg-base-300" bind:value={patternsText}></textarea>
     <button class="btn" on:click={handleGenerate}>Generate</button>
 
     <button class="btn" on:click={() => (showSettings = true)}>Show Settings</button>

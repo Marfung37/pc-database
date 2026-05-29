@@ -14,7 +14,7 @@
   const oqb = setup.type === 'oqb';
 </script>
 
-<div class="flex min-h-60 w-full rounded-3xl bg-white shadow-lg">
+<div class="flex min-h-60 w-full rounded-3xl bg-base-300 shadow-lg">
   <div class="flex flex-1 flex-wrap">
     <div class="flex min-w-80 basis-1/2 items-center justify-center p-4 md:basis-1/3 xl:basis-1/4">
       <FumenRender fumen={setup.fumen} />
@@ -70,8 +70,8 @@
   {#if next}
     <a
       class="flex min-w-20 items-center justify-center rounded-r-3xl transition-colors duration-500 ease-in-out {oqb
-        ? 'bg-blue-100 hover:bg-blue-200'
-        : 'hover:bg-gray-200'}"
+        ? 'bg-base-200 hover:bg-base-100'
+        : 'hover:bg-base-100'}"
       href={`${baseUrl}${setup.setup_id}` + (oqb ? `+${submittedQueue}` : '')}
     >
       <ChevronRight size={32} />
