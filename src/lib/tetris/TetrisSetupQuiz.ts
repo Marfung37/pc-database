@@ -131,6 +131,7 @@ export class TetrisSetupQuiz extends TetrisGame {
       this.held = false;
       this.operations.push(this.active.copy());
     }
+
     const lineclears = this.board.place(this.active, true);
 
     // clear lines so correct setup shows up with the lines cleared
@@ -143,6 +144,7 @@ export class TetrisSetupQuiz extends TetrisGame {
     }
 
     this.pieceCount++;
+    this.totalPieceCount++;
 
     if (this.queue.length == 0) {
       if (this.holdPiece != PieceEnum.X) {
@@ -176,7 +178,7 @@ export class TetrisSetupQuiz extends TetrisGame {
         'T': 0, 'I': 0, 'L': 0, 'J': 0, 'S': 0, 'Z': 0, 'O': 0
       };
 
-      for (let operation of this.operations.slice(-this.pieceCount)) {
+      for (let operation of this.operations.slice(this.totalPieceCount - this.pieceCount, this.totalPieceCount)) {
         const piece = PieceEnum[operation.type];
         pages.push({operation: {
           ...operation, 
@@ -214,6 +216,7 @@ export class TetrisSetupQuiz extends TetrisGame {
         if(!this.simulating)
           this.pendingEvents.push('wrong');
       }
+
       this.reset(soft);
     }
   }
