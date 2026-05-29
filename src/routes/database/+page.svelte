@@ -33,7 +33,7 @@
   const columns = [
     {
       id: 'setup_id',
-      header: ['Setup ID', {filter: "text"}],
+      header: ['Setup ID', { filter: 'text' }],
       footer: 'Setup ID',
       width: 150,
       treetoggle: true,
@@ -42,18 +42,18 @@
     {
       id: 'leftover',
       width: 100,
-      header: ['Leftover', {filter: "text"}],
+      header: ['Leftover', { filter: 'text' }],
       footer: 'Leftover'
     },
     {
       id: 'build',
-      header: ['Build', {filter: "text"}],
+      header: ['Build', { filter: 'text' }],
       footer: 'Build',
       width: 100
     },
     {
       id: 'cover_pattern',
-      header: ['Cover Pattern', {filter: "text"}],
+      header: ['Cover Pattern', { filter: 'text' }],
       footer: 'Cover Pattern',
       width: 150,
       flexgrow: 1,
@@ -62,7 +62,7 @@
     },
     {
       id: 'fumen',
-      header: ['Fumen', {filter: "text"}],
+      header: ['Fumen', { filter: 'text' }],
       footer: 'Fumen',
       width: 200,
       flexgrow: 1,
@@ -71,7 +71,7 @@
     },
     {
       id: 'solve_pattern',
-      header: ['Solve Pattern', {filter: "text"}],
+      header: ['Solve Pattern', { filter: 'text' }],
       footer: 'Solve Pattern',
       width: 100,
       flexgrow: 1,
@@ -80,13 +80,13 @@
     },
     {
       id: 'mirror',
-      header: ['Mirror', {filter: "text"}],
+      header: ['Mirror', { filter: 'text' }],
       footer: 'Mirror',
       width: 120
     },
     {
       id: 'solve_percent',
-      header: ['Solve %', {filter: "text"}],
+      header: ['Solve %', { filter: 'text' }],
       footer: 'Solve %',
       width: 100
     }
@@ -122,7 +122,7 @@
           <select
             id="pc-select"
             name="pc"
-            class="focus:shadow-outline block w-full appearance-none rounded border border-gray-300 bg-base-300 px-4 py-2 pr-8 leading-tight shadow hover:border-gray-400 focus:outline-none"
+            class="focus:shadow-outline bg-base-300 block w-full appearance-none rounded border border-gray-300 px-4 py-2 pr-8 leading-tight shadow hover:border-gray-400 focus:outline-none"
           >
             {#each pcs as pc (pc.id)}
               <option value={pc.id}>{pc.pc}</option>
@@ -131,7 +131,7 @@
           <div>
             <button
               type="submit"
-              class="flex w-full cursor-pointer justify-center rounded-md border border-transparent bg-info px-4 py-2 text-sm font-medium text-info-content shadow-sm hover:bg-info/70 focus:ring-2 focus:ring-base-content focus:ring-offset-2 focus:outline-none"
+              class="bg-info text-info-content hover:bg-info/70 focus:ring-base-content flex w-full cursor-pointer justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
               disabled={loading}
             >
               {loading ? m.loading() : m.btn_submit()}
@@ -151,7 +151,7 @@
       {/if}
 
       <Willow>
-        <Grid tree={true} footer={true} data={form?.gridData ?? []} {columns}/>
+        <Grid tree={true} footer={true} data={form?.gridData ?? []} {columns} />
       </Willow>
     </div>
   </div>

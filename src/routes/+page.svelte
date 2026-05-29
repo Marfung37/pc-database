@@ -29,10 +29,10 @@
     description={m.home_lookup_description()}
     href="./lookup"
   />
-  <Shortcut 
-    icon={BookOpenCheck} 
-    name={m.nav_quiz()} 
-    description={m.home_quiz_description()} 
+  <Shortcut
+    icon={BookOpenCheck}
+    name={m.nav_quiz()}
+    description={m.home_quiz_description()}
     href="./quiz"
   />
 </div>

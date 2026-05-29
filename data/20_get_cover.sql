@@ -1,11 +1,6 @@
-create type cover_fumen_info as (
-  cover_pattern text,
-  cover_data bytea,
-  fumen fumen
-);
+create type cover_fumen_info as (cover_pattern text, cover_data bytea, fumen fumen);
 
-CREATE OR REPLACE FUNCTION public.get_cover_fumen (targets jsonb) 
-RETURNS setof cover_fumen_info as $$
+CREATE OR REPLACE FUNCTION public.get_cover_fumen (targets jsonb) RETURNS setof cover_fumen_info as $$
 BEGIN
   RETURN QUERY
   SELECT

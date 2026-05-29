@@ -78,9 +78,12 @@ export class TetrisBoard {
   }
 
   toFumen(): Fumen {
-    const cellToFumenCell = (cell: number) => (cell == 0) ? '_': PieceEnum[cell];
-    const field = this.board.map((row) => row.map(cellToFumenCell).join('')).toReversed().join('');
-    return encoder.encode([{field: Field.create(field)}]) as Fumen;
+    const cellToFumenCell = (cell: number) => (cell == 0 ? '_' : PieceEnum[cell]);
+    const field = this.board
+      .map((row) => row.map(cellToFumenCell).join(''))
+      .toReversed()
+      .join('');
+    return encoder.encode([{ field: Field.create(field) }]) as Fumen;
   }
 
   reset(): void {

@@ -72,7 +72,7 @@ export async function filter(
 
     if (minimalSolves) {
       queues.push(row.queue as Queue);
-      newFumens.forEach(item => fumens.add(item));
+      newFumens.forEach((item) => fumens.add(item));
       queueToFumens.set(row.queue as Queue, newFumens);
     }
   }
@@ -84,12 +84,7 @@ export async function filter(
   if (uniqueSolves && uniqueFumens.size > 0) returnData.uniqueSolves = fumenCombine(uniqueFumens);
 
   if (minimalSolves && queues.length > 0) {
-    const minimalData = await generateMinimalSet(
-      queues,
-      fumens,
-      queueToFumens,
-      total
-    );
+    const minimalData = await generateMinimalSet(queues, fumens, queueToFumens, total);
     returnData.minimalSolves = minimalData;
   }
 
@@ -100,12 +95,11 @@ export async function generateMinimalSet(
   queues: Queue[],
   fumens: Set<Fumen>,
   queueToFumens: Map<Queue, Fumen[]>,
-  total: number,
+  total: number
 ): Promise<Fumen> {
-
   const solution = solveSetCover(queues, Array.from(fumens), queueToFumens);
 
-  if (solution.selected == null || solution.status !== "Optimal") {
+  if (solution.selected == null || solution.status !== 'Optimal') {
     throw new Error(`Unable to find minimal set due to ${solution.status}`);
   }
 

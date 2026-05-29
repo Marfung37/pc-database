@@ -151,7 +151,8 @@ export function isCongruentFumen(
   const pages1 = decodeWrapper(fumen1);
   const pages2 = decodeWrapper(fumen2);
 
-  if (maxPage >= Math.max(pages1.length, pages2.length) && pages1.length !== pages2.length) return false;
+  if (maxPage >= Math.max(pages1.length, pages2.length) && pages1.length !== pages2.length)
+    return false;
 
   for (let i = 0; i < Math.min(pages1.length, pages2.length, maxPage); i++) {
     const field1 = pages1[i].field
@@ -172,7 +173,7 @@ export function isCongruentFumen(
       const row2 = field2[j].replaceAll(/[TILJSZOX]/g, '[TILJSZOX]');
       let shiftSize = (field1[j] + field1[j]).search(new RegExp(row2));
 
-      if (shiftSize == -1) return false; 
+      if (shiftSize == -1) return false;
 
       // move to range [-4,5]
       if (shiftSize > PCSIZE / 2) shiftSize -= PCSIZE;
@@ -237,11 +238,17 @@ export function fumenCountPieces(fumen: Fumen): Record<string, number> {
 
   // check if there's enough minos of each color to place pieces
   const frequencyCounter: Record<string, number> = {
-    'T': 0, 'I': 0, 'L': 0, 'J': 0, 'S': 0, 'Z': 0, 'O': 0
+    T: 0,
+    I: 0,
+    L: 0,
+    J: 0,
+    S: 0,
+    Z: 0,
+    O: 0
   };
 
   for (let y = 0; y < height; y++) {
-    for(let x = 0; x < PCSIZE; x++) {
+    for (let x = 0; x < PCSIZE; x++) {
       let mino = field.at(x, y);
       if (isMinoPiece(mino)) {
         frequencyCounter[mino]++;
@@ -249,7 +256,7 @@ export function fumenCountPieces(fumen: Fumen): Record<string, number> {
     }
   }
 
-  for (const piece in frequencyCounter){
+  for (const piece in frequencyCounter) {
     frequencyCounter[piece] >>= 2;
   }
 
@@ -261,7 +268,7 @@ export function fumenClearLines(fumen: Fumen, lines: number[]): Fumen {
   const pages = decodeWrapper(fumen);
 
   for (let page of pages) {
-    const rows = page.field.str({garbage: false}).split('\n');
+    const rows = page.field.str({ garbage: false }).split('\n');
     const height = rows.length;
     for (let line of lines) {
       rows.splice(height - 1 - line, 1);

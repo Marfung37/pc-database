@@ -78,10 +78,8 @@ export class TetrisGame {
   }
 
   setPractice(pattern: string): void {
-    if (pattern === '') 
-      this.mode = 'pure';
-    else
-      this.mode = 'practice';
+    if (pattern === '') this.mode = 'pure';
+    else this.mode = 'practice';
     this.setPattern(pattern);
   }
 
@@ -227,7 +225,7 @@ export class TetrisGame {
       this.active.rotation = piece.rotation;
       if (this.active.type !== piece.type) {
         // DEBUG
-        console.error("Incorrect piece passed to be locked")
+        console.error('Incorrect piece passed to be locked');
       }
     } else {
       while (this.movePiece(0, -1));
@@ -242,7 +240,7 @@ export class TetrisGame {
       if (this.holdPiece != PieceEnum.X) {
         this.setActive(this.holdPiece);
         this.holdPiece = PieceEnum.X;
-      } else if (this.mode === 'practice'){
+      } else if (this.mode === 'practice') {
         // no more pieces
         this.reset(this.softReset);
       }
@@ -283,10 +281,9 @@ export class TetrisGame {
     this.simulating = true;
     this.totalPieceCount = 0;
     for (let piece of this.operations) {
-
       if (this.active.type !== piece.type) {
         if (this.holdPiece !== piece.type) {
-          console.error("Wrong piece from hold also");
+          console.error('Wrong piece from hold also');
         }
         this.hold();
       }

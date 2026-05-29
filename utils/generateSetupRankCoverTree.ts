@@ -6,10 +6,10 @@ import { BAG } from './lib/constants';
 
 // TreeNode has keys of pieces and can be another node or index of array
 type TreeNode = {
-  [K in typeof BAG[number]]?: TreeNode | number;
+  [K in (typeof BAG)[number]]?: TreeNode | number;
 } & {
   default?: number;
-}
+};
 
 class Tree {
   public root: TreeNode;
@@ -50,11 +50,17 @@ function insertSetupCover(tree: Tree, coverData: string, coverPattern: string, v
   }
 }
 
-async function getCoverTree(ranking: SetupID[], coverPattern: string, kicktable: Kicktable = 'srs180', hold_type: HoldType = 'any'): Promise<string | null> {
-  let targets = ranking
-    .map(t => {return {setup_id: t, kicktable, hold_type}})
- 
-  const {data, error} = await supabaseAdmin.rpc("get_cover_fumen", {targets});
+async function getCoverTree(
+  ranking: SetupID[],
+  coverPattern: string,
+  kicktable: Kicktable = 'srs180',
+  hold_type: HoldType = 'any'
+): Promise<string | null> {
+  let targets = ranking.map((t) => {
+    return { setup_id: t, kicktable, hold_type };
+  });
+
+  const { data, error } = await supabaseAdmin.rpc('get_cover_fumen', { targets });
 
   if (error) {
     console.error('Failed to get cover info:', error.message);
@@ -73,19 +79,17 @@ async function getCoverTree(ranking: SetupID[], coverPattern: string, kicktable:
     pattern: coverPattern,
     setups,
     tree: tree.root
-  })
+  });
 }
 
 import { readFileSync, writeFileSync } from 'fs';
 
 let lines: string[] = readFileSync('tmp/7thranking.txt', 'utf-8')
-  .split(/\r?\n/)          
-  .map(line => line.trim()) 
-  .filter(line => line !== "")
+  .split(/\r?\n/)
+  .map((line) => line.trim())
+  .filter((line) => line !== '');
 const coverPattern = lines[0];
-const setups: SetupID[] = lines.slice(1)
-  .map(line => line as SetupID)
+const setups: SetupID[] = lines.slice(1).map((line) => line as SetupID);
 
 const data = await getCoverTree(setups, coverPattern);
-if (data !== null) 
-  writeFileSync('tmp/output7.json', data);
+if (data !== null) writeFileSync('tmp/output7.json', data);

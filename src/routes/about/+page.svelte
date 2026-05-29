@@ -38,7 +38,7 @@
   </div>
   <p>{m.about_pc_num()}</p>
   <div class="flex flex-col items-center">
-    <table class="border-radius-32 table w-1/2 bg-base-300 p-4 shadow">
+    <table class="border-radius-32 bg-base-300 table w-1/2 p-4 shadow">
       <caption class="caption-bottom">
         <ComponentText
           message={m.about_pc_table_caption()}

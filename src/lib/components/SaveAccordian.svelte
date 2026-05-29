@@ -53,11 +53,11 @@
 
 <div class="mb-2 overflow-hidden rounded-md border border-gray-200 shadow-sm">
   <button
-    class="flex w-full items-center justify-between border-none
-         bg-base-300 p-4 text-left text-lg font-semibold
+    class="bg-base-300 flex w-full items-center justify-between
+         border-none p-4 text-left text-lg font-semibold
          {save.minimal_solves
-      ? 'cursor-pointer hover:bg-base-300/70'
-      : ''} focus:ring-opacity-50 focus:ring-2 focus:ring-base-content focus:outline-none"
+      ? 'hover:bg-base-300/70 cursor-pointer'
+      : ''} focus:ring-opacity-50 focus:ring-base-content focus:ring-2 focus:outline-none"
     on:click={() => (isOpen = !isOpen)}
   >
     {header}
@@ -68,9 +68,9 @@
     {/if}
   </button>
   {#if save.minimal_solves !== null}
-    <div class="flex flex-col gap-2 p-4 bg-base-300 {isOpen ? 'block' : 'hidden'}">
+    <div class="bg-base-300 flex flex-col gap-2 p-4 {isOpen ? 'block' : 'hidden'}">
       <button
-        class="text-left text-2xl text-info hover:cursor-pointer hover:text-info/70"
+        class="text-info hover:text-info/70 text-left text-2xl hover:cursor-pointer"
         on:click={copyContent}
       >
         {m.copy_minimal()}

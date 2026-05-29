@@ -419,7 +419,9 @@ BEGIN
   ORDER BY
     s.setup_id;
 END;
-$$ LANGUAGE plpgsql;- bare minimal data to determine if a given setup is actually buildable based on leftover
+$$ LANGUAGE plpgsql;
+
+- bare minimal data to determine if a given setup is actually buildable based on leftover
 CREATE OR REPLACE FUNCTION public.find_bare_setup_leftover (
   p_leftover queue,
   kicktable kicktable DEFAULT 'srs180',

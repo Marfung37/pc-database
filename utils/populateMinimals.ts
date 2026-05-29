@@ -4,22 +4,18 @@ import type { Queue, Fumen, SetupID, Kicktable, HoldType } from './lib/types';
 import { decompressPath, generateBucketPathFilename } from './lib/compression';
 import { supabaseAdmin } from './lib/supabaseAdmin';
 import { fumenGetNumPages } from './lib/fumenUtils';
-import {
-  COLUMN_QUEUE,
-  COLUMN_FUMENS,
-  COLUMN_FUMENS_DELIMITER
-} from './lib/constants';
+import { COLUMN_QUEUE, COLUMN_FUMENS, COLUMN_FUMENS_DELIMITER } from './lib/constants';
 
 interface StatPathData {
-  stat_id: string,
-  setup_id: SetupID,
-  kicktable: Kicktable,
-  hold_type: HoldType
+  stat_id: string;
+  setup_id: SetupID;
+  kicktable: Kicktable;
+  hold_type: HoldType;
 }
 
 interface StatMinimalData {
-  stat_id: string,
-  minimal_solves: Fumen
+  stat_id: string;
+  minimal_solves: Fumen;
 }
 
 if (process.env.PATH_UPLOAD_BUCKET === undefined) {
@@ -64,10 +60,12 @@ async function generateMinimalData(row: StatPathData): Promise<boolean> {
     return false;
   }
 
-  const parsed = csv.parse(decompressedFile, {
-    columns: true,
-    skip_empty_lines: true
-  }).filter((row: any) => row[COLUMN_FUMENS].length > 0);
+  const parsed = csv
+    .parse(decompressedFile, {
+      columns: true,
+      skip_empty_lines: true
+    })
+    .filter((row: any) => row[COLUMN_FUMENS].length > 0);
 
   const queues: Queue[] = [];
   const fumens: Set<Fumen> = new Set();
@@ -75,7 +73,7 @@ async function generateMinimalData(row: StatPathData): Promise<boolean> {
   for (let row of parsed) {
     queues.push(row[COLUMN_QUEUE]);
     const newFumens = row[COLUMN_FUMENS].split(COLUMN_FUMENS_DELIMITER) as Fumen[];
-    newFumens.forEach(item => fumens.add(item));
+    newFumens.forEach((item) => fumens.add(item));
     queueToFumens.set(row[COLUMN_QUEUE], newFumens);
   }
 
@@ -91,7 +89,7 @@ async function generateMinimalData(row: StatPathData): Promise<boolean> {
 
   const { error: updateError } = await supabaseAdmin
     .from('statistics')
-    .update({minimal_solves: minimalSolves, minimal_count: count})
+    .update({ minimal_solves: minimalSolves, minimal_count: count })
     .eq('stat_id', row.stat_id);
   if (updateError) {
     console.error(`Failed to update ${row.stat_id}:`, updateError);
@@ -107,7 +105,7 @@ async function getMinimalCounts(row: StatMinimalData): Promise<boolean> {
 
   const { error: updateError } = await supabaseAdmin
     .from('statistics')
-    .update({minimal_count: count})
+    .update({ minimal_count: count })
     .eq('stat_id', row.stat_id);
   if (updateError) {
     console.error(`Failed to update ${row.stat_id}:`, updateError);

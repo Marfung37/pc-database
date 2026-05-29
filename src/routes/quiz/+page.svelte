@@ -18,7 +18,7 @@
   let actions: Set<Action> = new Set<Action>();
   let showSettings: boolean = false;
 
-  let errorMessage = "";
+  let errorMessage = '';
 
   let showAnswer = false;
 
@@ -58,9 +58,9 @@
     const loop = (timestamp: number) => {
       game.tick(timestamp, actions);
       let tmpActions = new Set<Action>();
-      if(actions.has("left")) tmpActions.add("left");
-      if(actions.has("right")) tmpActions.add("right");
-      if(actions.has("sd")) tmpActions.add("sd");
+      if (actions.has('left')) tmpActions.add('left');
+      if (actions.has('right')) tmpActions.add('right');
+      if (actions.has('sd')) tmpActions.add('sd');
       actions = tmpActions;
 
       handleEvents();
@@ -77,10 +77,8 @@
   });
 
   function handleKeyDown(event: KeyboardEvent) {
-    if(event.code == "KeyZ" && event.ctrlKey)
-      actions.add("undo");
-    else
-      actions.add(keybinds.lookup[event.code]);
+    if (event.code == 'KeyZ' && event.ctrlKey) actions.add('undo');
+    else actions.add(keybinds.lookup[event.code]);
     // You can also stop scrolling with space/arrows here
     if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) {
       event.preventDefault();
@@ -111,7 +109,7 @@
           toast.message('Wrong!');
           break;
         case 'missing setup':
-          toast.warning('No setup found in json for this queue. Restart to continue')
+          toast.warning('No setup found in json for this queue. Restart to continue');
           break;
       }
     }
@@ -161,8 +159,8 @@
       }
     }
 
-    if(document.activeElement !== gameCtn) {
-      drawOOF(context)
+    if (document.activeElement !== gameCtn) {
+      drawOOF(context);
     }
   }
 
@@ -179,7 +177,10 @@
       if (preview[i] == PieceEnum.I) {
         shiftY = 0.5;
       }
-      drawPiece(context, new TetrisBoardPiece(1 + shiftX, 12 - 3 * i + shiftY, preview[i], Rotation.spawn));
+      drawPiece(
+        context,
+        new TetrisBoardPiece(1 + shiftX, 12 - 3 * i + shiftY, preview[i], Rotation.spawn)
+      );
     }
   }
 
@@ -224,15 +225,15 @@
     board: TetrisBoard | null = null
   ) {
     const page = decodeWrapper(fumen)[0];
-    const field = page.field.str({reduced: true, garbage: false}).split('\n').toReversed();
+    const field = page.field.str({ reduced: true, garbage: false }).split('\n').toReversed();
     for (let row = 0; row < field.length; row++) {
       for (let col = 0; col < PCSIZE; col++) {
         if (board !== null && board.isFilled(row, col)) {
           continue;
         }
         const cell = field[row][col];
-        const index = (cell == '_') ? PieceEnum.X: PieceEnum[cell as Piece];
-          
+        const index = cell == '_' ? PieceEnum.X : PieceEnum[cell as Piece];
+
         context.fillStyle = get_colour(index) + opacity;
         context.fillRect(col, row, 1, 1);
       }
@@ -243,14 +244,10 @@
     let transform = context.getTransform();
     context.resetTransform();
     context.font = `bold ${CELL_SIZE + 5}px Arial`;
-    context.fillStyle = "rgba(235, 203, 139, 0.7)";
-    context.textAlign = "center";
-    context.textBaseline = "middle";
-    context.fillText(
-        "OUT OF FOCUS",
-        context.canvas.width / 2,
-        context.canvas.height / 2,
-    );
+    context.fillStyle = 'rgba(235, 203, 139, 0.7)';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText('OUT OF FOCUS', context.canvas.width / 2, context.canvas.height / 2);
     context.setTransform(transform);
   }
 
@@ -259,15 +256,15 @@
     const files = target.files;
 
     // Reset states on a new attempt
-    errorMessage = "";
+    errorMessage = '';
 
     if (!files || files.length === 0) return;
 
     const file = files[0];
 
     // Validation
-    if (file.type !== "application/json" && !file.name.endsWith('.json')) {
-      errorMessage = "Please upload a valid .json file.";
+    if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
+      errorMessage = 'Please upload a valid .json file.';
       return;
     }
 
@@ -282,7 +279,7 @@
         patternsText = parsedData.pattern;
       } catch (err) {
         console.error(err);
-        errorMessage = "Failed to parse JSON. Check file formatting.";
+        errorMessage = 'Failed to parse JSON. Check file formatting.';
       }
     };
 
@@ -290,63 +287,71 @@
   }
 </script>
 
-<svelte:window  />
+<svelte:window />
 
 <div>
-<div class="grid grid-cols-1 grid-cols-[1fr_auto_1fr]">
-  <div></div>
-  <div class="flex flex-col items-center relative z-1">
-    <div bind:this={gameCtn} class="game-container flex items-start" on:keydown={handleKeyDown} on:keyup={handleKeyUp} tabindex="0" aria-label="Tetris game" role="button">
-      <canvas bind:this={holdCanvas} id="hold" class="bg-[#2e3440] px-2 py-4 rounded"></canvas>
-      <canvas bind:this={boardCanvas} id="board" class="mx-1 bg-[#2e3440] border-0 rounded"></canvas>
+  <div class="grid grid-cols-1 grid-cols-[1fr_auto_1fr]">
+    <div></div>
+    <div class="relative z-1 flex flex-col items-center">
+      <div
+        bind:this={gameCtn}
+        class="game-container flex items-start"
+        on:keydown={handleKeyDown}
+        on:keyup={handleKeyUp}
+        tabindex="0"
+        aria-label="Tetris game"
+        role="button"
+      >
+        <canvas bind:this={holdCanvas} id="hold" class="rounded bg-[#2e3440] px-2 py-4"></canvas>
+        <canvas bind:this={boardCanvas} id="board" class="mx-1 rounded border-0 bg-[#2e3440]"
+        ></canvas>
 
-      <div class="flex flex-col gap-2">
-        <div>
-          <canvas bind:this={queueCanvas} id="queue" class="bg-[#2e3440] px-2 py-4 rounded"></canvas>
+        <div class="flex flex-col gap-2">
+          <div>
+            <canvas bind:this={queueCanvas} id="queue" class="rounded bg-[#2e3440] px-2 py-4"
+            ></canvas>
+          </div>
+          <button class="btn" on:click={() => (showAnswer = !showAnswer)}>Show Answer</button>
         </div>
-        <button class="btn" on:click={() => showAnswer = !showAnswer}>Show Answer</button>
+      </div>
+
+      <label for="pattern"
+        >Pattern for Queue <a
+          class="font-bold text-blue-500"
+          href="https://github.com/Marfung37/ExtendedSfinderPieces">?</a
+        ></label
+      >
+      <textarea id="pattern" class="bg-base-300" bind:value={patternsText}></textarea>
+      <button class="btn" on:click={handleGenerate}>Generate</button>
+
+      <button class="btn" on:click={() => (showSettings = true)}>Show Settings</button>
+
+      <div class="upload-container">
+        <input
+          type="file"
+          id="json-file"
+          accept=".json"
+          on:change={handleFileChange}
+          style="display: none;"
+        />
+
+        <label for="json-file" class="btn"> Upload Setup Quiz JSON </label>
+
+        {#if errorMessage}
+          <p class="error">{errorMessage}</p>
+        {/if}
       </div>
     </div>
 
-    <label for="pattern"
-      >Pattern for Queue <a
-        class="font-bold text-blue-500"
-        href="https://github.com/Marfung37/ExtendedSfinderPieces">?</a
-      ></label
-    >
-    <textarea id="pattern" class="bg-base-300" bind:value={patternsText}></textarea>
-    <button class="btn" on:click={handleGenerate}>Generate</button>
-
-    <button class="btn" on:click={() => (showSettings = true)}>Show Settings</button>
-
-    <div class="upload-container">
-      <input 
-        type="file" 
-        id="json-file" 
-        accept=".json" 
-        on:change={handleFileChange}
-        style="display: none;" 
-      />
-      
-      <label for="json-file" class="btn">
-        Upload Setup Quiz JSON
-      </label>
-
-      {#if errorMessage}
-        <p class="error">{errorMessage}</p>
-      {/if}
-    </div>
+    <div></div>
   </div>
 
-  <div></div>
-</div>
-  
   {#if showSettings}
     <div
       id="settings-modal"
       class="fixed top-0 left-0 z-99 flex h-full w-full items-center justify-center bg-gray-400/50"
       on:click|self={() => {
-        showSettings = false
+        showSettings = false;
         game.saveHandling();
       }}
       role="button"
@@ -356,52 +361,52 @@
         if (e.key === 'Enter' || e.key === ' ') showSettings = false;
       }}
     >
-      <div class="flex flex-col justify-evenly rounded bg-white py-2 px-6 h-7/8 w-auto">
+      <div class="flex h-7/8 w-auto flex-col justify-evenly rounded bg-white px-6 py-2">
         <div>
-        <h3 class="py-2 text-lg font-bold">Keybinds</h3>
-        <table>
-          <tbody>
-            {#each Object.entries($keybinds || {}) as [action, key]}
-              <tr>
-                <td class="px-2">{action}</td>
-                <td>
-                  <input
-                    class={"text-sm caret-transparent disabled:bg-slate-200 disabled:text-slate-700 disabled:cursor-not-allowed"}
-                    value={key}
-                    on:keydown|preventDefault|stopPropagation={(e) => {
-                      keybinds.set(action as Action, e.code);
-                      keybinds.save();
-                    }}
-                    readonly
-                    disabled={action == 'undo'}
-                  />
-                </td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
+          <h3 class="py-2 text-lg font-bold">Keybinds</h3>
+          <table>
+            <tbody>
+              {#each Object.entries($keybinds || {}) as [action, key]}
+                <tr>
+                  <td class="px-2">{action}</td>
+                  <td>
+                    <input
+                      class={'text-sm caret-transparent disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-700'}
+                      value={key}
+                      on:keydown|preventDefault|stopPropagation={(e) => {
+                        keybinds.set(action as Action, e.code);
+                        keybinds.save();
+                      }}
+                      readonly
+                      disabled={action == 'undo'}
+                    />
+                  </td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
         </div>
 
         <div>
-        {#if game !== undefined}
-          <h3 class="py-2 text-lg font-bold">Tunings</h3>
-          {#each ['das', 'arr', 'sdArr'] as tuning}
-            <div class="flex justify-between">
-            <label for={tuning}>{tuning}</label>
-            <input
-              class="text-sm"
-              id={tuning}
-              type="number"
-              value={game.handling[tuning]}
-              on:change={(e) => {
-                game.handling[tuning] = Number((e.target as HTMLInputElement).value);
-                game.saveHandling();
-                toast.success(tuning + ' changed!');
-              }}
-            />
-            </div>
-          {/each}
-        {/if}
+          {#if game !== undefined}
+            <h3 class="py-2 text-lg font-bold">Tunings</h3>
+            {#each ['das', 'arr', 'sdArr'] as tuning}
+              <div class="flex justify-between">
+                <label for={tuning}>{tuning}</label>
+                <input
+                  class="text-sm"
+                  id={tuning}
+                  type="number"
+                  value={game.handling[tuning]}
+                  on:change={(e) => {
+                    game.handling[tuning] = Number((e.target as HTMLInputElement).value);
+                    game.saveHandling();
+                    toast.success(tuning + ' changed!');
+                  }}
+                />
+              </div>
+            {/each}
+          {/if}
         </div>
       </div>
     </div>
