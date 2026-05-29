@@ -1,10 +1,10 @@
 import { TetrisGame, DEFAULT, type Event, type Mode } from '$lib/tetris/TetrisGame';
 import { TetrisBoardPiece } from '$lib/tetris/TetrisBoardPiece';
 import { BAG } from '$lib/constants';
-import { 
-  fumenCountFilledCells, 
-  isCongruentFumen, 
-  fumenSplit, 
+import {
+  fumenCountFilledCells,
+  isCongruentFumen,
+  fumenSplit,
   fumenCountPieces,
   fumenClearLines
 } from '$lib/utils/fumenUtils';
@@ -13,14 +13,14 @@ import glueFumen from '$lib/utils/GluingFumens/src/lib/glueFumen';
 import unglueFumen from '$lib/utils/GluingFumens/src/lib/unglueFumen';
 import { PieceEnum, Rotation } from '$lib/tetris/pieceData';
 import type { Fumen, Queue } from '$lib/types';
-import { encoder, Field} from 'tetris-fumen';
+import { encoder, Field } from 'tetris-fumen';
 
 // TreeNode has keys of pieces and can be another node or index of array
 type TreeNode = {
-  [K in typeof BAG[number]]?: TreeNode | number;
+  [K in (typeof BAG)[number]]?: TreeNode | number;
 } & {
   default?: number;
-}
+};
 
 type SetupQuizEvent = Event | 'correct' | 'wrong' | 'missing setup';
 type SetupQuizMode = Mode | 'setup quiz';
@@ -61,10 +61,8 @@ export class TetrisSetupQuiz extends TetrisGame {
 
   setPractice(pattern: string) {
     if (this.mode !== 'setup quiz') {
-      if (pattern === '') 
-        this.mode = 'pure';
-      else
-        this.mode = 'practice';
+      if (pattern === '') this.mode = 'pure';
+      else this.mode = 'practice';
     }
     this.setPattern(pattern);
   }
@@ -77,7 +75,7 @@ export class TetrisSetupQuiz extends TetrisGame {
   }
 
   getCorrectSetup(index: number) {
-    if(this.setups !== null) {
+    if (this.setups !== null) {
       const fullFumen = this.setups[index];
       const fumens = fumenSplit(fullFumen);
       let pageIndex = 0;
@@ -86,8 +84,7 @@ export class TetrisSetupQuiz extends TetrisGame {
         const queue = this.queue.queue.map((piece) => PieceEnum[piece]).join('') as Queue;
 
         for (let fumen of fumens) {
-          if (glueFumen(fumen, 1, false, queue, 1, true).length > 0)
-            break;
+          if (glueFumen(fumen, 1, false, queue, 1, true).length > 0) break;
           pageIndex++;
         }
       }
@@ -98,7 +95,13 @@ export class TetrisSetupQuiz extends TetrisGame {
 
       // DEBUG
       if (!this.simulating)
-        console.log('Correct Setup:', this.correctSetups[pageIndex], 'with', this.correctSetupPieceLength, 'pieces');
+        console.log(
+          'Correct Setup:',
+          this.correctSetups[pageIndex],
+          'with',
+          this.correctSetupPieceLength,
+          'pieces'
+        );
     }
   }
 
@@ -135,11 +138,7 @@ export class TetrisSetupQuiz extends TetrisGame {
     const lineclears = this.board.place(this.active, true);
 
     // clear lines so correct setup shows up with the lines cleared
-    if (
-      this.mode === 'setup quiz' && 
-      this.runningCorrectSetup !== null && 
-      lineclears.length > 0
-    ) {
+    if (this.mode === 'setup quiz' && this.runningCorrectSetup !== null && lineclears.length > 0) {
       this.runningCorrectSetup = fumenClearLines(this.runningCorrectSetup, lineclears);
     }
 
@@ -150,7 +149,7 @@ export class TetrisSetupQuiz extends TetrisGame {
       if (this.holdPiece != PieceEnum.X) {
         this.setActive(this.holdPiece);
         this.holdPiece = PieceEnum.X;
-      } else if (this.mode === 'practice'){
+      } else if (this.mode === 'practice') {
         // no more pieces
         this.reset(this.softReset);
       }
@@ -168,25 +167,38 @@ export class TetrisSetupQuiz extends TetrisGame {
       this.reset(this.softReset);
     }
 
-    if (this.mode === 'setup quiz' && 
-        this.correctSetups !== null && 
-        this.correctSetupPieceLength == this.pieceCount) {
+    if (
+      this.mode === 'setup quiz' &&
+      this.correctSetups !== null &&
+      this.correctSetupPieceLength == this.pieceCount
+    ) {
       let soft: boolean;
 
       const pages = [];
       const pieceCounts: Record<string, number> = {
-        'T': 0, 'I': 0, 'L': 0, 'J': 0, 'S': 0, 'Z': 0, 'O': 0
+        T: 0,
+        I: 0,
+        L: 0,
+        J: 0,
+        S: 0,
+        Z: 0,
+        O: 0
       };
 
-      for (let operation of this.operations.slice(this.totalPieceCount - this.pieceCount, this.totalPieceCount)) {
+      for (let operation of this.operations.slice(
+        this.totalPieceCount - this.pieceCount,
+        this.totalPieceCount
+      )) {
         const piece = PieceEnum[operation.type];
-        pages.push({operation: {
-          ...operation, 
-          type: piece,
-          rotation: Rotation[operation.rotation]
-        } as Operation} as {field?: Field, operation: Operation});
+        pages.push({
+          operation: {
+            ...operation,
+            type: piece,
+            rotation: Rotation[operation.rotation]
+          } as Operation
+        } as { field?: Field; operation: Operation });
         pieceCounts[piece]++;
-      };
+      }
 
       // check if correct pieces used
       let correctPieces: boolean = true;
@@ -203,18 +215,16 @@ export class TetrisSetupQuiz extends TetrisGame {
       let congruent: boolean = false;
       if (correctPieces) {
         for (let correctFumen of this.correctSetups) {
-          congruent ||= isCongruentFumen(fumen, correctFumen, 1)
+          congruent ||= isCongruentFumen(fumen, correctFumen, 1);
         }
       }
 
       if (correctPieces && congruent) {
         soft = false;
-        if(!this.simulating)
-          this.pendingEvents.push('correct');
+        if (!this.simulating) this.pendingEvents.push('correct');
       } else {
         soft = true;
-        if(!this.simulating)
-          this.pendingEvents.push('wrong');
+        if (!this.simulating) this.pendingEvents.push('wrong');
       }
 
       this.reset(soft);

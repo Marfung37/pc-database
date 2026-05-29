@@ -31,15 +31,15 @@
 
 <button class="group relative" on:click={handleCopyClick} tabindex="0">
   <div class="tooltip">
-  <span class="tooltip-content text-lg">
-    {hoverText}
-  </span>
+    <span class="tooltip-content text-lg">
+      {hoverText}
+    </span>
 
-  <!-- The main icon, changes color on hover and click -->
-  {#if isCopy}
-    <CopyCheck class="text-info hover:cursor-pointer hover:text-info/70" />
-  {:else}
-    <Copy class="text-info hover:cursor-pointer hover:text-info/70" />
-  {/if}
+    <!-- The main icon, changes color on hover and click -->
+    {#if isCopy}
+      <CopyCheck class="text-info hover:text-info/70 hover:cursor-pointer" />
+    {:else}
+      <Copy class="text-info hover:text-info/70 hover:cursor-pointer" />
+    {/if}
   </div>
 </button>

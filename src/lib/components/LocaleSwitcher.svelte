@@ -37,7 +37,7 @@
     id="locale-select"
     on:change={handleLocaleChange}
     bind:value={currentLocale}
-    class="focus:shadow-outline block w-full appearance-none rounded border border-gray-300 bg-base-300 px-4 py-2 pr-8 leading-tight shadow hover:border-gray-400 focus:outline-none"
+    class="focus:shadow-outline bg-base-300 block w-full appearance-none rounded border border-gray-300 px-4 py-2 pr-8 leading-tight shadow hover:border-gray-400 focus:outline-none"
   >
     {#each locales.filter((x) => x in LOCALE_DISPLAY_NAMES) as locale (locale)}
       <option value={locale}>

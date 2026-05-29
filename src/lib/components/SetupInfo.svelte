@@ -14,7 +14,7 @@
   const oqb = setup.type === 'oqb';
 </script>
 
-<div class="flex min-h-60 w-full rounded-3xl bg-base-300 shadow-lg">
+<div class="bg-base-300 flex min-h-60 w-full rounded-3xl shadow-lg">
   <div class="flex flex-1 flex-wrap">
     <div class="flex min-w-80 basis-1/2 items-center justify-center p-4 md:basis-1/3 xl:basis-1/4">
       <FumenRender fumen={setup.fumen} />

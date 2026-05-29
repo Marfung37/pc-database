@@ -48,8 +48,7 @@ export class Keybind {
   }
 
   set(action: Action, key: string): void {
-    if (action == "undo") 
-        return;
+    if (action == 'undo') return;
     // unset if key already in use
     const dupAction = Object.keys(this.binding).find(
       (k) => this.binding[k as Action] === key

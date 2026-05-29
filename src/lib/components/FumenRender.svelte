@@ -389,7 +389,7 @@
   $: if (browser && fumen) loadFumen();
 </script>
 
-<div class="group relative h-auto w-full rounded-md border border-base-200 bg-base-200 p-4">
+<div class="group border-base-200 bg-base-200 relative h-auto w-full rounded-md border p-4">
   {#if loading && fumen}
     <div class="flex aspect-[5/2] items-center justify-center">
       <p>{m.loading_image()}</p>
@@ -435,7 +435,7 @@
           {/if}
 
           <button
-            class="cursor-pointer rounded-md border bg-base-300 p-2 opacity-50 hover:opacity-80"
+            class="bg-base-300 cursor-pointer rounded-md border p-2 opacity-50 hover:opacity-80"
             class:border={!showFeedback}
             on:click={copyContent}
           >

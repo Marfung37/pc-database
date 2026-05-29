@@ -64,7 +64,7 @@
         <select
           id="pc-select"
           name="pc"
-          class="focus:shadow-outline block min-w-20 appearance-none rounded border border-gray-300 bg-base-300 px-4 py-2 pr-8 leading-tight shadow hover:border-gray-400 focus:outline-none"
+          class="focus:shadow-outline bg-base-300 block min-w-20 appearance-none rounded border border-gray-300 px-4 py-2 pr-8 leading-tight shadow hover:border-gray-400 focus:outline-none"
         >
           {#each pcs as pc (pc.id)}
             <option value={pc.id}>{pc.pc}</option>
@@ -79,7 +79,7 @@
           type="text"
           pattern="[TILJSZO]+"
           bind:value={queueValue}
-          class="mino focus:shadow-outline block max-w-80 min-w-40 grow appearance-none rounded border border-gray-300 bg-base-300 text-2xl leading-tight shadow hover:border-gray-400 focus:outline-none"
+          class="mino focus:shadow-outline bg-base-300 block max-w-80 min-w-40 grow appearance-none rounded border border-gray-300 text-2xl leading-tight shadow hover:border-gray-400 focus:outline-none"
           maxlength={11}
           minlength={1}
         />
@@ -87,7 +87,7 @@
       <div>
         <button
           type="submit"
-          class="flex w-full cursor-pointer justify-center rounded-md border border-transparent bg-info text-info-content px-4 py-2 font-medium shadow-sm hover:bg-info/70 focus:ring-2 focus:ring-info-content focus:ring-offset-2 focus:outline-none"
+          class="bg-info text-info-content hover:bg-info/70 focus:ring-info-content flex w-full cursor-pointer justify-center rounded-md border border-transparent px-4 py-2 font-medium shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
           disabled={loading}
         >
           {loading ? m.loading() : m.btn_submit()}

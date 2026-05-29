@@ -13,8 +13,8 @@ if (process.env.PATH_UPLOAD_BUCKET === undefined) {
 }
 
 interface SavesMinimalData {
-  save_data_id: string,
-  minimal_solves: Fumen
+  save_data_id: string;
+  minimal_solves: Fumen;
 }
 
 async function generateSaveData(row): Promise<boolean> {
@@ -137,7 +137,7 @@ async function getMinimalCounts(row: SavesMinimalData): Promise<boolean> {
 
   const { error: updateError } = await supabaseAdmin
     .from('save_data')
-    .update({minimal_count: count})
+    .update({ minimal_count: count })
     .eq('save_data_id', row.save_data_id);
   if (updateError) {
     console.error(`Failed to update ${row.save_data_id}:`, updateError);
