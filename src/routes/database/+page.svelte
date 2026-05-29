@@ -122,7 +122,7 @@
           <select
             id="pc-select"
             name="pc"
-            class="focus:shadow-outline block w-full appearance-none rounded border border-gray-300 bg-white px-4 py-2 pr-8 leading-tight shadow hover:border-gray-400 focus:outline-none"
+            class="focus:shadow-outline block w-full appearance-none rounded border border-gray-300 bg-base-300 px-4 py-2 pr-8 leading-tight shadow hover:border-gray-400 focus:outline-none"
           >
             {#each pcs as pc (pc.id)}
               <option value={pc.id}>{pc.pc}</option>
@@ -131,7 +131,7 @@
           <div>
             <button
               type="submit"
-              class="flex w-full cursor-pointer justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+              class="flex w-full cursor-pointer justify-center rounded-md border border-transparent bg-info px-4 py-2 text-sm font-medium text-info-content shadow-sm hover:bg-info/70 focus:ring-2 focus:ring-base-content focus:ring-offset-2 focus:outline-none"
               disabled={loading}
             >
               {loading ? m.loading() : m.btn_submit()}

@@ -66,7 +66,7 @@
         id="wanted-save"
         name="wantedSaves"
         type="text"
-        class="focus:shadow-outline block max-w-64 grow appearance-none rounded border border-gray-300 bg-white text-lg leading-tight shadow hover:border-gray-400 focus:outline-none"
+        class="focus:shadow-outline block max-w-64 grow appearance-none rounded border border-gray-300 bg-base-300 text-lg leading-tight shadow hover:border-gray-400 focus:outline-none"
         value={form?.wantedSaves ?? ''}
       />
       <input type="hidden" name="setupid" value={setup.setup_id} />
@@ -75,7 +75,7 @@
       <input type="hidden" name="pc" value={setup.pc} />
       <button
         type="submit"
-        class="flex cursor-pointer justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+        class="flex cursor-pointer justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 font-medium text-base-300 shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-base-content focus:ring-offset-2 focus:outline-none"
         disabled={loading}
       >
         {loading ? m.loading() : m.btn_submit()}
@@ -125,14 +125,14 @@
           type="text"
           pattern="[TILJSZO]+"
           bind:value={queueValue}
-          class="mino focus:shadow-outline block min-w-40 grow appearance-none rounded border border-gray-300 bg-white text-2xl leading-tight shadow hover:border-gray-400 focus:outline-none"
+          class="mino focus:shadow-outline block min-w-40 grow appearance-none rounded border border-gray-300 bg-base-300 text-2xl leading-tight shadow hover:border-gray-400 focus:outline-none"
           maxlength={11 - subbuild.length}
           minlength={1}
         />
         <div>
           <button
             type="submit"
-            class="flex w-full cursor-pointer justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+            class="flex w-full cursor-pointer justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 font-medium text-base-300 shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
             disabled={loading}
           >
             {loading ? m.loading() : m.btn_submit()}

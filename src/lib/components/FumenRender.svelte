@@ -389,7 +389,7 @@
   $: if (browser && fumen) loadFumen();
 </script>
 
-<div class="group relative h-auto w-full rounded-md border border-gray-200 bg-gray-200 p-4">
+<div class="group relative h-auto w-full rounded-md border border-base-200 bg-base-200 p-4">
   {#if loading && fumen}
     <div class="flex aspect-[5/2] items-center justify-center">
       <p>{m.loading_image()}</p>
@@ -423,8 +423,8 @@
 
     {#if clipboard}
       <div
-        class={'transparent absolute top-[10px] right-[10px] z-20 rounded-md border-gray-500 opacity-0 transition-opacity duration-300 group-hover:opacity-100 ' +
-          (showFeedback ? 'bg-gray-100' : '')}
+        class={'transparent absolute top-[10px] right-[10px] z-20 rounded-md opacity-0 transition-opacity duration-300 group-hover:opacity-100 ' +
+          (showFeedback ? 'bg-base-300' : '')}
         class:border={showFeedback}
       >
         <div class="flex justify-end">
@@ -435,14 +435,14 @@
           {/if}
 
           <button
-            class="cursor-pointer rounded-md border border-gray-500 bg-gray-100 p-2 opacity-50 hover:opacity-80"
+            class="cursor-pointer rounded-md border bg-base-300 p-2 opacity-50 hover:opacity-80"
             class:border={!showFeedback}
             on:click={copyContent}
           >
             {#if showFeedback}
-              <ClipboardCheck class="text-gray-500" />
+              <ClipboardCheck class="text-base-content" />
             {:else}
-              <Clipboard class="text-gray-500" />
+              <Clipboard class="text-base-content" />
             {/if}
           </button>
         </div>
