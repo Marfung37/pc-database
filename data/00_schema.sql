@@ -98,7 +98,8 @@ CREATE TABLE "setup_oqb_paths" (
   "oqb_path" ltree CHECK (
     oqb_path::text ~ '^[1-9][0-9a-f]{11}(\.[1-9][0-9a-f]{11})*$'
   ),
-  CONSTRAINT oqb_path_unique UNIQUE (oqb_path) DEFERRABLE INITIALLY IMMEDIATE,
+  CONSTRAINT oqb_path_unique UNIQUE (oqb_path)
+  DEFERRABLE INITIALLY IMMEDIATE,
   FOREIGN KEY (setup_id) REFERENCES setups (setup_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -144,7 +145,8 @@ CREATE TABLE "set_translations" (
 CREATE TABLE "set_paths" (
   "set_id" int NOT NULL,
   "set_path" ltree CHECK (set_path::text ~ '^\d+(\.\d+)*$'),
-  CONSTRAINT set_path_unique UNIQUE (set_path) DEFERRABLE INITIALLY IMMEDIATE,
+  CONSTRAINT set_path_unique UNIQUE (set_path)
+  DEFERRABLE INITIALLY IMMEDIATE,
   FOREIGN KEY (set_id) REFERENCES sets (set_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 

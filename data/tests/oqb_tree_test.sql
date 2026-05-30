@@ -16,7 +16,8 @@ ALTER TABLE test_setup_oqb_paths
 DROP CONSTRAINT test_setup_oqb_paths_oqb_path_key;
 
 ALTER TABLE test_setup_oqb_paths
-ADD CONSTRAINT test_oqb_path_unique UNIQUE (oqb_path) DEFERRABLE INITIALLY IMMEDIATE;
+ADD CONSTRAINT test_oqb_path_unique UNIQUE (oqb_path)
+DEFERRABLE INITIALLY IMMEDIATE;
 
 -- Function to initialize oqb setups as root nodes
 CREATE OR REPLACE FUNCTION test_initialize_tree_paths () RETURNS TRIGGER SECURITY DEFINER -- Runs with owner's privileges
@@ -243,9 +244,7 @@ $$ LANGUAGE plpgsql;
 
 -- Trigger to handle path updates
 CREATE TRIGGER trigger_test_initialize_tree_path
-AFTER INSERT
-OR
-UPDATE OF type ON test_setups FOR EACH ROW
+AFTER INSERT OR UPDATE OF type ON test_setups FOR EACH ROW
 EXECUTE FUNCTION test_initialize_tree_paths ();
 
 -- Trigger to delete nodes
@@ -255,8 +254,7 @@ EXECUTE FUNCTION test_delete_oqb_tree_node ();
 
 -- Trigger to delete nodes
 CREATE TRIGGER trigger_test_update_oqb_setup_id
-AFTER
-UPDATE OF setup_id ON test_setup_oqb_paths FOR EACH ROW
+AFTER UPDATE OF setup_id ON test_setup_oqb_paths FOR EACH ROW
 EXECUTE FUNCTION test_update_oqb_setup_id ();
 
 -- Debug function to print out the graph

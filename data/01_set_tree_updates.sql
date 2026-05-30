@@ -220,9 +220,7 @@ $$ LANGUAGE plpgsql;
 
 -- Trigger to initialize nodes
 CREATE TRIGGER trigger_initialize_set_tree_path
-AFTER INSERT
-OR
-UPDATE ON sets FOR EACH ROW
+AFTER INSERT OR UPDATE ON sets FOR EACH ROW
 EXECUTE FUNCTION private.initialize_set_tree_paths ();
 
 -- Trigger to delete nodes
@@ -232,6 +230,5 @@ EXECUTE FUNCTION private.delete_set_tree_node ();
 
 -- Trigger to delete nodes
 CREATE TRIGGER trigger_update_set_id
-AFTER
-UPDATE OF set_id ON set_paths FOR EACH ROW
+AFTER UPDATE OF set_id ON set_paths FOR EACH ROW
 EXECUTE FUNCTION private.update_set_id ();

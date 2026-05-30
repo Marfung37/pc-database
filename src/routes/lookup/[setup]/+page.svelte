@@ -56,7 +56,7 @@
 
 <div class="container mx-auto flex flex-col gap-2 p-2 pb-20 text-left">
   <h1 class="py-2 text-3xl">{m.lookup_current_setup()}</h1>
-  <SetupInfo {setup} submittedQueue={subbuild} baseUrl="" next={false} />
+  <SetupInfo {setup} submittedQueue={subbuild} />
 
   {#if setup.solve_pattern}
     <form
@@ -158,7 +158,7 @@
 
     <div class="flex flex-col gap-4">
       {#each form?.setups ?? [] as next_setup (next_setup.setup_id)}
-        <SetupInfo setup={next_setup} {submittedQueue} baseUrl="/lookup/" />
+        <SetupInfo setup={next_setup} {submittedQueue} />
       {/each}
     </div>
   {/if}

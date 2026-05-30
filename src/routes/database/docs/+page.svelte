@@ -449,8 +449,8 @@
     The basic idea on how to compress the file is to have the fumens keyed by a number then store
     the mapping at the beginning. In addition, remove columns that can be computed from the other
     columns, which the queues can be compressed into the extended pieces notation that generated it
-    at the beginning of the file. Then apply <code>xz</code> or the underlying <code>lzma</code> for
-    compression of the file. This converts the 1-3 MB file into 5-150 KB file.
+    at the beginning of the file. Then apply <code>xz</code> or the underlying <code>lzma</code> for compression
+    of the file. This converts the 1-3 MB file into 5-150 KB file.
   </p>
 
   <p>The following function is the actual implementation.</p>

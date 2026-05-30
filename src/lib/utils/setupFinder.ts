@@ -108,7 +108,7 @@ export async function setupFinder(
     else {
       // index the cover data bit mask
       const hexdigit = setup.cover_data.slice(2)[Math.floor(index / 4)];
-      const covered = parseInt(hexdigit, 16) & (0b1000 >> index % 4);
+      const covered = parseInt(hexdigit, 16) & (0b1000 >> (index % 4));
       if (covered) validSetups.push(setup);
     }
   }

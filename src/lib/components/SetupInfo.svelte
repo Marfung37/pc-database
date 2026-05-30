@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { resolve } from '$app/paths';
   import type { SetupData, SetupID } from '$lib/types';
   import { Fraction } from '$lib/saves/fraction';
   import { m } from '$lib/paraglide/messages.js';
@@ -9,7 +10,6 @@
 
   export let setup: SetupData;
   export let submittedQueue;
-  export let baseUrl;
   export let next = true;
   const oqb = setup.type === 'oqb';
 </script>
@@ -72,7 +72,7 @@
       class="flex min-w-20 items-center justify-center rounded-r-3xl transition-colors duration-500 ease-in-out {oqb
         ? 'bg-base-200 hover:bg-base-100'
         : 'hover:bg-base-100'}"
-      href={`${baseUrl}${setup.setup_id}` + (oqb ? `+${submittedQueue}` : '')}
+      href={resolve(`/lookup/${setup.setup_id + (oqb ? `+${submittedQueue}` : '')}`)}
     >
       <ChevronRight size={32} />
     </a>
