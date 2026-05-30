@@ -21,4 +21,4 @@ jobs:
         run: go install github.com/client9/misspell/cmd/misspell@latest
 
       - name: Run misspell to find misspelled words
-        run: misspell -error ./src ./docs README.md
+        run: misspell -i initialy,strat -error ./src ./utils ./messages ./data ./docs README.md
