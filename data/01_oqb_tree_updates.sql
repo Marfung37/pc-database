@@ -228,9 +228,7 @@ $$ LANGUAGE plpgsql;
 
 -- Trigger to initialize nodes
 CREATE TRIGGER trigger_initialize_oqb_tree_path
-AFTER INSERT
-OR
-UPDATE OF type ON setups FOR EACH ROW
+AFTER INSERT OR UPDATE OF type ON setups FOR EACH ROW
 EXECUTE FUNCTION private.initialize_oqb_tree_paths ();
 
 -- Trigger to delete nodes
@@ -240,6 +238,5 @@ EXECUTE FUNCTION private.delete_oqb_tree_node ();
 
 -- Trigger to delete nodes
 CREATE TRIGGER trigger_update_oqb_setup_id
-AFTER
-UPDATE OF setup_id ON setup_oqb_paths FOR EACH ROW
+AFTER UPDATE OF setup_id ON setup_oqb_paths FOR EACH ROW
 EXECUTE FUNCTION private.update_oqb_setup_id ();

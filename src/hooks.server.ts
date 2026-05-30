@@ -1,7 +1,7 @@
 import type { Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient, type CookieMethodsServer } from '@supabase/ssr';
 import { paraglideMiddleware } from '$lib/paraglide/server';
 
 const handleSupabase: Handle = async ({ event, resolve }) => {
@@ -18,7 +18,7 @@ const handleSupabase: Handle = async ({ event, resolve }) => {
           event.cookies.set(name, value, { ...options, path: '/' });
         });
       }
-    }
+    } as CookieMethodsServer // explicitly casting as ts static analysis confused
   });
 
   /**

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { resolve } from '$app/paths';
   import { m } from '$lib/paraglide/messages.js';
   import FumenRender from '$lib/components/FumenRender.svelte';
   import ComponentText from '$lib/components/ComponentText.svelte';
@@ -215,8 +216,9 @@
 
   <h2 class="py-2 text-2xl">{m.about_website_heading()}</h2>
   <p>
-    {m.about_website_section_one()}<a href="/lookup" class="text-blue-500 hover:text-blue-900"
-      >{m.about_website_lookup_link()}</a
+    {m.about_website_section_one()}<a
+      href={resolve('/lookup')}
+      class="text-blue-500 hover:text-blue-900">{m.about_website_lookup_link()}</a
     >{m.about_website_section_two()}
   </p>
 </div>

@@ -13,5 +13,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_update_variant_number BEFORE INSERT ON setup_variants FOR EACH ROW
+CREATE TRIGGER trigger_update_variant_number
+BEFORE INSERT ON setup_variants FOR EACH ROW
 EXECUTE FUNCTION private.update_variant_number ();

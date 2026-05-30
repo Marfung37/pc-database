@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { resolve } from '$app/paths';
   import type { SubmitFunction } from './$types.ts';
   import { enhance, applyAction } from '$app/forms';
   import { m } from '$lib/paraglide/messages.js';
@@ -102,7 +103,7 @@
 
       <div class="mx-auto flex flex-col items-center gap-2">
         <p class="px-2 text-2xl font-bold md:text-4xl">{m.database_description()}</p>
-        <a class="btn btn-outline btn-primary max-w-sm px-6" href="/database/docs"
+        <a class="btn btn-outline btn-primary max-w-sm px-6" href={resolve('/database/docs')}
           >{m.database_docs()}</a
         >
       </div>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import '../app.css';
+  import { resolve } from '$app/paths';
   import { m } from '$lib/paraglide/messages.js';
   import { invalidate } from '$app/navigation';
   import { onMount } from 'svelte';
@@ -32,13 +33,13 @@
 <div class="flex h-screen flex-col">
   <div class="navbar bg-base-100 container mx-auto">
     <div class="flex flex-1 items-center">
-      <a class="btn btn-ghost text-xl normal-case" href="/">{m.website_name()}</a>
+      <a class="btn btn-ghost text-xl normal-case" href={resolve('/')}>{m.website_name()}</a>
     </div>
     <div class="flex-none">
       <ul class="menu menu-horizontal hidden px-1 text-lg font-bold sm:flex sm:items-center">
-        <li class="md:mx-2"><a href="/database">{m.nav_database()}</a></li>
-        <li class="md:mx-2"><a href="/lookup">{m.nav_lookup()}</a></li>
-        <li class="md:mx-2"><a href="/about">{m.nav_about()}</a></li>
+        <li class="md:mx-2"><a href={resolve('/database')}>{m.nav_database()}</a></li>
+        <li class="md:mx-2"><a href={resolve('/lookup')}>{m.nav_lookup()}</a></li>
+        <li class="md:mx-2"><a href={resolve('/about')}>{m.nav_about()}</a></li>
         <li class="md:mx-2"><LocaleSwitcher /></li>
       </ul>
       <div class="menu menu-horizontal flex items-center px-1 text-lg font-bold sm:hidden">
@@ -65,9 +66,9 @@
             tabindex="0"
             class="menu menu-lg dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 font-bold shadow-sm"
           >
-            <li><a href="/database">{m.nav_database()}</a></li>
-            <li><a href="/lookup">{m.nav_lookup()}</a></li>
-            <li><a href="/about">{m.nav_about()}</a></li>
+            <li><a href={resolve('/database')}>{m.nav_database()}</a></li>
+            <li><a href={resolve('/lookup')}>{m.nav_lookup()}</a></li>
+            <li><a href={resolve('/about')}>{m.nav_about()}</a></li>
             <li><LocaleSwitcher /></li>
           </ul>
         </div>

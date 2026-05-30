@@ -13,7 +13,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_check_variant_solve_pattern BEFORE INSERT
-OR
-UPDATE ON setup_variants FOR EACH ROW
+CREATE TRIGGER trigger_check_variant_solve_pattern
+BEFORE INSERT OR UPDATE ON setup_variants FOR EACH ROW
 EXECUTE FUNCTION private.check_variant_solve_pattern ();
