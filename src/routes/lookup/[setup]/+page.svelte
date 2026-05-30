@@ -79,7 +79,7 @@
       <input type="hidden" name="pc" value={setup.pc} />
       <button
         type="submit"
-        class="text-base-300 focus:ring-base-content flex cursor-pointer justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 font-medium shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-offset-2 focus:outline-none"
+        class="text-base-300 focus:ring-base-content flex cursor-pointer justify-center rounded-md border border-transparent bg-info px-4 py-2 font-medium shadow-sm hover:bg-info/70 focus:ring-2 focus:ring-offset-2 focus:outline-none"
         disabled={loading}
       >
         {loading ? m.loading() : m.btn_submit()}

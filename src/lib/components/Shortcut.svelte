@@ -16,6 +16,6 @@
   </div>
 
   <div class="flex justify-center">
-    <a class="btn border border-black text-lg" {href}>{m.shortcut_go()}</a>
+    <a class="btn bg-base-300 border border-base-content text-lg" {href}>{m.shortcut_go()}</a>
   </div>
 </article>
