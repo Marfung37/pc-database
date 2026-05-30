@@ -312,7 +312,10 @@
             <canvas bind:this={queueCanvas} id="queue" class="rounded bg-[#2e3440] px-2 py-4"
             ></canvas>
           </div>
-          <button class="btn bg-base-300 border-base-content" on:click={() => (showAnswer = !showAnswer)}>Show Answer</button>
+          <button
+            class="btn bg-base-300 border-base-content"
+            on:click={() => (showAnswer = !showAnswer)}>Show Answer</button
+          >
         </div>
       </div>
 
@@ -323,9 +326,12 @@
         ></label
       >
       <textarea id="pattern" class="bg-base-300" bind:value={patternsText}></textarea>
-      <button class="btn bg-base-300 border-base-content" on:click={handleGenerate}>Generate</button>
+      <button class="btn bg-base-300 border-base-content" on:click={handleGenerate}>Generate</button
+      >
 
-      <button class="btn bg-base-300 border-base-content" on:click={() => (showSettings = true)}>Show Settings</button>
+      <button class="btn bg-base-300 border-base-content" on:click={() => (showSettings = true)}
+        >Show Settings</button
+      >
 
       <div class="upload-container">
         <input
@@ -336,7 +342,9 @@
           class="hidden"
         />
 
-        <label for="json-file" class="btn bg-base-300 border-base-content"> Upload Setup Quiz JSON </label>
+        <label for="json-file" class="btn bg-base-300 border-base-content">
+          Upload Setup Quiz JSON
+        </label>
 
         {#if errorMessage}
           <p class="error">{errorMessage}</p>
