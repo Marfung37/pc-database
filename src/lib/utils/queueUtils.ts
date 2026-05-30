@@ -17,7 +17,7 @@ export function sortQueue(queue: Queue): Queue {
 
 export function mirrorQueue(queue: Queue): Queue {
   let mirror = '';
-  for (let piece of queue) {
+  for (const piece of queue) {
     if (piece in mirrorPieces) {
       mirror += mirrorPieces[piece];
     } else {

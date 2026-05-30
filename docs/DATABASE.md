@@ -109,7 +109,7 @@ If a setup is not OQB, `oqb_path` and `oqb_depth` are `NULL`.
 
 On insert, the `oqb_path` may be set to the same value as `setup_id` to state setup is OQB. This is only necessary when `solve_pattern` to be `NULL` for the setup isn't intended to be solved from this point.
 
-The `oqb_path` is populated as a [materialized/label path](https://www.postgresql.org/docs/current/ltree.html), which makes querying the tree more efficent, from the `setup_oqb_links` table that contain the parent for each setup.
+The `oqb_path` is populated as a [materialized/label path](https://www.postgresql.org/docs/current/ltree.html), which makes querying the tree more efficient, from the `setup_oqb_links` table that contain the parent for each setup.
 
 ### Cover Pattern
 

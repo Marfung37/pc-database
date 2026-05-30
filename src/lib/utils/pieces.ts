@@ -43,7 +43,7 @@ function parseInput(inputPattern: string, bsortQueues: boolean = true): Iterable
    * Get the pieces from the normal sfinder format or inputted files
    *
    * @param inputPattern - string input for queues
-   * @param bsortQueues - whether it should sort the outputed queues
+   * @param bsortQueues - whether it should sort the outputted queues
    * @returns a generator or list of the queues
    */
 
@@ -364,9 +364,9 @@ function handleOperatorInModifier(
       return currBool || newBool;
     default:
       // Something went wrong
-      const errorPrefix =
-        'Something went wrong when parsing leading to not catching no operator before a ';
-      throw new Error(errorPrefix + modifierType);
+      throw new Error(
+        `Something went wrong when parsing leading to not catching no operator before a ${modifierType}`
+      );
   }
 }
 
@@ -562,7 +562,7 @@ function checkModifier(queue: string, modifierTree: ModifierTree): boolean {
       }
 
       // Get the info from prefixes
-      const [_, subQueue, negate] = handlePrefixesInModifier(modifierPartStr, queue);
+      const [, subQueue, negate] = handlePrefixesInModifier(modifierPartStr, queue);
 
       // Get the boolean from the submodifier
       const subModifierCheck = negate !== checkModifier(subQueue, subModifierTree);
@@ -873,7 +873,7 @@ function handleExtendedSfinderFormatPieces(
   }
 
   // Do the product of each part for one long queue
-  let queuesPart = cartesianProduct(...queueStack).map((arr) => arr.join(''));
+  const queuesPart = cartesianProduct(...queueStack).map((arr) => arr.join(''));
 
   // Add this last part to the queues
   queues.push(queuesPart);
@@ -955,7 +955,7 @@ function getPiecesLength(inputPattern: string): number {
     patternParts.push([prefix, suffix]);
 
     if (remaining.startsWith('{')) {
-      let index = remaining.indexOf('}');
+      const index = remaining.indexOf('}');
       if (index === -1) {
         throw new Error('Missing closing }');
       }
@@ -967,7 +967,7 @@ function getPiecesLength(inputPattern: string): number {
   let length = 0;
   for (const [piecesFormat, permutateFormat] of patternParts) {
     if (permutateFormat !== '') {
-      let lastChar = permutateFormat[permutateFormat.length - 1];
+      const lastChar = permutateFormat[permutateFormat.length - 1];
       if (lastChar >= '1' && lastChar <= '7') {
         length += parseInt(lastChar);
       } else {

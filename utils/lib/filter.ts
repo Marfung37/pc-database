@@ -28,7 +28,7 @@ export async function filter(
 
   const wantedSavesParser = new WantedSavesParser();
   const asts: AST[] = [];
-  for (let wantedSave of wantedSaves) {
+  for (const wantedSave of wantedSaves) {
     asts.push(wantedSavesParser.parse(wantedSave));
   }
 
@@ -42,7 +42,7 @@ export async function filter(
   const fumens: Set<Fumen> = new Set();
   const queueToFumens: Map<Queue, Fumen[]> = new Map();
 
-  for (let row of saveReader.read(true, true)) {
+  for (const row of saveReader.read(true, true)) {
     total++;
 
     if (!row.solveable) continue; // skip rows not solveable
@@ -52,7 +52,7 @@ export async function filter(
 
     let indicies: number[] = [];
     let i = 0;
-    for (let ast of asts) {
+    for (const ast of asts) {
       // get all indicies that work
       indicies = evaluateAstAll(ast, row.saves);
       if (indicies.length > 0) {
@@ -64,7 +64,7 @@ export async function filter(
     if (i == asts.length) continue; // no save worked
 
     const newFumens: Fumen[] = [];
-    for (let i of indicies) {
+    for (const i of indicies) {
       newFumens.push(...row.fumens[i]);
     }
 

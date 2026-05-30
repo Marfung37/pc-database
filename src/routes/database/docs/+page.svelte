@@ -116,7 +116,7 @@
       <tr>
         <td>Leftover Pieces</td>
         <td
-          >Inverted bitmap of existance of each piece in leftover in <code class="inline"
+          >Inverted bitmap of existence of each piece in leftover in <code class="inline"
             >TILJSZO</code
           > order</td
         >
@@ -167,7 +167,7 @@
   <p>
     The cover hash is intended to distribute setups with same values except cover pattern for use
     case such as QB setups, so entropy is calculated on sets of these kinds of setups. However,
-    there is likely bias as arbitary modifications were made to increase specifically the entropies
+    there is likely bias as arbitrary modifications were made to increase specifically the entropies
     of these sets of setups as few sets in original dataset. The entropies were normalized by
     dividing by the maximium value, which is same as number of bits in hash: 4 for fumen hash and 2
     for cover hash.

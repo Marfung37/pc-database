@@ -3,7 +3,7 @@
 # error on first error
 set -e
 
-if ! command -v misspellx &> /dev/null
+if ! command -v misspell &> /dev/null
 then
     echo "=== Skipping Spell Check ==="
     echo "Skip running spell check using 'misspell' as the tool is not installed."
@@ -11,7 +11,7 @@ then
     echo "Skipping this check now, but it may fail in CI.\n"
 else
     echo "=== Running Spell Check ==="
-    misspell -error ./src README.md
+    misspell -i initialy,strat -error ./src ./utils ./messages ./data ./docs README.md 
     echo "no spelling mistakes found\n"
 fi
 

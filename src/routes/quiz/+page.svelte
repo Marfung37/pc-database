@@ -7,6 +7,7 @@
   import { TetrisBoard } from '$lib/tetris/TetrisBoard';
   import { TetrisSetupQuiz } from '$lib/tetris/TetrisSetupQuiz';
   import { decodeWrapper } from '$lib/utils/fumenUtils';
+  import { SvelteSet } from 'svelte/reactivity';
   import { type Action, keybinds } from '$lib/tetris/Keybind';
   import type { Fumen, Piece } from '$lib/types';
   import { toast } from 'svelte-sonner';
@@ -15,7 +16,7 @@
   let boardCanvas: HTMLCanvasElement, queueCanvas: HTMLCanvasElement, holdCanvas: HTMLCanvasElement;
   let patternsText = '';
   let game: TetrisSetupQuiz;
-  let actions: Set<Action> = new Set<Action>();
+  let actions: SvelteSet<Action> = new SvelteSet<Action>();
   let showSettings: boolean = false;
 
   let errorMessage = '';
@@ -57,7 +58,7 @@
     let frame: DOMHighResTimeStamp;
     const loop = (timestamp: number) => {
       game.tick(timestamp, actions);
-      let tmpActions = new Set<Action>();
+      let tmpActions = new SvelteSet<Action>();
       if (actions.has('left')) tmpActions.add('left');
       if (actions.has('right')) tmpActions.add('right');
       if (actions.has('sd')) tmpActions.add('sd');
@@ -366,12 +367,12 @@
           <h3 class="py-2 text-lg font-bold">Keybinds</h3>
           <table>
             <tbody>
-              {#each Object.entries($keybinds || {}) as [action, key]}
+              {#each Object.entries($keybinds || {}) as [action, key] (action)}
                 <tr>
                   <td class="px-2">{action}</td>
                   <td>
                     <input
-                      class={'text-sm caret-transparent disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-700'}
+                      class="text-sm caret-transparent disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-700"
                       value={key}
                       on:keydown|preventDefault|stopPropagation={(e) => {
                         keybinds.set(action as Action, e.code);
@@ -390,7 +391,7 @@
         <div>
           {#if game !== undefined}
             <h3 class="py-2 text-lg font-bold">Tunings</h3>
-            {#each ['das', 'arr', 'sdArr'] as tuning}
+            {#each ['das', 'arr', 'sdArr'] as tuning (tuning)}
               <div class="flex justify-between">
                 <label for={tuning}>{tuning}</label>
                 <input

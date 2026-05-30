@@ -27,7 +27,7 @@ export function percent(
 
   const wantedSavesParser = new WantedSavesParser();
   const asts: AST[] = [];
-  for (let wantedSave of wantedSaves) {
+  for (const wantedSave of wantedSaves) {
     asts.push(wantedSavesParser.parse(wantedSave));
   }
 
@@ -37,7 +37,7 @@ export function percent(
 
   const saveReader = new SavesReader(build, leftover, pcNum, filepath, fileData, twoline);
 
-  for (let row of saveReader.read()) {
+  for (const row of saveReader.read()) {
     // get first index that satisfies the save
     const index = anyIndex(asts.map((ast) => evaluateAst(ast, row.saves)));
 

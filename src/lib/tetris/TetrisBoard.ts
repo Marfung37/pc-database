@@ -1,6 +1,6 @@
 import { TetrisBoardPiece } from '$lib/tetris/TetrisBoardPiece';
 import { PieceEnum } from '$lib/tetris/pieceData';
-import { encoder, Field, type Page } from 'tetris-fumen';
+import { encoder, Field } from 'tetris-fumen';
 import type { Fumen } from '$lib/types';
 
 export class TetrisBoard {
@@ -59,7 +59,7 @@ export class TetrisBoard {
   // return lines that are cleared
   place(piece: TetrisBoardPiece, clear: boolean = false): number[] {
     const lineclears: number[] = [];
-    for (let { x, y } of piece.getMinos()) {
+    for (const { x, y } of piece.getMinos()) {
       this.board[y][x] = piece.type;
       if (clear && this.lineFull(y)) {
         lineclears.push(y);
@@ -70,7 +70,7 @@ export class TetrisBoard {
   }
 
   clearPiece(piece: TetrisBoardPiece): void {
-    for (let { x, y } of piece.getMinos()) this.board[y][x] = PieceEnum.X;
+    for (const { x, y } of piece.getMinos()) this.board[y][x] = PieceEnum.X;
   }
 
   isEmpty(): boolean {

@@ -1,0 +1,19 @@
+FROM mcr.microsoft.com/playwright:v1.54.2-noble
+
+WORKDIR /app
+
+# install packages
+RUN npm install -g pnpm
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml svelte.config.js ./
+
+RUN pnpm i --frozen-lockfile
+
+# copy project
+COPY . .
+
+# build app
+RUN npm run build
+
+# run playwright
+CMD ["npx", "playwright", "test"]

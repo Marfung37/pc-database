@@ -208,7 +208,7 @@ async function checkDuplicate(
   const solveQueues: Queue[] | null = setup.solve_pattern
     ? (extendPieces(setup.solve_pattern) as Queue[])
     : null;
-  for (let row of data) {
+  for (const row of data) {
     // congruent fumen up to shifts
     if (!isCongruentFumen(setup.fumen, row.fumen, 1)) continue;
     // exactly same solve queues
@@ -274,13 +274,13 @@ async function generateSetupEntry(
   const gluedFumens = glueFumen(row.fumen, 1);
 
   let buildTmp = '';
-  for (let mino of fumenGetMinos(gluedFumens[0])) {
+  for (const mino of fumenGetMinos(gluedFumens[0])) {
     buildTmp += mino.type;
   }
   const build = sortQueue(buildTmp as Queue);
 
   // compute the setupid
-  let setup_id = await generateSetupID(row, prefixCount, build);
+  const setup_id = await generateSetupID(row, prefixCount, build);
 
   return {
     setup_id,
@@ -301,11 +301,11 @@ async function generateSetupEntry(
 function generateVariantEntry(setup: Setup, variantsFumen: Fumen): SetupVariant[] {
   const variants: SetupVariant[] = [];
 
-  for (let fumen of fumenSplit(variantsFumen)) {
+  for (const fumen of fumenSplit(variantsFumen)) {
     const gluedFumen = glueFumen(fumen, 1)[0];
 
     let buildTmp = '';
-    for (let mino of fumenGetMinos(gluedFumen)) {
+    for (const mino of fumenGetMinos(gluedFumen)) {
       buildTmp += mino.type;
     }
     const build = sortQueue(buildTmp as Queue);
@@ -486,7 +486,7 @@ async function parseSetupInput(
   const mirrorChecked: boolean[] = Array.from({ length: csvData.length }, () => false);
 
   // add mirror setups and setting parent ids
-  let originalLength = csvData.length;
+  const originalLength = csvData.length;
   let foundSomething = false;
   while (mirrorChecked.some((b) => !b)) {
     foundSomething = false;
@@ -495,7 +495,7 @@ async function parseSetupInput(
 
       const row = csvData[i];
 
-      let safeToCheck =
+      const safeToCheck =
         row.parent_id === null || row.parent_id.every((id: string) => id in mirrorChecked);
       if (!safeToCheck) continue;
       if (row.mirrorChecked !== undefined) {
@@ -545,10 +545,10 @@ async function parseSetupInput(
 
   while (idMap.some((id) => id === null)) {
     foundSomething = false;
-    for (let row of csvData) {
+    for (const row of csvData) {
       if (idMap[row.id] !== null) continue;
 
-      let safeToCheck =
+      const safeToCheck =
         row.parent_id === null || row.parent_id.every((id: number) => idMap[id] !== null);
       if (!safeToCheck) continue;
 
@@ -584,7 +584,7 @@ async function parseSetupInput(
       if (row.parent_id !== null && duplicateSetupid === null) {
         for (const id of row.parent_id) {
           if (idMap[id] === null)
-            throw Error(`Somehow parent id ${id} isn\'t mapped for setup ${row.id}`);
+            throw Error(`Somehow parent id ${id} isn't mapped for setup ${row.id}`);
 
           const link = {
             child_id: setup.setup_id,

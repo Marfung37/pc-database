@@ -18,6 +18,8 @@ export const DEFAULT = {
   das: 80
 };
 
+type MovementAction = Extract<Action, 'left' | 'right' | 'sd'>;
+
 export type Event = string;
 export type Mode = string | 'pure' | 'practice';
 
@@ -44,7 +46,7 @@ export class TetrisGame {
 
   protected mode: string | 'pure' | 'practice';
   protected held!: boolean;
-  private timers!: Record<Action, number>;
+  private timers!: Record<MovementAction, number>;
 
   protected queues: Array<string>;
   protected queueIndex: number;
@@ -142,7 +144,7 @@ export class TetrisGame {
   }
 
   checkCollide(piece: TetrisBoardPiece): boolean {
-    for (let pos of piece.getMinos()) {
+    for (const pos of piece.getMinos()) {
       if (pos.x < 0 || pos.x >= PCSIZE || pos.y < 0 || this.board.isFilled(pos.y, pos.x)) {
         return true;
       }
@@ -151,7 +153,7 @@ export class TetrisGame {
   }
 
   getGhost(): TetrisBoardPiece {
-    let ghost = this.active.copy();
+    const ghost = this.active.copy();
     do ghost.move(0, -1);
     while (!this.checkCollide(ghost));
     ghost.move(0, 1);
@@ -173,7 +175,7 @@ export class TetrisGame {
       return;
     }
 
-    let tmp = this.active.type;
+    const tmp = this.active.type;
     this.setActive(this.holdPiece);
     this.holdPiece = tmp;
   }
@@ -195,7 +197,7 @@ export class TetrisGame {
     const init = this.active.rotation;
     this.active.rotation = rotation;
 
-    for (let [dx, dy] of get_kicks(this.active.type, init, rotation)) {
+    for (const [dx, dy] of get_kicks(this.active.type, init, rotation)) {
       if (this.movePiece(dx, dy)) return;
     }
     this.active.rotation = init;
@@ -280,7 +282,7 @@ export class TetrisGame {
     this.reset();
     this.simulating = true;
     this.totalPieceCount = 0;
-    for (let piece of this.operations) {
+    for (const piece of this.operations) {
       if (this.active.type !== piece.type) {
         if (this.holdPiece !== piece.type) {
           console.error('Wrong piece from hold also');
@@ -293,12 +295,12 @@ export class TetrisGame {
   }
 
   tick(time: number, actions: Set<Action>) {
-    let buf = {
+    const buf = {
       left: false,
       right: false,
       sd: false
     };
-    for (let action of actions) {
+    for (const action of actions) {
       switch (action) {
         case 'hold':
           this.hold();
@@ -353,8 +355,11 @@ export class TetrisGame {
     }
 
     // replace with arr later
-    if (buf['left'] && buf['right'] && (ldas == -1 || rdas == -1)) {
-    } else if (ldas != -1 && (rdas == -1 || ldas > rdas)) {
+    if (
+      !(buf['left'] && buf['right'] && (ldas == -1 || rdas == -1)) &&
+      ldas != -1 &&
+      (rdas == -1 || ldas > rdas)
+    ) {
       while (ldas + this.handling.arr < time) {
         if (!this.movePiece(-1, 0)) {
           ldas = time;

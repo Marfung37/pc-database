@@ -10,7 +10,7 @@
   const parts = message.split(/(\[.*?\])/);
 </script>
 
-{#each parts as part}
+{#each parts as part, index (index)}
   {#if part.startsWith('[') && part.endsWith(']')}
     <svelte:component this={components[part.slice(1, -1)]} {...componentProps} />
   {:else}

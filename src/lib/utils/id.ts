@@ -91,7 +91,7 @@ export function hashFumen(fumen: Fumen, bits: number = 2): number {
   // determine range of non fully filled columns in setup
   let leadingSize = PCSIZE;
   let trailingSize = PCSIZE;
-  for (let line of field) {
+  for (const line of field) {
     const rowLeading = line.indexOf('_');
     if (rowLeading === -1) continue;
 
@@ -112,7 +112,7 @@ export function hashFumen(fumen: Fumen, bits: number = 2): number {
     let finishSection = false;
     let value = 0;
     let sectionCount = 0;
-    for (let mino of line) {
+    for (const mino of line) {
       if (mino !== '_') {
         count++;
         finishSection = true;

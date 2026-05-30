@@ -401,7 +401,7 @@ const kick_offset_180_2x2: number[][][] = [
 ];
 
 function gen_kick_table(offsets: number[][][], offsets_180: number[][][]) {
-  let table = new Array(4);
+  const table = new Array(4);
   for (let a = 0; a < 4; a++) {
     table[a] = new Array(4);
     // None

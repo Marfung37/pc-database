@@ -17,4 +17,4 @@ data/init_db.sql
 data/backup/*
 
 # Submodules
-utils/lib/GluingFumens
+src/lib/utils/GluingFumens

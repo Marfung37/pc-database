@@ -1,5 +1,6 @@
 <script lang="ts">
-  import type { PageProps, SubmitFunction } from './$types';
+  import type { PageProps } from './$types';
+  import type { SubmitFunction } from '@sveltejs/kit';
   import { enhance, applyAction } from '$app/forms';
   import { m } from '$lib/paraglide/messages.js';
   import SetupInfo from '$lib/components/SetupInfo.svelte';
@@ -15,10 +16,13 @@
   let queueValue: string = $state('');
   let submittedQueue: string = $state('');
 
-  $effect(() => {
+  function handleInput(event: Event) {
+    const input = event.target as HTMLInputElement;
     // Update the bound variable with the sanitized value
-    queueValue = queueValue.replace(/[^TILJSZOtiljszo]/g, '').toUpperCase();
-  });
+    queueValue = input.value.replace(/[^TILJSZOtiljszo]/g, '').toUpperCase();
+  }
+
+  $effect(() => {});
 
   const handleSaveSubmit: SubmitFunction = () => {
     loading = true;
@@ -44,7 +48,7 @@
       <div
         class="from-primary to-accent mb-3 bg-linear-to-r bg-clip-text pb-1 text-xl font-bold text-transparent md:mb-7 md:text-3xl"
       >
-        WIP: {m.nav_lookup()}
+        {m.nav_lookup()}
       </div>
     </div>
   </div>
@@ -124,6 +128,7 @@
           name="queue"
           type="text"
           pattern="[TILJSZO]+"
+          oninput={handleInput}
           bind:value={queueValue}
           class="mino focus:shadow-outline bg-base-300 block min-w-40 grow appearance-none rounded border border-gray-300 text-2xl leading-tight shadow hover:border-gray-400 focus:outline-none"
           maxlength={11 - subbuild.length}

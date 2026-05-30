@@ -28,7 +28,7 @@ type SetupQuizMode = Mode | 'setup quiz';
 function traverseTree(root: TreeNode, queue: Queue): number {
   let currentNode: TreeNode = root;
   let lastDefault = -1;
-  for (let piece of queue) {
+  for (const piece of queue) {
     if (typeof currentNode[piece] === 'number') return currentNode[piece];
     if (currentNode[piece] === undefined) return lastDefault;
 
@@ -83,7 +83,7 @@ export class TetrisSetupQuiz extends TetrisGame {
         // determine which page could be the correct setup
         const queue = this.queue.queue.map((piece) => PieceEnum[piece]).join('') as Queue;
 
-        for (let fumen of fumens) {
+        for (const fumen of fumens) {
           if (glueFumen(fumen, 1, false, queue, 1, true).length > 0) break;
           pageIndex++;
         }
@@ -185,7 +185,7 @@ export class TetrisSetupQuiz extends TetrisGame {
         O: 0
       };
 
-      for (let operation of this.operations.slice(
+      for (const operation of this.operations.slice(
         this.totalPieceCount - this.pieceCount,
         this.totalPieceCount
       )) {
@@ -214,7 +214,7 @@ export class TetrisSetupQuiz extends TetrisGame {
 
       let congruent: boolean = false;
       if (correctPieces) {
-        for (let correctFumen of this.correctSetups) {
+        for (const correctFumen of this.correctSetups) {
           congruent ||= isCongruentFumen(fumen, correctFumen, 1);
         }
       }

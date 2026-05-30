@@ -67,7 +67,7 @@
   "database_error_invalid_pc": "Invalid pc number",
   "lookup_error_invalid_build": "Invalid build",
   "lookup_error_invalid_leftover": "Invalid leftover",
-  "lookup_error_find_path_file": "Failed to check path file existance",
+  "lookup_error_find_path_file": "Failed to check path file existence",
   "lookup_error_no_path_file": "No path file for setup",
   "lookup_error_download_path_file": "Failed to download path file",
   "lookup_error_decompress_path_file": "Failed to decompress path file",
