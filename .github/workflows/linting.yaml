@@ -29,7 +29,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Paraglide Files
-        run: npx @inlang/paraglide-js compile --project ./project.inlang
+        run: pnpm svelte-kit sync
 
       - name: Linting
         run: npm run lint
