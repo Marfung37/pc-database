@@ -2,18 +2,11 @@ name: Linting
 
 on: [push, pull_request]
 
-env:
-  PUBLIC_DEFAULT_KICKTABLE: 'srs180'
-  PUBLIC_DEFAULT_HOLDTYPE: 'any'
-  PUBLIC_SUPABASE_URL: ${{ env.PUBLIC_SUPABASE_URL }}
-  PUBLIC_SUPABASE_ANON_KEY: ${{ env.PUBLIC_SUPABASE_ANON_KEY }}
-  PATH_UPLOAD_BUCKET: ${{ env.PATH_UPLOAD_BUCKET }}
-  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-
 jobs:
   build_and_test:
     name: Linting and Typechecking
     runs-on: ubuntu-latest
+    environment: actions
 
     steps:
       - uses: actions/checkout@v4
@@ -37,6 +30,20 @@ jobs:
 
       - name: Linting
         run: npm run lint
+        env:
+          PUBLIC_DEFAULT_KICKTABLE: ${{ vars.PUBLIC_DEFAULT_KICKTABLE }}
+          PUBLIC_DEFAULT_HOLDTYPE: ${{ vars.PUBLIC_DEFAULT_HOLDTYPE }}
+          PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ vars.PUBLIC_SUPABASE_ANON_KEY }}
+          PATH_UPLOAD_BUCKET: ${{ vars.PATH_UPLOAD_BUCKET }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
       - name: Typechecking
         run: npm run check
+        env:
+          PUBLIC_DEFAULT_KICKTABLE: ${{ vars.PUBLIC_DEFAULT_KICKTABLE }}
+          PUBLIC_DEFAULT_HOLDTYPE: ${{ vars.PUBLIC_DEFAULT_HOLDTYPE }}
+          PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ vars.PUBLIC_SUPABASE_ANON_KEY }}
+          PATH_UPLOAD_BUCKET: ${{ vars.PATH_UPLOAD_BUCKET }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
