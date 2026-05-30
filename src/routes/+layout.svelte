@@ -33,7 +33,9 @@
 <div class="flex h-screen flex-col">
   <div class="navbar bg-base-100 container mx-auto">
     <div class="flex flex-1 items-center">
-      <a class="btn btn-ghost hover:bg-base-content/10 text-xl normal-case" href={resolve('/')}>{m.website_name()}</a>
+      <a class="btn btn-ghost hover:bg-base-content/10 text-xl normal-case" href={resolve('/')}
+        >{m.website_name()}</a
+      >
     </div>
     <div class="flex-none">
       <ul class="menu menu-horizontal hidden px-1 text-lg font-bold sm:flex sm:items-center">
