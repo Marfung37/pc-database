@@ -89,7 +89,7 @@ export async function setupFinder(
   const validSetups = [];
   // DEBUG
   let start = performance.now();
-  for (let setup of bareSetups) {
+  for (const setup of bareSetups) {
     // check with build if the build is within the queue first len(build) + 1 pieces
     if (!subStringSet(queue.slice(0, setup.build.length + 1), setup.build)) continue;
 

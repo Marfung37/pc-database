@@ -199,7 +199,7 @@ export const actions: Actions = {
       .exists(filename);
 
     if (existError) {
-      console.error(`Failed to check path file ${filename} existance:`, existError.message);
+      console.error(`Failed to check path file ${filename} existence:`, existError.message);
       return fail(500, {
         success: false,
         ...returnData,

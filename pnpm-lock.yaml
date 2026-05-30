@@ -20,6 +20,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.55.0
         version: 2.55.0
+      '@svar-ui/svelte-grid':
+        specifier: ^2.6.2
+        version: 2.6.2
       badge-maker:
         specifier: ^5.0.2
         version: 5.0.2
@@ -44,9 +47,6 @@ importers:
       tetris-fumen:
         specifier: ^1.1.3
         version: 1.1.3
-      wx-svelte-grid:
-        specifier: ^2.2.0
-        version: 2.2.0
     devDependencies:
       '@eslint/compat':
         specifier: ^1.3.2
@@ -666,6 +666,42 @@ packages:
 
   '@supabase/supabase-js@2.55.0':
     resolution: {integrity: sha512-Y1uV4nEMjQV1x83DGn7+Z9LOisVVRlY1geSARrUHbXWgbyKLZ6/08dvc0Us1r6AJ4tcKpwpCZWG9yDQYo1JgHg==}
+
+  '@svar-ui/core-locales@2.5.1':
+    resolution: {integrity: sha512-3VYDf/zdFVPKb8Zyf6u5IjM089WGOtNswPG8KT4KZNEoWiVIHblCJp1uXfzHERTFikNSVjllaT44S7M9nOhRsw==}
+
+  '@svar-ui/grid-data-provider@2.6.2':
+    resolution: {integrity: sha512-wFmxuaWsodJvgCMyRIBm29X4ETSLxxZ1sKqw16TRt+THlulO7TB9bwCBzUAS46jhgtMahXT1Kyi3Yc4CfzLnIQ==}
+
+  '@svar-ui/grid-locales@2.6.2':
+    resolution: {integrity: sha512-K8HKXly8t0imBJC23e/ZRa+t3jLGf+S+QW4ryKoqVwhdqOi3ugndDPj5mYfNNpZEwox7aWhdLBiakP+QMs2ueA==}
+
+  '@svar-ui/grid-store@2.6.2':
+    resolution: {integrity: sha512-M7VsTCAvpyzpE46lA0YN1ZQfp09o1O6TszKnVCuB7Fu87w4oB4NtkNKdoI8TXDEYY3z7MGv6eHQ3c/TXpsq1eQ==}
+
+  '@svar-ui/lib-data-provider@1.7.2':
+    resolution: {integrity: sha512-Od93Iiy0vBwVzgJm25WdizH3d4Xlli/HAA2kqoUj1pzeZ2SWBeFzvE59iihQz8NuIlfAtQJ6MMe168458T+2lQ==}
+
+  '@svar-ui/lib-dom@0.12.1':
+    resolution: {integrity: sha512-srvDleQqR6stBBDijCgzDHMFTTffI6sv3XCpNPKmurrnE83L1MDNqezqg6j3+0dUVPd4AAEGOez2DvK6byblTQ==}
+
+  '@svar-ui/lib-state@1.9.6':
+    resolution: {integrity: sha512-twoHa8wZvzdxtES68s6Wnp4Xi1WivScNaFFK6sJ6WDgqVYOzJw0ZhVVrdwHQgieLITTKl/DYh/U3nuqtMetKYw==}
+
+  '@svar-ui/lib-svelte@0.5.2':
+    resolution: {integrity: sha512-i+hHMT3zctaGbRpyMDREt9im7YfLpvGwFYvH1ntEp/kYAwUrR/sxMJlEEKIid+Yg2EeMUstGxmYQbkWoMpPG7A==}
+
+  '@svar-ui/svelte-core@2.5.1':
+    resolution: {integrity: sha512-snXNEYhWkg+7JQmhsS3xnN6UozfTj8+cQadKl3dsUyh3328F6NZZpKbUkXNArK95+OcueJZUXyExkDWv1NqmDA==}
+
+  '@svar-ui/svelte-grid@2.6.2':
+    resolution: {integrity: sha512-iFOoYBZQnXMQUx2Ko80sjcDGBWvmKQSHb/pYesdYEewgvF5w3ZeUc0qG3FX/7EWthKADoIACzdMLVHDRY9j1ow==}
+
+  '@svar-ui/svelte-menu@2.5.1':
+    resolution: {integrity: sha512-2ysDlaWR9FrLPRjCd/KB9L9FQry6xR06krAGKPvfFeueXIo3ySuRks6lniNzbLMvKWHG6VOzrBlAAfn0FTeipw==}
+
+  '@svar-ui/svelte-toolbar@2.5.1':
+    resolution: {integrity: sha512-QAomfCKtX4tqFLLid/H/U5STqVwrFi5FKPGssDHO55rYlyk+q/v6TfkO3qJYQlFEveui7IgaoWHY9lGxIn8tXg==}
 
   '@sveltejs/acorn-typescript@1.0.5':
     resolution: {integrity: sha512-IwQk4yfwLdibDlrXVE04jTZYlLnwsTT2PIOQQGNLWfjavGifnk1JD1LcZjZaBTRcxZu2FfPfNLOE04DSu9lqtQ==}
@@ -1449,6 +1485,7 @@ packages:
 
   glob@10.4.5:
     resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   globals@14.0.0:
@@ -1589,6 +1626,7 @@ packages:
 
   jsox@1.2.123:
     resolution: {integrity: sha512-LYordXJ/0Q4G8pUE1Pvh4fkfGvZY7lRe4WIJKl0wr0rtFDVw9lcdNW95GH0DceJ6E9xh41zJNW0vreEz7xOxCw==}
+    deprecated: Discovered syntax errors in ts bindings
     hasBin: true
 
   keyv@4.5.4:
@@ -2216,6 +2254,7 @@ packages:
   tar@7.4.3:
     resolution: {integrity: sha512-5S7Va8hKfV7W5U6g3aYxXmlPoZVAwUMy9AOKyF2fVuZa2UD3qZjg578OrLRt8PcNN1PleVaL/5/yYATNL0ICUw==}
     engines: {node: '>=18'}
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   tetris-fumen@1.1.3:
     resolution: {integrity: sha512-cMGKYvkL11fH5iRk8SpIl4+5gREWk084Q8VPtkhUc0pSyCjT99+I5+SaBjlBG/WkP2U3ve30OyFfvCTUSbl2Qg==}
@@ -2328,6 +2367,7 @@ packages:
 
   uuid@10.0.0:
     resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   vfile-message@2.0.4:
@@ -2431,6 +2471,7 @@ packages:
   whatwg-encoding@3.1.1:
     resolution: {integrity: sha512-6qN4hJdMwfYBtE3YBTTHhoeuUrDBPZmbQaxWAqSALV/MeEnR5z1xd8UKud2RAkFoPkmB+hli1TZSnyi84xz1vQ==}
     engines: {node: '>=18'}
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-mimetype@4.0.0:
     resolution: {integrity: sha512-QaKxh0eNIi2mE9p2vEdzfagOKHCcj1pJ56EEHGQOVxp8r9/iszLUUV7v89x9O1p/T+NlTM5W7jW6+cz4Fq1YVg==}
@@ -2476,42 +2517,6 @@ packages:
         optional: true
       utf-8-validate:
         optional: true
-
-  wx-core-locales@2.2.0:
-    resolution: {integrity: sha512-bDquS5k6v784vOsjDnkpbrqL4Yh3CQGf3Rt3gM6mAFDUI97/Iy2r7fzQ3It7Hb3dxI9Vtym4Bwsg3X3ATAz8KA==}
-
-  wx-grid-data-provider@2.2.0:
-    resolution: {integrity: sha512-Qan2+yKS34uhtj5/TL8lNOA4hr6Xl1hCFbVXEspdbpy4ZcqnTOOrCddg8+XXksB8vn1+6ucwfbLTv80oIefhCw==}
-
-  wx-grid-locales@2.2.0:
-    resolution: {integrity: sha512-YVU9vR1uwPd4IiJ12GfQIDfIa9aqq1vR3cI43BI9A8a26nmoTluGXvIuOFoP3ZSg/yzW+JAe1QtTb7ejW5C6pg==}
-
-  wx-grid-store@2.2.0:
-    resolution: {integrity: sha512-H0AKzODSyEE4emA76MSpcMzPNIJlsgf3CUzaXPMuqQuaehqCNINSzmI7/5z7nHvbBJBsK8scSIi6cctj5Pyavg==}
-
-  wx-lib-data-provider@1.5.1:
-    resolution: {integrity: sha512-ebKYlnmXOuwgQ/812Ux06Uz7tIG3P8euUHB0/hwhL0+Buged+00uFII3bkXQ7jh5DbsTugFqPlzlKTJFQ2l0TA==}
-
-  wx-lib-dom@0.8.0:
-    resolution: {integrity: sha512-1jQFsoX8EiA/7D6IT8k8I52PlPFs850etY+k7jqww9CM5L3JEELprKuy422sUfXjnnpMoaVvUrmndWZVOldsAA==}
-
-  wx-lib-dom@0.9.1:
-    resolution: {integrity: sha512-uh0ikmNRSgF1ksCY4mu/Nuqo/zrTOKP75Ok+YeA+Jp6i5QCzD5EabWtgAGIBq54cikAbjSGOdNPa6qYLc9s0qA==}
-
-  wx-lib-state@1.9.3:
-    resolution: {integrity: sha512-iZVeprL3ljzTWToaN+QW9LJjWZoDyplLbkt8iryeDQaNirYFaL2ZUCp0Utjm0rSP6OfLSmaw+QYldYhmqDpyGw==}
-
-  wx-lib-svelte@0.5.1:
-    resolution: {integrity: sha512-zYfkAv5r0zQ3KFyCPPusC8EkMXUC3I0L1QsK+An0rNlRkY/iocPTOcaouyycg48BdmsBK8fSL0vK0B4oZuujrQ==}
-
-  wx-svelte-core@2.2.0:
-    resolution: {integrity: sha512-txE3Me/gfb899V3QJbH+Rt+e7rgvruzLCIKvZoDXT/c78TUWqMRHFZUpIkjlH9toozVvdL0UnyQ8BqVMRQqBVg==}
-
-  wx-svelte-grid@2.2.0:
-    resolution: {integrity: sha512-9OKwyANflqpBujsqm1geU5pgm72QnY7bMkReUAt6Q+2laL5Ccx/ZHxpo2ez14IkZh0jXoW4JCVjoaDiA32FYXg==}
-
-  wx-svelte-menu@2.2.0:
-    resolution: {integrity: sha512-uEuza5t+wc4YKqTUh6DS/ZdZBHmNcJrBLu18NuRZJMWGb+zHjBKeQNG7/eIA/zMP1yhn5Lnb6hoK6TEddaC/Wg==}
 
   xml-name-validator@5.0.0:
     resolution: {integrity: sha512-EvGK8EJ3DhaHfbRlETOWAS5pO9MZITeauHKJyb8wyajUfQUenkIg2MvLDTZ4T/TgIcm3HU0TFBgWWboAZ30UHg==}
@@ -2958,6 +2963,59 @@ snapshots:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+
+  '@svar-ui/core-locales@2.5.1': {}
+
+  '@svar-ui/grid-data-provider@2.6.2':
+    dependencies:
+      '@svar-ui/lib-data-provider': 1.7.2
+
+  '@svar-ui/grid-locales@2.6.2': {}
+
+  '@svar-ui/grid-store@2.6.2':
+    dependencies:
+      '@svar-ui/lib-dom': 0.12.1
+      '@svar-ui/lib-state': 1.9.6
+
+  '@svar-ui/lib-data-provider@1.7.2':
+    dependencies:
+      '@svar-ui/lib-state': 1.9.6
+
+  '@svar-ui/lib-dom@0.12.1': {}
+
+  '@svar-ui/lib-state@1.9.6': {}
+
+  '@svar-ui/lib-svelte@0.5.2':
+    dependencies:
+      '@svar-ui/lib-state': 1.9.6
+
+  '@svar-ui/svelte-core@2.5.1':
+    dependencies:
+      '@svar-ui/core-locales': 2.5.1
+      '@svar-ui/lib-dom': 0.12.1
+      '@svar-ui/lib-svelte': 0.5.2
+
+  '@svar-ui/svelte-grid@2.6.2':
+    dependencies:
+      '@svar-ui/grid-data-provider': 2.6.2
+      '@svar-ui/grid-locales': 2.6.2
+      '@svar-ui/grid-store': 2.6.2
+      '@svar-ui/lib-dom': 0.12.1
+      '@svar-ui/lib-state': 1.9.6
+      '@svar-ui/lib-svelte': 0.5.2
+      '@svar-ui/svelte-core': 2.5.1
+      '@svar-ui/svelte-menu': 2.5.1
+      '@svar-ui/svelte-toolbar': 2.5.1
+
+  '@svar-ui/svelte-menu@2.5.1':
+    dependencies:
+      '@svar-ui/lib-dom': 0.12.1
+      '@svar-ui/svelte-core': 2.5.1
+
+  '@svar-ui/svelte-toolbar@2.5.1':
+    dependencies:
+      '@svar-ui/lib-dom': 0.12.1
+      '@svar-ui/svelte-core': 2.5.1
 
   '@sveltejs/acorn-typescript@1.0.5(acorn@8.15.0)':
     dependencies:
@@ -4670,50 +4728,6 @@ snapshots:
       strip-ansi: 7.1.0
 
   ws@8.18.3: {}
-
-  wx-core-locales@2.2.0: {}
-
-  wx-grid-data-provider@2.2.0:
-    dependencies:
-      wx-lib-data-provider: 1.5.1
-
-  wx-grid-locales@2.2.0: {}
-
-  wx-grid-store@2.2.0:
-    dependencies:
-      wx-lib-state: 1.9.3
-
-  wx-lib-data-provider@1.5.1: {}
-
-  wx-lib-dom@0.8.0: {}
-
-  wx-lib-dom@0.9.1: {}
-
-  wx-lib-state@1.9.3: {}
-
-  wx-lib-svelte@0.5.1: {}
-
-  wx-svelte-core@2.2.0:
-    dependencies:
-      wx-core-locales: 2.2.0
-      wx-lib-dom: 0.8.0
-      wx-lib-svelte: 0.5.1
-
-  wx-svelte-grid@2.2.0:
-    dependencies:
-      wx-grid-data-provider: 2.2.0
-      wx-grid-locales: 2.2.0
-      wx-grid-store: 2.2.0
-      wx-lib-dom: 0.9.1
-      wx-lib-state: 1.9.3
-      wx-lib-svelte: 0.5.1
-      wx-svelte-core: 2.2.0
-      wx-svelte-menu: 2.2.0
-
-  wx-svelte-menu@2.2.0:
-    dependencies:
-      wx-lib-dom: 0.9.1
-      wx-svelte-core: 2.2.0
 
   xml-name-validator@5.0.0: {}
 

@@ -10,6 +10,24 @@ import svelteConfig from './svelte.config.js';
 const gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));
 
 export default ts.config(
+  {
+    ignores: [
+      '.DS_Store',
+      'node_modules',
+      '/build',
+      '/.svelte-kit',
+      '/package',
+      '.env',
+      '.env.*',
+      '!.env.example',
+      // Ignore files for PNPM, NPM and YARN
+      'pnpm-lock.yaml',
+      'package-lock.json',
+      'yarn.lock',
+      // ignore submodules
+      '**/GluingFumens/**'
+    ]
+  },
   includeIgnoreFile(gitignorePath),
   js.configs.recommended,
   ...ts.configs.recommended,
@@ -20,7 +38,19 @@ export default ts.config(
     languageOptions: {
       globals: { ...globals.browser, ...globals.node }
     },
-    rules: { 'no-undef': 'off' }
+    rules: {
+      'no-undef': 'off',
+      'no-useless-escape': ['error', { allowRegexCharacters: ['['] }],
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          varsIgnorePattern: '^_',
+          argsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_'
+        }
+      ]
+    }
   },
   {
     files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],

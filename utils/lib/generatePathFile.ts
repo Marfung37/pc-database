@@ -32,7 +32,7 @@ export async function generatePCPath(
   }
 
   const records: Record[] = [];
-  for (let q of queues) {
+  for (const q of queues) {
     // make sure queues are only one piece long
     if (q.length > 1) {
       return {

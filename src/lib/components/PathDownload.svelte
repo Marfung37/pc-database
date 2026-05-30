@@ -17,6 +17,7 @@
   async function download() {
     downloading = true;
 
+    // eslint-disable-next-line svelte/prefer-svelte-reactivity
     const params = new URLSearchParams();
     params.append('setupid', setupid);
     params.append('kicktable', kicktable);

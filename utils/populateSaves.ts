@@ -54,7 +54,7 @@ async function generateSaveData(row): Promise<boolean> {
     .exists(filename);
 
   if (existError) {
-    console.error(`Failed to check path file ${filename} existance:`, existError);
+    console.error(`Failed to check path file ${filename} existence:`, existError);
     return false;
   }
 
@@ -158,7 +158,7 @@ async function runUploads(batchSize: number = 1000) {
     }
     if (data.length === 0) break;
 
-    for (let row of data) {
+    for (const row of data) {
       if (!(await generateSaveData(row))) return;
     }
   }
@@ -177,7 +177,7 @@ async function runUploads(batchSize: number = 1000) {
     }
     if (data.length === 0) break;
 
-    for (let row of data) {
+    for (const row of data) {
       if (!(await getMinimalCounts(row))) return;
     }
   }

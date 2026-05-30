@@ -23,7 +23,7 @@ async function runUploads(batchSize: number = 1000) {
     for (let setup of setups) {
       if (setup.setup_id in oldSetupIdSet) continue;
 
-      let setupStack: any[] = [];
+      const setupStack: { setup_id: string; fumen: string }[] = [];
       let down = false;
       do {
         down = false;

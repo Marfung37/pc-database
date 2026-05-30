@@ -25,8 +25,8 @@
     const selectElement = event.target as HTMLSelectElement;
     const newLocale = selectElement.value;
 
-    if (newLocale && locales.includes(newLocale)) {
-      setLocale(newLocale);
+    if (newLocale && (locales as readonly string[]).includes(newLocale)) {
+      setLocale(newLocale as (typeof locales)[number]);
     }
   }
 </script>

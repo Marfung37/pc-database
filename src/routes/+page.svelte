@@ -7,11 +7,11 @@
 <div class="hero mt-12 min-h-[20vh]">
   <div class="hero-content py-12 text-center">
     <div class="max-w-xl">
-      <div
+      <h1
         class="from-primary to-accent mb-3 bg-linear-to-r bg-clip-text pb-1 text-xl font-bold text-transparent md:mb-7 md:text-3xl"
       >
         {m.website_name()}
-      </div>
+      </h1>
     </div>
   </div>
 </div>

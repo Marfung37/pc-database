@@ -21,7 +21,7 @@ class Tree {
   insertNoUpdatePath(path: Queue, value: number): void {
     let currentNode: TreeNode = this.root;
     for (let i = 0; i < path.length; i++) {
-      let step = path[i];
+      const step = path[i];
       // populate branch if not exist
       if (!currentNode[step]) {
         if (i == path.length - 1) {
@@ -42,7 +42,7 @@ class Tree {
 }
 
 function insertSetupCover(tree: Tree, coverData: string, coverPattern: string, value: number) {
-  let queues = extendPieces(coverPattern) as Queue[];
+  const queues = extendPieces(coverPattern) as Queue[];
   for (let i = 0; i < queues.length; i++) {
     if (indexBytea(coverData, i)) {
       tree.insertNoUpdatePath(queues[i], value);
@@ -56,7 +56,7 @@ async function getCoverTree(
   kicktable: Kicktable = 'srs180',
   hold_type: HoldType = 'any'
 ): Promise<string | null> {
-  let targets = ranking.map((t) => {
+  const targets = ranking.map((t) => {
     return { setup_id: t, kicktable, hold_type };
   });
 
@@ -70,7 +70,7 @@ async function getCoverTree(
   const tree = new Tree();
   const setups: Fumen[] = [];
 
-  for (let [index, row] of data.entries()) {
+  for (const [index, row] of data.entries()) {
     insertSetupCover(tree, row.cover_data, row.cover_pattern, index);
     setups.push(row.fumen);
   }
@@ -84,7 +84,7 @@ async function getCoverTree(
 
 import { readFileSync, writeFileSync } from 'fs';
 
-let lines: string[] = readFileSync('tmp/7thranking.txt', 'utf-8')
+const lines: string[] = readFileSync('tmp/7thranking.txt', 'utf-8')
   .split(/\r?\n/)
   .map((line) => line.trim())
   .filter((line) => line !== '');

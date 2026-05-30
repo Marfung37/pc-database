@@ -1,0 +1,10 @@
+services:
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    ipc: host
+    volumes:
+      - ./playwright-report:/app/playwright-report
+      # Prevents the container from overwriting your host's native node_modules
+      - /app/node_modules

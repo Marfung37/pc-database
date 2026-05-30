@@ -13,7 +13,9 @@
   // TODO: handle priority percent
   let header = `${save.name ?? save.save}: `;
   if (save.save_percent !== null && save.save_fraction !== null) {
-    header += `${save.save_percent?.toFixed(2)}% (${new Fraction(save.save_fraction.numerator!, save.save_fraction.denominator!).toString()})`;
+    const fraction = save.save_fraction as Fraction;
+    const fractionStr = new Fraction(fraction.numerator, fraction.denominator).toString();
+    header += `${save.save_percent?.toFixed(2)}% (${fractionStr})`;
   } else if (save.priority_save_fraction !== null) {
     header += (save.priority_save_fraction as Fraction[])
       .map(
@@ -42,7 +44,7 @@
     }
 
     try {
-      await navigator.clipboard.writeText(save.minimal_solves);
+      await navigator.clipboard.writeText(save.minimal_solves as Fumen);
       toast.success(m.fumen_copied());
     } catch (err) {
       toast.error(m.fumen_copy_failed());

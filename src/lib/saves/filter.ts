@@ -29,7 +29,7 @@ export function filter(
 
   const wantedSavesParser = new WantedSavesParser();
   const asts: AST[] = [];
-  for (let wantedSave of wantedSaves) {
+  for (const wantedSave of wantedSaves) {
     asts.push(wantedSavesParser.parse(wantedSave));
   }
 
@@ -41,7 +41,7 @@ export function filter(
 
   const patterns: pathRow[] = [];
 
-  for (let row of saveReader.read(true, true)) {
+  for (const row of saveReader.read(true, true)) {
     total++;
 
     if (!row.solveable) continue; // skip rows not solveable
@@ -51,7 +51,7 @@ export function filter(
 
     let indicies: number[] = [];
     let i = 0;
-    for (let ast of asts) {
+    for (const ast of asts) {
       // get all indicies that work
       indicies = evaluateAstAll(ast, row.saves);
       if (indicies.length > 0) {
@@ -63,7 +63,7 @@ export function filter(
     if (i == asts.length) continue; // no save worked
 
     const newFumens: Fumen[] = [];
-    for (let i of indicies) {
+    for (const i of indicies) {
       newFumens.push(...row.fumens[i]);
     }
 
@@ -101,7 +101,7 @@ function generateMinimalSet(patterns: pathRow[], total: number): Fumen {
 
   const { sets } = findMinimalNodes(graph.edges);
 
-  // TODO: decide if something better than pick arbitarily first set
+  // TODO: decide if something better than pick arbitrarily first set
   const set = sets[0];
 
   const solutionMap = new Map();

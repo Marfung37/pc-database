@@ -66,10 +66,13 @@ export function patternsToGraph(patterns: pathRow[]): Graph {
   for (const edge of edges) {
     if (edge.redundant) continue;
 
-    for (const siblingEdge of setFirst(edge.nodes).edges) {
+    const node = setFirst(edge.nodes);
+    if (node === undefined) throw new Error('No nodes found on an edge');
+
+    for (const siblingEdge of node.edges) {
       if (edge === siblingEdge) continue;
 
-      if (setContain(siblingEdge.nodes, edge.nodes)) {
+      if (setContain<Node>(siblingEdge.nodes, edge.nodes)) {
         siblingEdge.redundant = true;
       }
     }
@@ -93,10 +96,13 @@ export function patternsToGraph(patterns: pathRow[]): Graph {
   for (const node of cleanNodes) {
     if (node.redundant) continue;
 
-    for (const siblingNode of setFirst(node.edges).nodes) {
+    const edge = setFirst<Edge>(node.edges);
+    if (edge === undefined) throw new Error('No edge found on a node');
+
+    for (const siblingNode of edge.nodes) {
       if (siblingNode === node) continue;
 
-      if (setEqual(node.edges, siblingNode.edges)) {
+      if (setEqual<Edge>(node.edges, siblingNode.edges)) {
         siblingNode.redundant = true;
         node.alter.push(siblingNode);
       }
@@ -117,7 +123,7 @@ export function patternsToGraph(patterns: pathRow[]): Graph {
   };
 }
 
-function setEqual(a: Set<any>, b: Set<any>): boolean {
+function setEqual<T>(a: Set<T>, b: Set<T>): boolean {
   if (a.size !== b.size) {
     return false;
   }
@@ -187,7 +193,7 @@ export function findMinimalNodes(
   }
 }
 
-function setContain(a: Set<any>, b: Iterable<any>) {
+function setContain<T>(a: Set<T>, b: Iterable<T>) {
   for (const item of b) {
     if (!a.has(item)) {
       return false;
@@ -196,7 +202,7 @@ function setContain(a: Set<any>, b: Iterable<any>) {
   return true;
 }
 
-function setFirst(s: Set<any>) {
+function setFirst<T>(s: Set<T>): T | undefined {
   return s.values().next().value;
 }
 

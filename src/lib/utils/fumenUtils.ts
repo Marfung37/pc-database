@@ -10,7 +10,7 @@ function getFieldHeight(field: Field): number {
 export function is2Line(fumen: string): boolean {
   const pages = decoder.decode(fumen);
 
-  for (let page of pages) {
+  for (const page of pages) {
     if (page.field !== null) {
       const lines = page.field.str({ reduced: true, garbage: false }).split('\n');
 
@@ -26,7 +26,7 @@ export function is2Line(fumen: string): boolean {
 export function isPC(fumen: string): boolean {
   const pages = decoder.decode(fumen);
 
-  for (let page of pages) {
+  for (const page of pages) {
     if (page.field !== null) {
       const lines = page.field.str({ reduced: true, garbage: false }).split('\n');
 
@@ -43,7 +43,7 @@ export function getHeight(fumen: string): number {
   const pages = decoder.decode(fumen);
   let height = 0;
 
-  for (let page of pages) {
+  for (const page of pages) {
     if (page.field !== null) {
       const pageHeight = getFieldHeight(page.field);
       if (height < pageHeight) height = pageHeight;
@@ -57,7 +57,7 @@ export function decodeWrapper(fumen: Fumen): Page[] {
   let pages: Page[];
   try {
     pages = decoder.decode(fumen);
-  } catch (e) {
+  } catch (_err) {
     throw new Error(`Fumen ${fumen} could not be decoded`);
   }
 
@@ -68,7 +68,7 @@ export function grayFumen(fumen: Fumen): Fumen {
   // gray out all colored minos
   const pages = decodeWrapper(fumen);
 
-  for (let page of pages) {
+  for (const page of pages) {
     if (page.field !== null) {
       page.field = Field.create(
         page.field
@@ -86,14 +86,14 @@ export function fumenGetComments(fumen: Fumen): string[] {
   const pages = decodeWrapper(fumen);
   const comments = [];
 
-  for (let page of pages) comments.push(page.comment);
+  for (const page of pages) comments.push(page.comment);
 
   return comments;
 }
 
 export function fumenCombine(fumens: Iterable<Fumen>): Fumen {
   const pages: Page[] = [];
-  for (let fumen of fumens) pages.concat(decodeWrapper(fumen));
+  for (const fumen of fumens) pages.concat(decodeWrapper(fumen));
 
   return encoder.encode(pages) as Fumen;
 }
@@ -114,7 +114,7 @@ export function fumenSplit(fumen: Fumen): Fumen[] {
   const pages = decodeWrapper(fumen);
   const fumens: Fumen[] = [];
 
-  for (let page of pages) {
+  for (const page of pages) {
     fumens.push(encoder.encode([page]) as Fumen);
   }
 
@@ -125,7 +125,7 @@ export function fumenGetMinos(fumen: Fumen): Mino[] {
   const pages = decodeWrapper(fumen);
   const minos: Mino[] = [];
 
-  for (let page of pages) {
+  for (const page of pages) {
     minos.push(page.mino());
   }
 
@@ -203,13 +203,13 @@ export function isCongruentFumen(
 export function fumenMirror(fumen: Fumen): Fumen {
   const pages = decodeWrapper(fumen);
 
-  for (let page of pages) {
+  for (const page of pages) {
     const fieldStr = page.field.str({ reduced: true, separator: '\n' }).split('\n');
-    let newFieldStr: string[] = [];
-    for (let line of fieldStr) {
+    const newFieldStr: string[] = [];
+    for (const line of fieldStr) {
       const reversedLine = line.split('').reverse().join('');
       let mirrorLine = '';
-      for (let mino of reversedLine) {
+      for (const mino of reversedLine) {
         if (mino in mirrorPieces) mirrorLine += mirrorPieces[mino];
         else mirrorLine += mino;
       }
@@ -249,7 +249,7 @@ export function fumenCountPieces(fumen: Fumen): Record<string, number> {
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < PCSIZE; x++) {
-      let mino = field.at(x, y);
+      const mino = field.at(x, y);
       if (isMinoPiece(mino)) {
         frequencyCounter[mino]++;
       }
@@ -267,10 +267,10 @@ export function fumenCountPieces(fumen: Fumen): Record<string, number> {
 export function fumenClearLines(fumen: Fumen, lines: number[]): Fumen {
   const pages = decodeWrapper(fumen);
 
-  for (let page of pages) {
+  for (const page of pages) {
     const rows = page.field.str({ garbage: false }).split('\n');
     const height = rows.length;
-    for (let line of lines) {
+    for (const line of lines) {
       rows.splice(height - 1 - line, 1);
     }
     page.field = Field.create(rows.join(''));

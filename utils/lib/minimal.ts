@@ -1,4 +1,4 @@
-import { execFileSync } from 'child_process';
+import { execFileSync, SpawnSyncReturns } from 'child_process';
 import { writeFileSync, readFileSync, unlinkSync, existsSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -57,15 +57,21 @@ export function solveSetCover(
     }
 
     return { selected, status: 'Optimal' };
-  } catch (err: any) {
-    console.error('HiGHS error:', err.stderr?.toString() || err.message);
+  } catch (err) {
+    if (err && typeof err === 'object' && 'stderr' in err) {
+      const procErr = err as unknown as SpawnSyncReturns<Buffer>;
+      console.error('HiGHS error:', procErr.stderr?.toString());
+    } else {
+      console.error('HiGHS error:', (err as Error)?.message || err);
+    }
+
     return { selected: null, status: 'Error' };
   } finally {
     try {
       unlinkSync(lpFile);
-    } catch {}
-    try {
       unlinkSync(solFile);
-    } catch {}
+    } catch (err) {
+      console.error('Failed to clean up:', (err as Error)?.message || err);
+    }
   }
 }

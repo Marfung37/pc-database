@@ -33,7 +33,7 @@ async function generateMinimalData(row: StatPathData): Promise<boolean> {
     .exists(filename);
 
   if (existError) {
-    console.error(`Failed to check path file ${filename} existance:`, existError);
+    console.error(`Failed to check path file ${filename} existence:`, existError);
     return false;
   }
 
@@ -65,12 +65,12 @@ async function generateMinimalData(row: StatPathData): Promise<boolean> {
       columns: true,
       skip_empty_lines: true
     })
-    .filter((row: any) => row[COLUMN_FUMENS].length > 0);
+    .filter((row: Record<string, string>) => row[COLUMN_FUMENS].length > 0);
 
   const queues: Queue[] = [];
   const fumens: Set<Fumen> = new Set();
   const queueToFumens: Map<Queue, Fumen[]> = new Map();
-  for (let row of parsed) {
+  for (const row of parsed) {
     queues.push(row[COLUMN_QUEUE]);
     const newFumens = row[COLUMN_FUMENS].split(COLUMN_FUMENS_DELIMITER) as Fumen[];
     newFumens.forEach((item) => fumens.add(item));
@@ -131,7 +131,7 @@ async function runUploads(batchSize: number = 1000) {
     }
     if (data.length === 0) break;
 
-    for (let row of data) {
+    for (const row of data) {
       if (!(await generateMinimalData(row))) return;
     }
     from += batchSize;
@@ -151,7 +151,7 @@ async function runUploads(batchSize: number = 1000) {
     }
     if (data.length === 0) break;
 
-    for (let row of data) {
+    for (const row of data) {
       if (!(await getMinimalCounts(row))) return;
     }
   }

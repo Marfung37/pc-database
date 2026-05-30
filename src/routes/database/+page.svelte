@@ -1,10 +1,8 @@
 <script lang="ts">
   import type { SubmitFunction } from './$types.ts';
   import { enhance, applyAction } from '$app/forms';
-  import { goto } from '$app/navigation';
   import { m } from '$lib/paraglide/messages.js';
-  import { Grid } from 'wx-svelte-grid';
-  import { Willow } from 'wx-svelte-grid';
+  import { Grid, Willow, type IColumnConfig } from '@svar-ui/svelte-grid';
 
   export let form;
 
@@ -30,7 +28,7 @@
     };
   };
 
-  const columns = [
+  const columns: IColumnConfig[] = [
     {
       id: 'setup_id',
       header: ['Setup ID', { filter: 'text' }],

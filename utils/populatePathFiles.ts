@@ -25,7 +25,7 @@ const outputPath = path.join(currentFileDir, 'tmp');
 const execPromise = promisify(exec);
 
 // Regular expression to capture the percentage and the fraction
-const solveRegex = /^  -> success = (\d+\.\d+)% \((\d+)\/(\d+)\)/m;
+const solveRegex = /^ {2}-> success = (\d+\.\d+)% \((\d+)\/(\d+)\)/m;
 
 const is180: Record<string, boolean> = {
   srs: false,
@@ -158,9 +158,9 @@ async function runUploads(batchSize: number = 1000) {
       return;
     }
 
-    for (let setupStat of setupStats) {
+    for (const setupStat of setupStats) {
       const { statistics: stats, ...setup } = setupStat;
-      for (let stat of stats) {
+      for (const stat of stats) {
         working = (await uploadPath(setup, stat)) || working;
       }
     }

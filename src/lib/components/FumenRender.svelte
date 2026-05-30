@@ -4,7 +4,7 @@
   import { PCSIZE, BOARDHEIGHT } from '$lib/constants';
   import { getHeight } from '$lib/utils/fumenUtils';
   import type { Fumen } from '$lib/types';
-  import { type Page, decoder } from 'tetris-fumen';
+  import { type Page, type Mino, decoder } from 'tetris-fumen';
   import { browser } from '$app/environment';
 
   export let fumen: string;
@@ -299,9 +299,10 @@
     var newBoard = fieldString.map((rowColors: string) => rowColors.split('').map(cellColorToCell));
 
     //add glued minos to board
-    const operation = fumenPage.operation;
+    const operation = fumenPage.operation as Mino;
+
     if (operation != undefined) {
-      var type = operation.type;
+      let type = operation.type;
       for (let position of operation.positions()) {
         newBoard[19 - position.y][position.x] = { t: 2, c: type }; //operation is bottom-up
       }
@@ -378,8 +379,8 @@
   async function loadFumen() {
     try {
       await renderImages(fumen as Fumen);
-    } catch (e: any) {
-      error = e.message;
+    } catch (e: unknown) {
+      error = (e as Error).message;
       console.error('Error fetching or processing image:', e);
     } finally {
       loading = false;
