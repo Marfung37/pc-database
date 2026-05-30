@@ -296,7 +296,7 @@
     <div class="relative z-1 flex flex-col items-center">
       <div
         bind:this={gameCtn}
-        class="game-container flex items-start"
+        class="game-container flex items-start p-4"
         on:keydown={handleKeyDown}
         on:keyup={handleKeyUp}
         tabindex="0"
@@ -312,7 +312,7 @@
             <canvas bind:this={queueCanvas} id="queue" class="rounded bg-[#2e3440] px-2 py-4"
             ></canvas>
           </div>
-          <button class="btn" on:click={() => (showAnswer = !showAnswer)}>Show Answer</button>
+          <button class="btn bg-base-300 border-base-content" on:click={() => (showAnswer = !showAnswer)}>Show Answer</button>
         </div>
       </div>
 
@@ -323,9 +323,9 @@
         ></label
       >
       <textarea id="pattern" class="bg-base-300" bind:value={patternsText}></textarea>
-      <button class="btn" on:click={handleGenerate}>Generate</button>
+      <button class="btn bg-base-300 border-base-content" on:click={handleGenerate}>Generate</button>
 
-      <button class="btn" on:click={() => (showSettings = true)}>Show Settings</button>
+      <button class="btn bg-base-300 border-base-content" on:click={() => (showSettings = true)}>Show Settings</button>
 
       <div class="upload-container">
         <input
@@ -333,10 +333,10 @@
           id="json-file"
           accept=".json"
           on:change={handleFileChange}
-          style="display: none;"
+          class="hidden"
         />
 
-        <label for="json-file" class="btn"> Upload Setup Quiz JSON </label>
+        <label for="json-file" class="btn bg-base-300 border-base-content"> Upload Setup Quiz JSON </label>
 
         {#if errorMessage}
           <p class="error">{errorMessage}</p>
