@@ -5,7 +5,7 @@
   import { get_colour, PieceEnum, Rotation } from '$lib/tetris/pieceData';
   import { TetrisQueue } from '$lib/tetris/TetrisQueue';
   import { TetrisBoard } from '$lib/tetris/TetrisBoard';
-  import { TetrisSetupQuiz } from '$lib/tetris/TetrisSetupQuiz';
+  import { TetrisSetupQuiz, type SetupQuizMode } from '$lib/tetris/TetrisSetupQuiz';
   import { decodeWrapper } from '$lib/utils/fumenUtils';
   import { SvelteSet } from 'svelte/reactivity';
   import { type Action, keybinds } from '$lib/tetris/Keybind';
@@ -18,10 +18,17 @@
   let game: TetrisSetupQuiz;
   let actions: SvelteSet<Action> = new SvelteSet<Action>();
   let showSettings: boolean = false;
+  let currMode: SetupQuizMode = 'practice';
 
   let errorMessage = '';
 
   let showAnswer = false;
+
+  const modesTips: { mode: SetupQuizMode; tooltip: string }[] = [
+    { mode: 'pure', tooltip: 'Pure is normal Tetris without undos' },
+    { mode: 'practice', tooltip: 'Practice enables undos' },
+    { mode: 'setup quiz', tooltip: 'Setup quiz requires building the correct setup for the queue' }
+  ];
 
   const CELL_SIZE = 24;
 
@@ -47,6 +54,7 @@
 
     try {
       game = new TetrisSetupQuiz(patternsText);
+      game.mode = currMode;
     } catch (e) {
       toast.error('Invalid pattern for queue: ' + (e as Error).message);
       console.error(e);
@@ -115,6 +123,9 @@
       }
     }
     game.pendingEvents = [];
+
+    // set mode back to game
+    game.mode = currMode;
   }
 
   function drawGame(context: CanvasRenderingContext2D, game: TetrisSetupQuiz) {
@@ -276,6 +287,7 @@
         const jsonString = e.target?.result as string;
         const parsedData = JSON.parse(jsonString);
 
+        currMode = 'setup quiz';
         game.getSetupData(parsedData.setups, parsedData.tree, parsedData.pattern);
         patternsText = parsedData.pattern;
       } catch (err) {
@@ -291,8 +303,10 @@
 <svelte:window />
 
 <div>
-  <div class="grid grid-cols-1 grid-cols-[1fr_auto_1fr]">
-    <div></div>
+  <div
+    class="container mx-auto grid grid-rows-1 grid-rows[auto_1fr] xl:grid-cols-1 xl:grid-cols-[1fr_auto_1fr]"
+  >
+    <div class="hidden lg:block"></div>
     <div class="relative z-1 flex flex-col items-center">
       <div
         bind:this={gameCtn}
@@ -352,7 +366,22 @@
       </div>
     </div>
 
-    <div></div>
+    <div class="flex flex-col gap-2 items-center">
+      <h3 class="text-xl">Modes</h3>
+      <div class="flex gap-4">
+        {#each modesTips as modetip (modetip.mode)}
+          <div class="tooltip">
+            <span class="tooltip-content">
+              {modetip.tooltip}
+            </span>
+            <label>
+              <input type="radio" class="radio" value={modetip.mode} bind:group={currMode} />
+              {modetip.mode}
+            </label>
+          </div>
+        {/each}
+      </div>
+    </div>
   </div>
 
   {#if showSettings}

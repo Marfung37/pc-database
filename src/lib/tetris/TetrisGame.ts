@@ -22,6 +22,7 @@ type MovementAction = Extract<Action, 'left' | 'right' | 'sd'>;
 
 export type Event = string;
 export type Mode = string | 'pure' | 'practice';
+export const MODES: Mode[] = ['pure', 'practice'];
 
 export class TetrisGame {
   board: TetrisBoard;
@@ -79,13 +80,7 @@ export class TetrisGame {
     this.setPattern(pattern);
   }
 
-  setPractice(pattern: string): void {
-    if (pattern === '') this.mode = 'pure';
-    else this.mode = 'practice';
-    this.setPattern(pattern);
-  }
-
-  protected setPattern(pattern: string): void {
+  setPattern(pattern: string): void {
     if (pattern.length > 0) {
       if (getPiecesLength(pattern) > PCSIZE + 1) {
         throw new Error(`Pattern produced a queue longer than ${PCSIZE + 1}`);
@@ -225,10 +220,6 @@ export class TetrisGame {
       this.active.x = piece.x;
       this.active.y = piece.y;
       this.active.rotation = piece.rotation;
-      if (this.active.type !== piece.type) {
-        // DEBUG
-        console.error('Incorrect piece passed to be locked');
-      }
     } else {
       while (this.movePiece(0, -1));
       this.held = false;
@@ -267,16 +258,6 @@ export class TetrisGame {
 
     // remove last piece placed
     this.operations.pop();
-
-    const queueLength = this.queues[0].length;
-    if ((this.operations.length + 1) % queueLength == 0) {
-      this.queue.reset();
-      this.holdPiece = PieceEnum.X;
-    } else if (this.holdPiece == PieceEnum.X) {
-      this.holdPiece = this.active.type;
-    } else {
-      this.queue.enqueue(this.active.type);
-    }
 
     // run all the operations and simulate with the current board state should be now
     this.reset();

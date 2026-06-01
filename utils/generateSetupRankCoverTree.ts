@@ -87,7 +87,7 @@ import { readFileSync, writeFileSync } from 'fs';
 const lines: string[] = readFileSync('tmp/7thranking.txt', 'utf-8')
   .split(/\r?\n/)
   .map((line) => line.trim())
-  .filter((line) => line !== '');
+  .filter((line) => line !== '' && !line.startsWith('//'));
 const coverPattern = lines[0];
 const setups: SetupID[] = lines.slice(1).map((line) => line as SetupID);
 
