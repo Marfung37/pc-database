@@ -47,6 +47,7 @@ export class TetrisSetupQuiz extends TetrisGame {
   private correctBuild: Record<string, number>;
   private correctSetups: Fumen[] | null = null;
   runningCorrectSetup: Fumen | null = null;
+  allowSolving: boolean = false;
   private correctSetupPieceLength: number = -1;
 
   constructor(
@@ -141,27 +142,7 @@ export class TetrisSetupQuiz extends TetrisGame {
     this.pieceCount++;
     this.totalPieceCount++;
 
-    if (this.queue.length == 0) {
-      if (this.holdPiece != PieceEnum.X) {
-        this.setActive(this.holdPiece);
-        this.holdPiece = PieceEnum.X;
-      } else if (this.mode === 'practice') {
-        // no more pieces
-        this.reset(this.softReset);
-      }
-    } else {
-      this.setActive(this.queue.poll());
-    }
-
-    // practice pc
-    if (this.mode === 'practice' && this.board.isEmpty()) {
-      this.reset(this.softReset);
-    }
-
-    // topped out
-    if (this.checkCollide(this.active)) {
-      this.reset(this.softReset);
-    }
+    let resetted = false;
 
     if (
       this.mode === 'setup quiz' &&
@@ -208,20 +189,12 @@ export class TetrisSetupQuiz extends TetrisGame {
       pages[0].field = Field.create();
       const fumen = unglueFumen(encoder.encode(pages)) as Fumen;
 
-      // DEBUG
-      console.log(fumen, this.correctSetups);
-
       let congruent: boolean = false;
       if (correctPieces) {
         for (const correctFumen of this.correctSetups) {
-          // DEBUG
-          console.log(fumen, correctFumen, isCongruentFumen(fumen, correctFumen, 1));
           congruent ||= isCongruentFumen(fumen, correctFumen, 1);
         }
       }
-
-      // DEBUG
-      console.log(correctPieces, congruent);
 
       if (correctPieces && congruent) {
         soft = false;
@@ -231,7 +204,36 @@ export class TetrisSetupQuiz extends TetrisGame {
         if (!this.simulating) this.pendingEvents.push('wrong');
       }
 
-      this.reset(soft);
+      if (!this.allowSolving || soft) {
+        this.reset(soft);
+        resetted = true;
+      }
+    }
+
+    // practice pc
+    if (
+      (this.mode === 'practice' || (this.allowSolving && this.mode == 'setup quiz')) &&
+      this.board.isEmpty()
+    ) {
+      this.reset(this.softReset);
+      resetted = true;
+    }
+
+    if (this.queue.length == 0) {
+      if (this.holdPiece != PieceEnum.X) {
+        this.setActive(this.holdPiece);
+        this.holdPiece = PieceEnum.X;
+      } else {
+        // no more pieces
+        this.reset(this.softReset);
+      }
+    } else if (!resetted) {
+      this.setActive(this.queue.poll());
+    }
+
+    // topped out
+    if (this.checkCollide(this.active)) {
+      this.reset(this.softReset);
     }
   }
 }

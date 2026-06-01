@@ -1,5 +1,7 @@
 <script lang="ts">
+  import type { SubmitFunction } from './$types';
   import { onMount } from 'svelte';
+  import { enhance } from '$app/forms';
   import { PCSIZE, BOARDHEIGHT } from '$lib/constants';
   import { TetrisBoardPiece } from '$lib/tetris/TetrisBoardPiece';
   import { get_colour, PieceEnum, Rotation } from '$lib/tetris/pieceData';
@@ -12,6 +14,8 @@
   import type { Fumen, Piece } from '$lib/types';
   import { toast } from 'svelte-sonner';
 
+  export let data;
+
   let gameCtn: HTMLDivElement;
   let boardCanvas: HTMLCanvasElement, queueCanvas: HTMLCanvasElement, holdCanvas: HTMLCanvasElement;
   let patternsText = '';
@@ -22,6 +26,8 @@
 
   let errorMessage = '';
 
+  let quizAllowSolve = false;
+
   let showAnswer = false;
 
   const modesTips: { mode: SetupQuizMode; tooltip: string }[] = [
@@ -29,6 +35,8 @@
     { mode: 'practice', tooltip: 'Practice enables undos' },
     { mode: 'setup quiz', tooltip: 'Setup quiz requires building the correct setup for the queue' }
   ];
+
+  const presets = data.presets;
 
   const CELL_SIZE = 24;
 
@@ -126,6 +134,7 @@
 
     // set mode back to game
     game.mode = currMode;
+    game.allowSolving = quizAllowSolve;
   }
 
   function drawGame(context: CanvasRenderingContext2D, game: TetrisSetupQuiz) {
@@ -298,6 +307,21 @@
 
     reader.readAsText(file);
   }
+
+  const handlePreset: SubmitFunction = () => {
+    return async ({ result, update }) => {
+      if (result.type !== 'success') {
+        update();
+        return;
+      }
+
+      const parsedData = result.data?.coverSet;
+
+      currMode = 'setup quiz';
+      game.getSetupData(parsedData.setups, parsedData.tree, parsedData.pattern);
+      patternsText = parsedData.pattern;
+    };
+  };
 </script>
 
 <svelte:window />
@@ -381,6 +405,21 @@
           </div>
         {/each}
       </div>
+
+      <h3 class="text-xl">Presets</h3>
+      <form method="POST" action="?/quizPreset" use:enhance={handlePreset}>
+        <select name="preset">
+          {#each presets as preset (preset.name)}
+            <option value={preset.filename}>{preset.name}</option>
+          {/each}
+        </select>
+        <button type="submit" class="btn">Submit</button>
+      </form>
+
+      <label>
+        <input class="checkbox" type="checkbox" bind:checked={quizAllowSolve} />
+        Allow Solving in Quiz
+      </label>
     </div>
   </div>
 
