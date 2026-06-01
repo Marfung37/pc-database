@@ -24,6 +24,8 @@ import type {
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+console.log(glueFumen);
+
 const currentFilePath = fileURLToPath(import.meta.url);
 
 // Get the directory name from the file path
@@ -628,4 +630,4 @@ async function parseSetupInput(
   console.log(setups, setupLinks, stats, setupVariants);
 }
 
-await parseSetupInput('utils/test.csv');
+await parseSetupInput('utils/tmp/test.csv');

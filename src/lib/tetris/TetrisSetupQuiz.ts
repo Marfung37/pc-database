@@ -22,8 +22,8 @@ type TreeNode = {
   default?: number;
 };
 
-type SetupQuizEvent = Event | 'correct' | 'wrong' | 'missing setup';
-type SetupQuizMode = Mode | 'setup quiz';
+export type SetupQuizEvent = Event | 'correct' | 'wrong' | 'missing setup';
+export type SetupQuizMode = Mode | 'setup quiz';
 
 function traverseTree(root: TreeNode, queue: Queue): number {
   let currentNode: TreeNode = root;
@@ -60,10 +60,6 @@ export class TetrisSetupQuiz extends TetrisGame {
   }
 
   setPractice(pattern: string) {
-    if (this.mode !== 'setup quiz') {
-      if (pattern === '') this.mode = 'pure';
-      else this.mode = 'practice';
-    }
     this.setPattern(pattern);
   }
 
@@ -212,12 +208,20 @@ export class TetrisSetupQuiz extends TetrisGame {
       pages[0].field = Field.create();
       const fumen = unglueFumen(encoder.encode(pages)) as Fumen;
 
+      // DEBUG
+      console.log(fumen, this.correctSetups);
+
       let congruent: boolean = false;
       if (correctPieces) {
         for (const correctFumen of this.correctSetups) {
+          // DEBUG
+          console.log(fumen, correctFumen, isCongruentFumen(fumen, correctFumen, 1));
           congruent ||= isCongruentFumen(fumen, correctFumen, 1);
         }
       }
+
+      // DEBUG
+      console.log(correctPieces, congruent);
 
       if (correctPieces && congruent) {
         soft = false;
