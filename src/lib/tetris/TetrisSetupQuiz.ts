@@ -8,9 +8,8 @@ import {
   fumenCountPieces,
   fumenClearLines
 } from '$lib/utils/fumenUtils';
-import type { Operation } from '$lib/utils/GluingFumens/src/lib/defines';
-import glueFumen from '$lib/utils/GluingFumens/src/lib/glueFumen';
-import unglueFumen from '$lib/utils/GluingFumens/src/lib/unglueFumen';
+import type { Operation } from 'glue-fumen';
+import { glueFumen, unglueFumen } from 'glue-fumen';
 import { PieceEnum, Rotation } from '$lib/tetris/pieceData';
 import type { Fumen, Queue } from '$lib/types';
 import { encoder, Field } from 'tetris-fumen';
@@ -81,7 +80,7 @@ export class TetrisSetupQuiz extends TetrisGame {
         const queue = this.queue.queue.map((piece) => PieceEnum[piece]).join('') as Queue;
 
         for (const fumen of fumens) {
-          if (glueFumen(fumen, 1, false, queue, 1, true).length > 0) break;
+          if (glueFumen(fumen, { order: queue, hold: 1, srs180: true }).length > 0) break;
           pageIndex++;
         }
       }
