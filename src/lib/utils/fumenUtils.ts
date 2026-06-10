@@ -1,7 +1,6 @@
 import { decoder, encoder, Field, type Page, type Mino } from 'tetris-fumen';
 import type { Fumen } from '$lib/types';
 import { PCSIZE, mirrorPieces } from '$lib/constants';
-import { isMinoPiece } from '$lib/utils/GluingFumens/src/lib/defines';
 
 function getFieldHeight(field: Field): number {
   return field.str({ reduced: true, garbage: false }).split('\n').length;
@@ -250,7 +249,7 @@ export function fumenCountPieces(fumen: Fumen): Record<string, number> {
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < PCSIZE; x++) {
       const mino = field.at(x, y);
-      if (isMinoPiece(mino)) {
+      if (mino != '_' && mino != 'X') {
         frequencyCounter[mino]++;
       }
     }
