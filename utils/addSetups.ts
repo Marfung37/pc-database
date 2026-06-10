@@ -4,7 +4,7 @@ import { extendPieces } from './lib/pieces';
 import { fumenGetMinos, isCongruentFumen, fumenMirror, fumenSplit } from './lib/fumenUtils';
 import { mirrorQueue, sortQueue } from './lib/queueUtils';
 import { piecesMirror } from './lib/piecesUtils';
-import glueFumen from './lib/utils/GluingFumens/src/lib/glueFumen';
+import { glueFumen } from 'glue-fumen';
 import { generateSetupIDPrefix, getPrefix } from './lib/id';
 import { PIECEVAL } from './lib/constants';
 import { exec } from 'child_process';
@@ -273,7 +273,7 @@ async function generateSetupEntry(
   hold: number
 ): Setup {
   // compute the build
-  const gluedFumens = glueFumen(row.fumen, 1);
+  const gluedFumens = glueFumen(row.fumen);
 
   let buildTmp = '';
   for (const mino of fumenGetMinos(gluedFumens[0])) {
@@ -304,7 +304,7 @@ function generateVariantEntry(setup: Setup, variantsFumen: Fumen): SetupVariant[
   const variants: SetupVariant[] = [];
 
   for (const fumen of fumenSplit(variantsFumen)) {
-    const gluedFumen = glueFumen(fumen, 1)[0];
+    const gluedFumen = glueFumen(fumen)[0];
 
     let buildTmp = '';
     for (const mino of fumenGetMinos(gluedFumen)) {
@@ -355,7 +355,7 @@ async function generateStatEntry(
   await fsPromises.writeFile(patternPath, extendPieces(setup.cover_pattern).join('\n'));
 
   const fumens = [setup.fumen, ...variants.map((v: SetupVariant) => v.fumen)];
-  const glueFumens = glueFumen(fumens).join(' ');
+  const glueFumens = fumens.map((fumen) => glueFumen(fumen)[0]).join(' ');
 
   const coverCmd = cmdBase('cover') + ` -t ${glueFumens} -o ${output}`;
 
