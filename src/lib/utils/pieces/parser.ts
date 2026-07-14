@@ -1,5 +1,5 @@
-import {
-  type AST,
+import type {
+  AST,
   FilterBlock,
   GeneratorLiteral,
   BinaryOp,
@@ -7,9 +7,9 @@ import {
   RangeLookup,
   CountLiteral,
   BeforeLiteral,
-  RegexLiteral,
-  tetrisCompare
+  RegexLiteral
 } from './defines';
+import { ASTNode, tetrisCompare } from './defines';
 
 type SpecTuple = [name: string, pattern: string];
 
@@ -75,7 +75,7 @@ class Token {
   constructor(
     public kind: TokenKind,
     public value: string
-  ) { }
+  ) {}
 
   toString() {
     return `(${this.kind} ${this.value})`;
@@ -287,7 +287,11 @@ export class Parser {
         }
       }
 
-      return new GeneratorLiteral(pool, permute);
+      return {
+        type: ASTNode.GeneratorLiteral,
+        pool,
+        permute
+      };
     } else {
       throw new Error(
         `Expected GEN_PIECES token for generator but got ${this.peek().kind} instead`
@@ -296,7 +300,10 @@ export class Parser {
   }
 
   private parseFilter(): FilterBlock {
-    return new FilterBlock(this.parseOr());
+    return {
+      type: ASTNode.FilterBlock,
+      expr: this.parseOr()
+    };
   }
 
   private parseOr(): AST {
@@ -304,7 +311,12 @@ export class Parser {
     while (this.peek().kind === 'OR') {
       this.consume('OR');
       const right = this.parseAnd();
-      left = new BinaryOp(left, 'OR', right);
+      left = {
+        type: ASTNode.BinaryOp,
+        left,
+        op: 'OR',
+        right
+      };
     }
     return left;
   }
@@ -314,7 +326,12 @@ export class Parser {
     while (this.peek().kind === 'AND') {
       this.consume('AND');
       const right = this.parseUnary();
-      left = new BinaryOp(left, 'AND', right);
+      left = {
+        type: ASTNode.BinaryOp,
+        left,
+        op: 'AND',
+        right
+      };
     }
     return left;
   }
@@ -323,7 +340,11 @@ export class Parser {
     if (this.peek().kind === 'NOT') {
       this.consume('NOT');
       const expr = this.parseUnary();
-      return new UnaryOp('NOT', expr);
+      return {
+        type: ASTNode.UnaryOp,
+        op: 'NOT',
+        expr
+      };
     }
 
     // range operator
@@ -336,7 +357,12 @@ export class Parser {
         endpoints.unshift(0);
       }
 
-      return new RangeLookup(endpoints[0], endpoints[1], expr);
+      return {
+        type: ASTNode.RangeLookup,
+        start: endpoints[0],
+        end: endpoints[1],
+        expr
+      };
     }
 
     return this.parseAtom();
@@ -353,7 +379,10 @@ export class Parser {
         return expr;
       case 'REGEX':
         const regexExpr = this.consume('REGEX');
-        return new RegexLiteral(new RegExp(regexExpr.value));
+        return {
+          type: ASTNode.RegexLiteral,
+          value: new RegExp(regexExpr.value)
+        };
       case 'PIECES':
         const pieces = this.consume('PIECES').value;
         const op = this.consume('COMP_OP').value;
@@ -365,14 +394,20 @@ export class Parser {
               throw new Error("Comparison of pieces expression that isn't before operator of <");
             }
             const afterPieces = this.consume('PIECES').value;
-            return new BeforeLiteral(
-              this.parseFilterPieces(pieces, true),
-              this.parseFilterPieces(afterPieces, true)
-            );
+            return {
+              type: ASTNode.BeforeLiteral,
+              beforePieces: this.parseFilterPieces(pieces, true),
+              afterPieces: this.parseFilterPieces(afterPieces, true)
+            };
 
           case 'NUMBER':
             const count = Number(this.consume('NUMBER').value);
-            return new CountLiteral(this.parseFilterPieces(pieces), op, count);
+            return {
+              type: ASTNode.CountLiteral,
+              pieces: this.parseFilterPieces(pieces),
+              op,
+              count
+            };
           default:
             throw new Error(`Unexpected token after PIECES COMP_OP: ${token}`);
         }

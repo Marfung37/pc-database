@@ -1,110 +1,243 @@
 import { describe, test, expect } from 'vitest';
 import { Parser } from './parser';
-import {
-  GeneratorLiteral,
-  FilterBlock,
-  CountLiteral,
-  BeforeLiteral,
-  RegexLiteral,
-  RangeLookup,
-  BinaryOp,
-  UnaryOp
-} from './defines';
-
+import { ASTNode } from './defines';
 const parser = new Parser();
 
 describe('pieces parser', () => {
   test('parsing generator expressions', () => {
-    expect(parser.parse('T')).toEqual([new GeneratorLiteral(['T'], 1)]);
-    expect(parser.parse('L')).toEqual([new GeneratorLiteral(['L'], 1)]);
+    expect(parser.parse('T')).toEqual([
+      { type: ASTNode.GeneratorLiteral, pool: ['T'], permute: 1 }
+    ]);
+    expect(parser.parse('L')).toEqual([
+      { type: ASTNode.GeneratorLiteral, pool: ['L'], permute: 1 }
+    ]);
     expect(parser.parse('*')).toEqual([
-      new GeneratorLiteral(['T', 'I', 'L', 'J', 'S', 'Z', 'O'], 1)
+      { type: ASTNode.GeneratorLiteral, pool: ['T', 'I', 'L', 'J', 'S', 'Z', 'O'], permute: 1 }
     ]);
     expect(parser.parse('[TILJSZO]')).toEqual([
-      new GeneratorLiteral(['T', 'I', 'L', 'J', 'S', 'Z', 'O'], 1)
+      { type: ASTNode.GeneratorLiteral, pool: ['T', 'I', 'L', 'J', 'S', 'Z', 'O'], permute: 1 }
     ]);
-    expect(parser.parse('[TI]')).toEqual([new GeneratorLiteral(['T', 'I'], 1)]);
-    expect(parser.parse('[SIJ]')).toEqual([new GeneratorLiteral(['I', 'J', 'S'], 1)]);
+    expect(parser.parse('[TI]')).toEqual([
+      { type: ASTNode.GeneratorLiteral, pool: ['T', 'I'], permute: 1 }
+    ]);
+    expect(parser.parse('[SIJ]')).toEqual([
+      { type: ASTNode.GeneratorLiteral, pool: ['I', 'J', 'S'], permute: 1 }
+    ]);
     expect(parser.parse('*p2')).toEqual([
-      new GeneratorLiteral(['T', 'I', 'L', 'J', 'S', 'Z', 'O'], 2)
+      { type: ASTNode.GeneratorLiteral, pool: ['T', 'I', 'L', 'J', 'S', 'Z', 'O'], permute: 2 }
     ]);
     expect(parser.parse('*p6')).toEqual([
-      new GeneratorLiteral(['T', 'I', 'L', 'J', 'S', 'Z', 'O'], 6)
+      { type: ASTNode.GeneratorLiteral, pool: ['T', 'I', 'L', 'J', 'S', 'Z', 'O'], permute: 6 }
     ]);
     expect(parser.parse('*!')).toEqual([
-      new GeneratorLiteral(['T', 'I', 'L', 'J', 'S', 'Z', 'O'], 7)
+      { type: ASTNode.GeneratorLiteral, pool: ['T', 'I', 'L', 'J', 'S', 'Z', 'O'], permute: 7 }
     ]);
-    expect(parser.parse('[TI]p2')).toEqual([new GeneratorLiteral(['T', 'I'], 2)]);
-    expect(parser.parse('[TI]!')).toEqual([new GeneratorLiteral(['T', 'I'], 2)]);
-    expect(parser.parse('[SIJ]p2')).toEqual([new GeneratorLiteral(['I', 'J', 'S'], 2)]);
-    expect(parser.parse('[SIJ]!')).toEqual([new GeneratorLiteral(['I', 'J', 'S'], 3)]);
-    expect(parser.parse('[TTI]')).toEqual([new GeneratorLiteral(['T', 'T', 'I'], 1)]);
-    expect(parser.parse('[TTI]!')).toEqual([new GeneratorLiteral(['T', 'T', 'I'], 3)]);
-    expect(parser.parse('[ITT]!')).toEqual([new GeneratorLiteral(['T', 'T', 'I'], 3)]);
-    expect(parser.parse('[^TIJ]')).toEqual([new GeneratorLiteral(['L', 'S', 'Z', 'O'], 1)]);
-    expect(parser.parse('[^TIJ]!')).toEqual([new GeneratorLiteral(['L', 'S', 'Z', 'O'], 4)]);
-    expect(parser.parse('[^JTI]!')).toEqual([new GeneratorLiteral(['L', 'S', 'Z', 'O'], 4)]);
-    expect(parser.parse('[L[SZ]]')).toEqual([new GeneratorLiteral(['L', 'SZ'], 1)]);
-    expect(parser.parse('[L[SZ]]!')).toEqual([new GeneratorLiteral(['L', 'SZ'], 2)]);
-    expect(parser.parse('[[TI]L[SZ]]!')).toEqual([new GeneratorLiteral(['L', 'TI', 'SZ'], 3)]);
-    expect(parser.parse('[L[^SZ]]!')).toEqual([new GeneratorLiteral(['L', 'TILJO'], 2)]);
+    expect(parser.parse('[TI]p2')).toEqual([
+      { type: ASTNode.GeneratorLiteral, pool: ['T', 'I'], permute: 2 }
+    ]);
+    expect(parser.parse('[TI]!')).toEqual([
+      { type: ASTNode.GeneratorLiteral, pool: ['T', 'I'], permute: 2 }
+    ]);
+    expect(parser.parse('[SIJ]p2')).toEqual([
+      { type: ASTNode.GeneratorLiteral, pool: ['I', 'J', 'S'], permute: 2 }
+    ]);
+    expect(parser.parse('[SIJ]!')).toEqual([
+      { type: ASTNode.GeneratorLiteral, pool: ['I', 'J', 'S'], permute: 3 }
+    ]);
+    expect(parser.parse('[TTI]')).toEqual([
+      { type: ASTNode.GeneratorLiteral, pool: ['T', 'T', 'I'], permute: 1 }
+    ]);
+    expect(parser.parse('[TTI]!')).toEqual([
+      { type: ASTNode.GeneratorLiteral, pool: ['T', 'T', 'I'], permute: 3 }
+    ]);
+    expect(parser.parse('[ITT]!')).toEqual([
+      { type: ASTNode.GeneratorLiteral, pool: ['T', 'T', 'I'], permute: 3 }
+    ]);
+    expect(parser.parse('[^TIJ]')).toEqual([
+      { type: ASTNode.GeneratorLiteral, pool: ['L', 'S', 'Z', 'O'], permute: 1 }
+    ]);
+    expect(parser.parse('[^TIJ]!')).toEqual([
+      { type: ASTNode.GeneratorLiteral, pool: ['L', 'S', 'Z', 'O'], permute: 4 }
+    ]);
+    expect(parser.parse('[^JTI]!')).toEqual([
+      { type: ASTNode.GeneratorLiteral, pool: ['L', 'S', 'Z', 'O'], permute: 4 }
+    ]);
+    expect(parser.parse('[L[SZ]]')).toEqual([
+      { type: ASTNode.GeneratorLiteral, pool: ['L', 'SZ'], permute: 1 }
+    ]);
+    expect(parser.parse('[L[SZ]]!')).toEqual([
+      { type: ASTNode.GeneratorLiteral, pool: ['L', 'SZ'], permute: 2 }
+    ]);
+    expect(parser.parse('[[TI]L[SZ]]!')).toEqual([
+      { type: ASTNode.GeneratorLiteral, pool: ['L', 'TI', 'SZ'], permute: 3 }
+    ]);
+    expect(parser.parse('[L[^SZ]]!')).toEqual([
+      { type: ASTNode.GeneratorLiteral, pool: ['L', 'TILJO'], permute: 2 }
+    ]);
     expect(parser.parse('[^TI[LJ]]!')).toEqual([
-      new GeneratorLiteral(['L', 'J', 'S', 'Z', 'O', 'LJ'], 6)
+      { type: ASTNode.GeneratorLiteral, pool: ['L', 'J', 'S', 'Z', 'O', 'LJ'], permute: 6 }
     ]);
-    expect(parser.parse('[^TILJSZ[O]]!')).toEqual([new GeneratorLiteral(['O', 'O'], 2)]);
+    expect(parser.parse('[^TILJSZ[O]]!')).toEqual([
+      { type: ASTNode.GeneratorLiteral, pool: ['O', 'O'], permute: 2 }
+    ]);
     expect(parser.parse('[^TIJ[^LJO]]!')).toEqual([
-      new GeneratorLiteral(['L', 'S', 'Z', 'O', 'TISZ'], 5)
+      { type: ASTNode.GeneratorLiteral, pool: ['L', 'S', 'Z', 'O', 'TISZ'], permute: 5 }
     ]);
-    expect(parser.parse('[^TILJSZ[^O]]!')).toEqual([new GeneratorLiteral(['O', 'TILJSZ'], 2)]);
+    expect(parser.parse('[^TILJSZ[^O]]!')).toEqual([
+      { type: ASTNode.GeneratorLiteral, pool: ['O', 'TILJSZ'], permute: 2 }
+    ]);
   });
 
   test('parsing filter expressions', () => {
-    expect(parser.parse('{T=1}')).toEqual([new FilterBlock(new CountLiteral(['T'], '=', 1))]);
-    expect(parser.parse('{T!=1 }')).toEqual([new FilterBlock(new CountLiteral(['T'], '!=', 1))]);
-    expect(parser.parse('{T >1}')).toEqual([new FilterBlock(new CountLiteral(['T'], '>', 1))]);
-    expect(parser.parse('{T< 1}')).toEqual([new FilterBlock(new CountLiteral(['T'], '<', 1))]);
-    expect(parser.parse('{ T>=1}')).toEqual([new FilterBlock(new CountLiteral(['T'], '>=', 1))]);
+    expect(parser.parse('{T=1}')).toEqual([
+      {
+        type: ASTNode.FilterBlock,
+        expr: { type: ASTNode.CountLiteral, pieces: ['T'], op: '=', count: 1 }
+      }
+    ]);
+    expect(parser.parse('{T!=1 }')).toEqual([
+      {
+        type: ASTNode.FilterBlock,
+        expr: { type: ASTNode.CountLiteral, pieces: ['T'], op: '!=', count: 1 }
+      }
+    ]);
+    expect(parser.parse('{T >1}')).toEqual([
+      {
+        type: ASTNode.FilterBlock,
+        expr: { type: ASTNode.CountLiteral, pieces: ['T'], op: '>', count: 1 }
+      }
+    ]);
+    expect(parser.parse('{T< 1}')).toEqual([
+      {
+        type: ASTNode.FilterBlock,
+        expr: { type: ASTNode.CountLiteral, pieces: ['T'], op: '<', count: 1 }
+      }
+    ]);
+    expect(parser.parse('{ T>=1}')).toEqual([
+      {
+        type: ASTNode.FilterBlock,
+        expr: { type: ASTNode.CountLiteral, pieces: ['T'], op: '>=', count: 1 }
+      }
+    ]);
     expect(parser.parse('{ T <=  1 }')).toEqual([
-      new FilterBlock(new CountLiteral(['T'], '<=', 1))
+      {
+        type: ASTNode.FilterBlock,
+        expr: { type: ASTNode.CountLiteral, pieces: ['T'], op: '<=', count: 1 }
+      }
     ]);
     expect(parser.parse('{1:T=1}')).toEqual([
-      new FilterBlock(new RangeLookup(0, 1, new CountLiteral(['T'], '=', 1)))
+      {
+        type: ASTNode.FilterBlock,
+        expr: {
+          type: ASTNode.RangeLookup,
+          start: 0,
+          end: 1,
+          expr: { type: ASTNode.CountLiteral, pieces: ['T'], op: '=', count: 1 }
+        }
+      }
     ]);
     expect(parser.parse('{1-2:T=1}')).toEqual([
-      new FilterBlock(new RangeLookup(1, 2, new CountLiteral(['T'], '=', 1)))
+      {
+        type: ASTNode.FilterBlock,
+        expr: {
+          type: ASTNode.RangeLookup,
+          start: 1,
+          end: 2,
+          expr: { type: ASTNode.CountLiteral, pieces: ['T'], op: '=', count: 1 }
+        }
+      }
     ]);
-    expect(parser.parse('{/^T/}')).toEqual([new FilterBlock(new RegexLiteral(/^T/))]);
+    expect(parser.parse('{/^T/}')).toEqual([
+      { type: ASTNode.FilterBlock, expr: { type: ASTNode.RegexLiteral, value: /^T/ } }
+    ]);
     expect(parser.parse('{1:/^T/}')).toEqual([
-      new FilterBlock(new RangeLookup(0, 1, new RegexLiteral(/^T/)))
+      {
+        type: ASTNode.FilterBlock,
+        expr: {
+          type: ASTNode.RangeLookup,
+          start: 0,
+          end: 1,
+          expr: { type: ASTNode.RegexLiteral, value: /^T/ }
+        }
+      }
     ]);
-    expect(parser.parse('{T<L}')).toEqual([new FilterBlock(new BeforeLiteral(['T'], ['L']))]);
+    expect(parser.parse('{T<L}')).toEqual([
+      {
+        type: ASTNode.FilterBlock,
+        expr: { type: ASTNode.BeforeLiteral, beforePieces: ['T'], afterPieces: ['L'] }
+      }
+    ]);
     expect(parser.parse('{IT<[LJ]}')).toEqual([
-      new FilterBlock(new BeforeLiteral(['I', 'T'], ['LJ']))
+      {
+        type: ASTNode.FilterBlock,
+        expr: { type: ASTNode.BeforeLiteral, beforePieces: ['I', 'T'], afterPieces: ['LJ'] }
+      }
     ]);
     expect(parser.parse('{3:T<L}')).toEqual([
-      new FilterBlock(new RangeLookup(0, 3, new BeforeLiteral(['T'], ['L'])))
+      {
+        type: ASTNode.FilterBlock,
+        expr: {
+          type: ASTNode.RangeLookup,
+          start: 0,
+          end: 3,
+          expr: { type: ASTNode.BeforeLiteral, beforePieces: ['T'], afterPieces: ['L'] }
+        }
+      }
     ]);
     expect(parser.parse('{[LJ]=1&&!LJ=1}')).toEqual([
-      new FilterBlock(
-        new BinaryOp(
-          new CountLiteral(['LJ'], '=', 1),
-          'AND',
-          new UnaryOp('NOT', new CountLiteral(['L', 'J'], '=', 1))
-        )
-      )
+      {
+        type: ASTNode.FilterBlock,
+        expr: {
+          type: ASTNode.BinaryOp,
+          left: {
+            type: ASTNode.CountLiteral,
+            pieces: ['LJ'],
+            op: '=',
+            count: 1
+          },
+          op: 'AND',
+          right: {
+            type: ASTNode.UnaryOp,
+            op: 'NOT',
+            expr: {
+              type: ASTNode.CountLiteral,
+              pieces: ['L', 'J'],
+              op: '=',
+              count: 1
+            }
+          }
+        }
+      }
     ]);
     expect(parser.parse('{([LJ]=1&&!LJ=1)||LJ=0}')).toEqual([
-      new FilterBlock(
-        new BinaryOp(
-          new BinaryOp(
-            new CountLiteral(['LJ'], '=', 1),
-            'AND',
-            new UnaryOp('NOT', new CountLiteral(['L', 'J'], '=', 1))
-          ),
-          'OR',
-          new CountLiteral(['L', 'J'], '=', 0)
-        )
-      )
+      {
+        type: ASTNode.FilterBlock,
+        expr: {
+          type: ASTNode.BinaryOp,
+          left: {
+            type: ASTNode.BinaryOp,
+            left: {
+              type: ASTNode.CountLiteral,
+              pieces: ['LJ'],
+              op: '=',
+              count: 1
+            },
+            op: 'AND',
+            right: {
+              type: ASTNode.UnaryOp,
+              op: 'NOT',
+              expr: {
+                type: ASTNode.CountLiteral,
+                pieces: ['L', 'J'],
+                op: '=',
+                count: 1
+              }
+            }
+          },
+          op: 'OR',
+          right: { type: ASTNode.CountLiteral, pieces: ['L', 'J'], op: '=', count: 0 }
+        }
+      }
     ]);
   });
 
@@ -141,16 +274,25 @@ describe('pieces parser', () => {
 
   test('parsing multiblocks', () => {
     expect(parser.parse('**')).toEqual([
-      new GeneratorLiteral(['T', 'I', 'L', 'J', 'S', 'Z', 'O'], 1),
-      new GeneratorLiteral(['T', 'I', 'L', 'J', 'S', 'Z', 'O'], 1)
+      { type: ASTNode.GeneratorLiteral, pool: ['T', 'I', 'L', 'J', 'S', 'Z', 'O'], permute: 1 },
+      { type: ASTNode.GeneratorLiteral, pool: ['T', 'I', 'L', 'J', 'S', 'Z', 'O'], permute: 1 }
     ]);
     expect(parser.parse('{T=1}{L=1}')).toEqual([
-      new FilterBlock(new CountLiteral(['T'], '=', 1)),
-      new FilterBlock(new CountLiteral(['L'], '=', 1))
+      {
+        type: ASTNode.FilterBlock,
+        expr: { type: ASTNode.CountLiteral, pieces: ['T'], op: '=', count: 1 }
+      },
+      {
+        type: ASTNode.FilterBlock,
+        expr: { type: ASTNode.CountLiteral, pieces: ['L'], op: '=', count: 1 }
+      }
     ]);
     expect(parser.parse('[TIL]p2{L=1}')).toEqual([
-      new GeneratorLiteral(['T', 'I', 'L'], 2),
-      new FilterBlock(new CountLiteral(['L'], '=', 1))
+      { type: ASTNode.GeneratorLiteral, pool: ['T', 'I', 'L'], permute: 2 },
+      {
+        type: ASTNode.FilterBlock,
+        expr: { type: ASTNode.CountLiteral, pieces: ['L'], op: '=', count: 1 }
+      }
     ]);
   });
 });
