@@ -1,62 +1,79 @@
-export interface AST {
-  toString(): string;
+export enum ASTNode {
+  FilterBlock,
+  GeneratorLiteral,
+  BinaryOp,
+  UnaryOp,
+  RangeLookup,
+  CountLiteral,
+  BeforeLiteral,
+  RegexLiteral
 }
 
-export class FilterBlock implements AST {
-  constructor(public expr: AST) {}
+export type AST =
+  | FilterBlock
+  | GeneratorLiteral
+  | BinaryOp
+  | UnaryOp
+  | RangeLookup
+  | CountLiteral
+  | BeforeLiteral
+  | RegexLiteral;
+
+export interface FilterBlock {
+  type: ASTNode.FilterBlock;
+  expr: AST;
 }
 
-export class GeneratorLiteral implements AST {
-  constructor(
-    public pool: string[],
-    public permute: number
-  ) {}
+export interface GeneratorLiteral {
+  type: ASTNode.GeneratorLiteral;
+  pool: string[];
+  permute: number;
 }
 
-export class BinaryOp implements AST {
-  constructor(
-    public left: AST,
-    public op: string,
-    public right: AST
-  ) {}
+export interface BinaryOp {
+  type: ASTNode.BinaryOp;
+  left: AST;
+  op: string;
+  right: AST;
 }
 
-export class UnaryOp implements AST {
-  constructor(
-    public op: string,
-    public expr: AST
-  ) {}
+export interface UnaryOp {
+  type: ASTNode.UnaryOp;
+  op: string;
+  expr: AST;
 }
 
-export class RangeLookup implements AST {
-  constructor(
-    public start: number,
-    public end: number,
-    public expr: AST
-  ) {}
+export interface RangeLookup {
+  type: ASTNode.RangeLookup;
+  start: number;
+  end: number;
+  expr: AST;
 }
 
-export class CountLiteral implements AST {
-  constructor(
-    public pieces: string[],
-    public op: string,
-    public count: number
-  ) {}
+export type ComparisonOperator = '=' | '!=' | '>' | '<' | '>=' | '<=';
+
+export interface CountLiteral {
+  type: ASTNode.CountLiteral;
+  pieces: string[];
+  op: ComparisonOperator;
+  count: number;
 }
 
-export class BeforeLiteral implements AST {
-  constructor(
-    public beforePieces: string[],
-    public afterPieces: string[]
-  ) {}
+export interface BeforeLiteral {
+  type: ASTNode.BeforeLiteral;
+  beforePieces: string[];
+  afterPieces: string[];
 }
 
-export class RegexLiteral implements AST {
-  constructor(public value: RegExp) {}
+export interface RegexLiteral {
+  type: ASTNode.RegexLiteral;
+  value: RegExp;
 }
+
+export type Piece = 'T' | 'I' | 'L' | 'J' | 'S' | 'Z' | 'O';
 
 // Lookup table for 'priority' of the piece following TILJSZO order
-const PIECE_ORDER = new Array(128).fill(999);
+export const PIECE_ORDER = new Int8Array(128).fill(255);
 
 PIECE_ORDER['T'.charCodeAt(0)] = 0;
 PIECE_ORDER['I'.charCodeAt(0)] = 1;
@@ -66,41 +83,11 @@ PIECE_ORDER['S'.charCodeAt(0)] = 4;
 PIECE_ORDER['Z'.charCodeAt(0)] = 5;
 PIECE_ORDER['O'.charCodeAt(0)] = 6;
 
-export function tetrisCompare(piece1: string, piece2: string): number {
-  return PIECE_ORDER[piece1.charCodeAt(0)] - PIECE_ORDER[piece2.charCodeAt(0)];
+export function tetrisCompare(queue1: string, queue2: string): number {
+  const length = Math.min(queue1.length, queue2.length);
+  for (let i = 0; i < length; i++) {
+    let value = PIECE_ORDER[queue1.charCodeAt(i)] - PIECE_ORDER[queue2.charCodeAt(i)];
+    if (value != 0) return value;
+  }
+  return 0;
 }
-
-// =================================
-//    toString implementations
-// =================================
-FilterBlock.prototype.toString = function (this: FilterBlock) {
-  return `Filter(${this.expr})`;
-};
-
-GeneratorLiteral.prototype.toString = function (this: GeneratorLiteral) {
-  return `Generator(${this.pool}p${this.permute})`;
-};
-
-BinaryOp.prototype.toString = function (this: BinaryOp) {
-  return `(${this.left} ${this.op} ${this.right})`;
-};
-
-UnaryOp.prototype.toString = function (this: UnaryOp) {
-  return `(${this.op} ${this.expr})`;
-};
-
-RangeLookup.prototype.toString = function (this: RangeLookup) {
-  return `Range(${this.start}-${this.end} -> ${this.expr})`;
-};
-
-CountLiteral.prototype.toString = function (this: CountLiteral) {
-  return `Count(${this.pieces} ${this.op} ${this.count})`;
-};
-
-BeforeLiteral.prototype.toString = function (this: BeforeLiteral) {
-  return `Before(${this.beforePieces} < ${this.afterPieces})`;
-};
-
-RegexLiteral.prototype.toString = function (this: RegexLiteral) {
-  return `Regex(\`${this.value.toString()}\`)`;
-};
