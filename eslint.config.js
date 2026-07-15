@@ -24,8 +24,6 @@ export default ts.config(
       'pnpm-lock.yaml',
       'package-lock.json',
       'yarn.lock',
-      // ignore submodules
-      '**/GluingFumens/**'
     ]
   },
   includeIgnoreFile(gitignorePath),
