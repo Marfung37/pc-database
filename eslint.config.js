@@ -23,7 +23,7 @@ export default ts.config(
       // Ignore files for PNPM, NPM and YARN
       'pnpm-lock.yaml',
       'package-lock.json',
-      'yarn.lock',
+      'yarn.lock'
     ]
   },
   includeIgnoreFile(gitignorePath),
