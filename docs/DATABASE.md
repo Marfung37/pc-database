@@ -81,9 +81,10 @@ Entropy: 1.9502120649147467 out of a maximum of 2.0
 ```
 
 Example Setup ID: the following data
-| PC Number | Leftover | Build | Cover Dependence | Fumen | OQB |
-| --------- | -------- | ----- | ---------------- | ------------------------------------ | --- |
-| 2nd | TTIO | TIO | T,[TIO]! | v115@9gwhIewhIewhEewwAeRpwhDeywRpJeAgH | false |
+
+| PC Number | Leftover | Build | Cover Dependence | Fumen                                  | OQB   |
+| --------- | -------- | ----- | ---------------- | -------------------------------------- | ----- |
+| 2nd       | TTIO     | TIO   | T,[TIO]!         | v115@9gwhIewhIewhEewwAeRpwhDeywRpJeAgH | false |
 
 - `Duplicate Piece` is `001` as mentioned before `O` -> `111` and `T` -> `001`, no dup -> `000` and have duplicate `T`.
 - `Leftover Pieces` is `0011110` as `T` is in the leftover -> 1st bit unset, `I` is in leftover -> 2nd bit unset, and `O` is in leftover -> 7th bit unset.
