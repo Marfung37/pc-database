@@ -1,5 +1,5 @@
 -- Function to update path when links change
-CREATE OR REPLACE FUNCTION public.add_set_edge (parent_id int, child_id int) RETURNS void SECURITY DEFINER -- Runs with owner's privileges
+CREATE OR REPLACE FUNCTION public.add_set_edge (parent_id int, child_id int) RETURNS void
 SET
   search_path = public,
   extensions AS $$
@@ -59,7 +59,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Function to update path when links delete
-CREATE OR REPLACE FUNCTION public.delete_set_edge (parent_id int, child_id int) RETURNS void SECURITY DEFINER -- Runs with owner's privileges
+CREATE OR REPLACE FUNCTION public.delete_set_edge (parent_id int, child_id int) RETURNS void
 SET
   search_path = public,
   extensions AS $$
