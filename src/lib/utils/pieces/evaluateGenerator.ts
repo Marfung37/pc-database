@@ -1,30 +1,26 @@
 import { type GeneratorLiteral, tetrisCompare } from './defines';
 
-const GeneratorFunction = Object.getPrototypeOf(function* () { }).constructor;
+const GeneratorFunction = Object.getPrototypeOf(function* () {}).constructor;
 
 // based on https://github.com/ehmicky/fast-cartesian/blob/main/src/main.ts for strings
 type ProductInputs = string | string[];
 type LoopFunction = (arrays: ProductInputs[]) => Generator<ProductInputs>;
-const cache: { [key: number]: LoopFunction } = {}
+const cache: { [key: number]: LoopFunction } = {};
 
 const getLoopFunc = (length: number) => {
   return cache[length] ?? (cache[length] = mGetLoopFunc(length));
-}
+};
 
 const mGetLoopFunc = (length: number) => {
-  const indexes = Array.from({ length }, (_, i) => String(i))
+  const indexes = Array.from({ length }, (_, i) => String(i));
   const start = indexes
     .map((index) => `for (const value${index} of arrays[${index}]) {`)
-    .join('\n')
-  const middle = indexes.map((index) => `value${index}`).join('+')
-  const end = '}\n'.repeat(length)
+    .join('\n');
+  const middle = indexes.map((index) => `value${index}`).join('+');
+  const end = '}\n'.repeat(length);
 
-  // eslint-disable-next-line no-new-func, @typescript-eslint/no-implied-eval
-  return new GeneratorFunction(
-    'arrays',
-    `${start}\nyield ${middle}\n${end}`,
-  ) as LoopFunction
-}
+  return new GeneratorFunction('arrays', `${start}\nyield ${middle}\n${end}`) as LoopFunction;
+};
 
 export function* product(iterables: ProductInputs[]): Generator<ProductInputs> {
   const loopFunc = getLoopFunc(iterables.length);
@@ -39,19 +35,21 @@ export function* permutations(pool: string, r?: number): Generator<string> {
 
   if (r > n) return;
 
-  const cycles = Array(r).fill(0).map((_, index) => n - index);
+  const cycles = Array(r)
+    .fill(0)
+    .map((_, index) => n - index);
   const indices = new Uint8Array(n).map((_, index) => index);
 
   // check if permutation isn't a duplicate
   const isValidPermutation = (limit: number): string | null => {
     let usedMask = 0;
-    let result = "";
+    let result = '';
 
     for (let k = 0; k < limit; k++) {
       const originalIndex = indices[k];
       const pieceType = pool[originalIndex];
 
-      // check if first avaliable instance of the duplicate piece was used
+      // check if first available instance of the duplicate piece was used
       // because the pool is sorted, identical pieces are contiguous.
       let prevIdx = originalIndex - 1;
       while (prevIdx >= 0 && pool[prevIdx] === pieceType) {
@@ -62,7 +60,7 @@ export function* permutations(pool: string, r?: number): Generator<string> {
         prevIdx--;
       }
 
-      usedMask |= (1 << originalIndex);
+      usedMask |= 1 << originalIndex;
       result += pieceType;
     }
     return result;
@@ -89,8 +87,7 @@ export function* permutations(pool: string, r?: number): Generator<string> {
           indices[j] = temp;
 
           const result = isValidPermutation(r);
-          if (result !== null)
-            yield result;
+          if (result !== null) yield result;
           break loop;
         }
       }
@@ -100,7 +97,7 @@ export function* permutations(pool: string, r?: number): Generator<string> {
 }
 
 interface HeapNode {
-  value: string;          // The permutation string
+  value: string; // The permutation string
   generatorIndex: number; // Which permutation generator it came from
 }
 
@@ -139,8 +136,8 @@ class MinHeap {
   private down(i: number) {
     const len = this.data.length;
     while ((i << 1) + 1 < len) {
-      let left = (i << 1) + 1;
-      let right = left + 1;
+      const left = (i << 1) + 1;
+      const right = left + 1;
       let best = left;
       if (right < len && this.data[right].value < this.data[left].value) {
         best = right;
@@ -194,7 +191,7 @@ export function mergeSortedUniquePermutations(generators: Generator<string>[]): 
     if (!element.done) {
       heap.push({
         value: element.value,
-        generatorIndex: minNode.generatorIndex,
+        generatorIndex: minNode.generatorIndex
       });
     }
   }
@@ -208,14 +205,12 @@ export function evaluateGenerator(node: GeneratorLiteral): string[] {
   const rawPermutations: Generator<string>[] = [];
   for (let pool of pools) {
     // sort the pool
-    pool = [...pool].sort(tetrisCompare).join('')
+    pool = [...pool].sort(tetrisCompare).join('');
 
-    rawPermutations.push(permutations(pool, node.permute))
+    rawPermutations.push(permutations(pool, node.permute));
   }
 
-  if (rawPermutations.length == 1)
-    return [...rawPermutations[0]]
+  if (rawPermutations.length == 1) return [...rawPermutations[0]];
 
-
-  return mergeSortedUniquePermutations(rawPermutations)
+  return mergeSortedUniquePermutations(rawPermutations);
 }

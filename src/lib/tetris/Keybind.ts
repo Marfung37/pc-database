@@ -1,15 +1,5 @@
 export type Action =
-  | 'left'
-  | 'right'
-  | 'hold'
-  | 'cw'
-  | 'ccw'
-  | '180'
-  | 'sd'
-  | 'hd'
-  | 'd1'
-  | 'reset'
-  | 'undo';
+  'left' | 'right' | 'hold' | 'cw' | 'ccw' | '180' | 'sd' | 'hd' | 'd1' | 'reset' | 'undo';
 export type Bindings = Record<Action, string>;
 type Subscriber = (bindings: Bindings) => void;
 
