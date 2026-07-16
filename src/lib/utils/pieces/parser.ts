@@ -1,14 +1,4 @@
-import type {
-  AST,
-  FilterBlock,
-  GeneratorLiteral,
-  BinaryOp,
-  UnaryOp,
-  RangeLookup,
-  CountLiteral,
-  BeforeLiteral,
-  RegexLiteral
-} from './defines';
+import type { AST, FilterBlock, GeneratorLiteral, ComparisonOperator } from './defines';
 import { ASTNode, tetrisCompare } from './defines';
 
 type SpecTuple = [name: string, pattern: string];
@@ -231,7 +221,7 @@ export class Parser {
   }
 
   private parseFilterPieces(rawPieces: string, duplicates: boolean = false): string[] {
-    let pieces: string[] = [];
+    const pieces: string[] = [];
     let basePieces: Set<string> = new Set();
 
     for (const match of rawPieces.matchAll(PIECES_REGEX)) {
@@ -372,24 +362,26 @@ export class Parser {
     const token = this.peek();
 
     switch (token.kind) {
-      case 'LPAREN':
+      case 'LPAREN': {
         this.consume('LPAREN');
         const expr = this.parseOr();
         this.consume('RPAREN');
         return expr;
-      case 'REGEX':
+      }
+      case 'REGEX': {
         const regexExpr = this.consume('REGEX');
         return {
           type: ASTNode.RegexLiteral,
           value: new RegExp(regexExpr.value)
         };
-      case 'PIECES':
+      }
+      case 'PIECES': {
         const pieces = this.consume('PIECES').value;
-        const op = this.consume('COMP_OP').value;
+        const op = this.consume('COMP_OP').value as ComparisonOperator;
 
         const nextToken = this.peek();
         switch (nextToken.kind) {
-          case 'PIECES':
+          case 'PIECES': {
             if (op !== '<') {
               throw new Error("Comparison of pieces expression that isn't before operator of <");
             }
@@ -399,8 +391,9 @@ export class Parser {
               beforePieces: this.parseFilterPieces(pieces, true),
               afterPieces: this.parseFilterPieces(afterPieces, true)
             };
+          }
 
-          case 'NUMBER':
+          case 'NUMBER': {
             const count = Number(this.consume('NUMBER').value);
             return {
               type: ASTNode.CountLiteral,
@@ -408,9 +401,11 @@ export class Parser {
               op,
               count
             };
+          }
           default:
             throw new Error(`Unexpected token after PIECES COMP_OP: ${token}`);
         }
+      }
       default:
         throw new Error(`Unexpected token: ${token}`);
     }

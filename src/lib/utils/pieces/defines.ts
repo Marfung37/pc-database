@@ -86,7 +86,7 @@ PIECE_ORDER['O'.charCodeAt(0)] = 6;
 export function tetrisCompare(queue1: string, queue2: string): number {
   const length = Math.min(queue1.length, queue2.length);
   for (let i = 0; i < length; i++) {
-    let value = PIECE_ORDER[queue1.charCodeAt(i)] - PIECE_ORDER[queue2.charCodeAt(i)];
+    const value = PIECE_ORDER[queue1.charCodeAt(i)] - PIECE_ORDER[queue2.charCodeAt(i)];
     if (value != 0) return value;
   }
   return 0;

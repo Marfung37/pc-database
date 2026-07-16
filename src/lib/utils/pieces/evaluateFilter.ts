@@ -3,7 +3,7 @@ import {
   type Piece,
   type ComparisonOperator,
   type BeforeLiteral,
-  PIECE_ORDER,
+  PIECE_ORDER
 } from './defines';
 import { ASTNode } from './defines';
 
@@ -44,16 +44,16 @@ interface BeforeIterationNode {
 }
 
 function evaluateBefore(node: BeforeLiteral, queue: string): boolean {
-  let posMap = getCharIndices(queue);
+  const posMap = getCharIndices(queue);
 
   // DFS needed to handle stuff like [TI][TS]<O on TIO
-  let stack: BeforeIterationNode[] = [];
+  const stack: BeforeIterationNode[] = [];
   stack.push({
     beforePieceCounts: new Uint16Array(7).fill(0),
     afterPieceCounts: new Uint16Array(7).fill(0),
     beforeIndex: 0,
     afterIndex: 0
-  })
+  });
 
   while (stack.length > 0) {
     const stackNode = stack.pop()!;
@@ -82,7 +82,6 @@ function evaluateBefore(node: BeforeLiteral, queue: string): boolean {
         // automatically satisfies I < J if there's no J yet there is an I
         // OR have both pieces so check order
         if (aIndices.length <= aInstanceIdx || bIndices[bInstanceIdx] < aIndices[aInstanceIdx]) {
-
           // finish all after pieces so move to next before piece
           if (stackNode.afterIndex + 1 == node.afterPieces.length) {
             const newBeforePieceCounts = stackNode.beforePieceCounts.slice();
@@ -106,7 +105,7 @@ function evaluateBefore(node: BeforeLiteral, queue: string): boolean {
             afterPieceCounts: newAfterPieceCounts,
             beforeIndex: stackNode.beforeIndex,
             afterIndex: stackNode.afterIndex + 1
-          })
+          });
         }
       }
     }
@@ -122,11 +121,11 @@ export function evaluateFilter(node: AST, queue: string): boolean {
     case ASTNode.RegexLiteral:
       // Compile the regex and check for a match
       return queue.match(node.value) !== null;
-    case ASTNode.CountLiteral:
+    case ASTNode.CountLiteral: {
       const comp = OPERATORS[node.op];
-      for (let target of node.pieces) {
+      for (const target of node.pieces) {
         let result = false;
-        for (let piece of target) {
+        for (const piece of target) {
           // set of pieces: [LJ] = 1 means that # of L = 1 OR # of J = 1
           let count = 0;
           for (const p of queue) if (p == piece) count++;
@@ -139,6 +138,8 @@ export function evaluateFilter(node: AST, queue: string): boolean {
         if (!result) return false;
       }
       return true;
+    }
+
     case ASTNode.BeforeLiteral:
       return evaluateBefore(node, queue);
 
@@ -153,7 +154,7 @@ export function evaluateFilter(node: AST, queue: string): boolean {
     case ASTNode.UnaryOp:
       return !evaluateFilter(node.expr, queue);
 
-    case ASTNode.BinaryOp:
+    case ASTNode.BinaryOp: {
       // Evaluate left side first
       const left = evaluateFilter(node.left, queue);
 
@@ -163,19 +164,10 @@ export function evaluateFilter(node: AST, queue: string): boolean {
 
       // evaluate and return right side otherwise
       return evaluateFilter(node.right, queue);
+    }
 
     default:
       // error case
       throw new Error(`Unknown AST node type or operation: ${node.type}`);
   }
 }
-
-import { Parser } from './parser';
-import { type FilterBlock } from './defines';
-const parser = new Parser();
-
-function helper(expression: string, queue: string): boolean {
-  return evaluateFilter((parser.parse(expression)[0] as FilterBlock).expr, queue)
-}
-
-console.log(helper("{T<I[SZ]}", "SZTI"))

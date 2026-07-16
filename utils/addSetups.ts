@@ -231,12 +231,10 @@ async function checkDuplicate(
     const otherCoverQueues: Set<Queue> = new Set(extendPieces(row.cover_pattern) as Queue[]);
 
     // check if one of the sets is a subset of other
-    if (
-      !(
-        setDifference(coverQueues, otherCoverQueues).length === 0 ||
-        setDifference(otherCoverQueues, coverQueues).length === 0
-      )
-    )
+    if (!(
+      setDifference(coverQueues, otherCoverQueues).length === 0 ||
+      setDifference(otherCoverQueues, coverQueues).length === 0
+    ))
       continue;
 
     return row.setup_id;
