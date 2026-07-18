@@ -24,3 +24,25 @@ export function* product(iterables: ProductInputs[]): Generator<ProductInputs> {
   const loopFunc = getLoopFunc(iterables.length);
   yield* loopFunc(iterables);
 }
+
+// factorials to be use in the computations of comb and perm
+const factorials = Array.from({ length: 8 }, (_, i) => i);
+factorials[0] = 1;
+for (let i = 1; i < 8; i++) {
+  factorials[i] *= factorials[i - 1];
+}
+
+export function comb(n: number, k: number): number {
+  return factorials[n] / (factorials[k] * factorials[n - k]);
+}
+
+export function perm(n: number, k?: number): number {
+  if (k === undefined) k = n;
+  if (n <= 7) return factorials[n] / factorials[n - k];
+
+  let result = n;
+  for (let i = n - 1; i > k; i--) {
+    result *= i;
+  }
+  return result;
+}
