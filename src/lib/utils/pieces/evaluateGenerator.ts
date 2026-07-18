@@ -1,5 +1,5 @@
 import { type GeneratorLiteral, tetrisCompare } from './defines';
-import { product } from './utils';
+import { product, perm } from './utils';
 
 // based on https://github.com/N8Brooks/combinatorics/blob/main/permutations.ts for specifically tetris queues
 // pool must be at most 32 in length and sorted
@@ -187,4 +187,45 @@ export function evaluateGenerator(node: GeneratorLiteral): string[] {
   if (rawPermutations.length == 1) return [...rawPermutations[0]];
 
   return mergeSortedUniquePermutations(rawPermutations);
+}
+
+/**
+ * determines if given node can use the faster randomEvaluateGenerator to get a random queue
+ * if all pieces are unique in pool then valid
+ */
+export function sampleableGenerator(node: GeneratorLiteral): boolean {
+  // flatten pool
+  const flat_pool = node.pool.flat();
+  return flat_pool.length == new Set(flat_pool).size;
+}
+
+/**
+ * gives a random element and computes total number of possible queues
+ * correct if no duplicates in pool as otherwise can be biased
+ */
+export function randomEvaluateGenerator(
+  node: GeneratorLiteral,
+  random: (a: number, b: number) => number
+): string {
+  const pools = [...product(node.pool)];
+
+  const pool = [...pools[random(0, pools.length)]] as string[];
+
+  // pick a random permutation
+  let sample = '';
+  for (let i = 0; i < node.permute; i++) {
+    const randIndex = random(0, pool.length - i);
+    sample += pool[randIndex];
+    pool[randIndex] = pool[pool.length - i - 1];
+  }
+
+  return sample;
+}
+
+/**
+ * assumes passes sampleableGenerator
+ * computes the total number possible queues
+ */
+export function totalQueues(node: GeneratorLiteral): number {
+  return perm(node.pool.length, node.permute);
 }
