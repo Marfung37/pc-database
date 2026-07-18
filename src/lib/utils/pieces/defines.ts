@@ -71,6 +71,8 @@ export interface RegexLiteral {
 }
 
 export type Piece = 'T' | 'I' | 'L' | 'J' | 'S' | 'Z' | 'O';
+export type Block = GeneratorLiteral | FilterBlock;
+export type ParsedPattern = (GeneratorLiteral | FilterBlock)[][][];
 
 // Lookup table for 'priority' of the piece following TILJSZO order
 export const PIECE_ORDER = new Int8Array(128).fill(255);
