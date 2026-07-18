@@ -40,7 +40,11 @@ export class PRNG {
     return seed;
   }
 
-  random(): number {
+  random = (): number => {
     return this.sfc32Rand();
-  }
+  };
+
+  randInt = (start: number, end: number): number => {
+    return Math.floor(this.sfc32Rand() * (end - start)) + start;
+  };
 }

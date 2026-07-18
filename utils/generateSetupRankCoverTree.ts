@@ -1,5 +1,5 @@
 import type { Queue, Fumen, SetupID, Kicktable, HoldType } from './lib/types';
-import { extendPieces } from './lib/pieces';
+import { parsePattern, sfinderPieces } from './lib/utils/pieces';
 import { supabaseAdmin } from './lib/supabaseAdmin';
 import { indexBytea } from './lib/utils/utils';
 import { BAG } from './lib/constants';
@@ -42,7 +42,7 @@ class Tree {
 }
 
 function insertSetupCover(tree: Tree, coverData: string, coverPattern: string, value: number) {
-  const queues = extendPieces(coverPattern) as Queue[];
+  const queues = sfinderPieces(parsePattern(coverPattern)) as Queue[];
   for (let i = 0; i < queues.length; i++) {
     if (indexBytea(coverData, i)) {
       tree.insertNoUpdatePath(queues[i], value);

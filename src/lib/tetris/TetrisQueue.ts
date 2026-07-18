@@ -36,7 +36,7 @@ export class TetrisQueue {
   private addBag(): void {
     const bag = Array.from({ length: BAGSIZE }, (_, i) => i + 1);
     for (let i = BAGSIZE - 1; i >= 0; i--) {
-      const rand = Math.floor(this.random.random() * (i + 1));
+      const rand = this.random.randInt(0, i + 1);
       this.queue[this.pos + this.length + BAGSIZE - 1 - i] = bag[rand];
       bag[rand] = bag[i];
     }

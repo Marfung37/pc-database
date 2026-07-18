@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as lzma from 'lzma-native';
 import { parse } from 'csv-parse/sync';
 import { stringify } from 'csv-stringify/sync';
-import { extendPieces } from './pieces';
+import { parsePattern, sfinderPieces } from './pieces';
 import type { SetupID, Kicktable, HoldType } from '$lib/types';
 
 export type Result<T> = Promise<{ data: T; error: null } | { data: null; error: Error }>;
@@ -149,7 +149,7 @@ export async function decompressPath(data: Buffer, level: number = 4): Result<st
   const [fumens, csv] = [rest[0].split('\n'), rest[1]];
 
   // get queues from the pieces
-  const queues: string[] = extendPieces(pieces);
+  const queues: string[] = sfinderPieces(parsePattern(pieces));
 
   // add back data to csv
   const records: Record<string, string>[] = parse(csv, {

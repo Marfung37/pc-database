@@ -1,6 +1,6 @@
 import fsPromises from 'fs/promises';
 import { supabaseAdmin } from './lib/supabaseAdmin';
-import { extendPieces } from './lib/pieces';
+import { parsePattern, sfinderPieces } from './lib/utils/pieces';
 import { fumenGetMinos, isCongruentFumen, fumenMirror, fumenSplit } from './lib/fumenUtils';
 import { mirrorQueue, sortQueue } from './lib/queueUtils';
 import { piecesMirror } from './lib/piecesUtils';
@@ -152,7 +152,10 @@ function mirrorInputSetup(row: InputSetup, id: number): InputSetup | null {
   if (
     leftover === row.leftover &&
     isCongruentFumen(fumen, row.fumen) &&
-    areSortedArraysEqual(extendPieces(cover_pattern), extendPieces(row.cover_pattern))
+    areSortedArraysEqual(
+      sfinderPieces(parsePattern(cover_pattern)),
+      sfinderPieces(parsePattern(row.cover_pattern))
+    )
   )
     return null;
 
@@ -206,16 +209,21 @@ async function checkDuplicate(
   }
   if (data.length == 0) return null;
 
-  const coverQueues: Set<Queue> = new Set(extendPieces(setup.cover_pattern) as Queue[]);
+  const coverQueues: Set<Queue> = new Set(
+    sfinderPieces(parsePattern(setup.cover_pattern)) as Queue[]
+  );
   const solveQueues: Queue[] | null = setup.solve_pattern
-    ? (extendPieces(setup.solve_pattern) as Queue[])
+    ? (sfinderPieces(parsePattern(setup.solve_pattern)) as Queue[])
     : null;
   for (const row of data) {
     // congruent fumen up to shifts
     if (!isCongruentFumen(setup.fumen, row.fumen, 1)) continue;
     // exactly same solve queues
     if (solveQueues === null && row.solve_pattern !== null) continue;
-    if (solveQueues !== null && !areSortedArraysEqual(solveQueues, extendPieces(row.solve_pattern)))
+    if (
+      solveQueues !== null &&
+      !areSortedArraysEqual(solveQueues, sfinderPieces(row.solve_pattern))
+    )
       continue;
     // same solve fraction
     if (stat.solve_fraction === null && row.statistics[0].solve_fraction !== null) continue;
@@ -228,7 +236,9 @@ async function checkDuplicate(
     )
       continue;
 
-    const otherCoverQueues: Set<Queue> = new Set(extendPieces(row.cover_pattern) as Queue[]);
+    const otherCoverQueues: Set<Queue> = new Set(
+      sfinderPieces(parsePattern(row.cover_pattern)) as Queue[]
+    );
 
     // check if one of the sets is a subset of other
     if (!(
@@ -350,7 +360,10 @@ async function generateStatEntry(
     `java -jar ${sfinderPath} ${cmd} -pp ${patternPath} -K ${kickFilename} -d ${drop}`;
 
   // run cover
-  await fsPromises.writeFile(patternPath, extendPieces(setup.cover_pattern).join('\n'));
+  await fsPromises.writeFile(
+    patternPath,
+    sfinderPieces(parsePattern(setup.cover_pattern)).join('\n')
+  );
 
   const fumens = [setup.fumen, ...variants.map((v: SetupVariant) => v.fumen)];
   const glueFumens = fumens.map((fumen) => glueFumen(fumen)[0]).join(' ');
@@ -405,7 +418,7 @@ async function generateStatEntry(
   }
 
   // run percent
-  await fsPromises.writeFile(patternPath, extendPieces(setup.solve_pattern).join('\n'));
+  await fsPromises.writeFile(patternPath, sfinderPieces(setup.solve_pattern).join('\n'));
 
   const percentCmd = cmdBase('percent') + ` -t ${setup.fumen}`;
 

@@ -1,4 +1,4 @@
-import { extendPieces } from './pieces';
+import { parsePattern, sfinderPieces } from './pieces';
 import { sortQueue, mirrorQueue } from './queueUtils';
 import { BAG } from '$lib/constants';
 import type { Queue } from '$lib/types';
@@ -97,12 +97,12 @@ function binarySearch(
 
 /**
  * Finds the index of a given Tetris queue within the generated "extended pieces" sequence.
- * This is effectively the contains in `extendPieces`,
+ * This is effectively the contains in `sfinderPieces`,
  *
  * @param queue - A Tetris format queue string.
- * @param pattern - A pattern used to generate the extended pieces.
+ * @param pattern - A pattern used to generate the sfinder pieces.
  * @param equality - An optional function to determine queue equality (defaults to strict string equality).
- * @returns The index where the queue was found in the extended pieces list.
+ * @returns The index where the queue was found in the sfinder pieces list.
  * @throws {ValueError} If any piece in the `queue` string is not a valid Tetris piece (T, I, L, J, S, Z, O).
  */
 export function piecesContains(
@@ -120,7 +120,7 @@ export function piecesContains(
     }
   }
 
-  const outQueues = extendPieces(pattern);
+  const outQueues = sfinderPieces(parsePattern(pattern));
 
   // Perform a binary search on the generated queues.
   return binarySearch(queue, outQueues, compareQueues, equality);

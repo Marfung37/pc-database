@@ -2,7 +2,7 @@ import fsPromises from 'fs/promises';
 import { compressPath } from './lib/compression';
 import { isPC } from './lib/fumenUtils';
 import { supabaseAdmin } from './lib/supabaseAdmin';
-import { extendPieces } from './lib/pieces';
+import { parsePattern, sfinderPieces } from './lib/utils/pieces';
 import { generatePCPath } from './lib/generatePathFile';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -55,7 +55,7 @@ async function uploadPath(setup: Setup, stat: Statistic): Promise<boolean> {
   console.log('Creating path file', pathFilename);
 
   try {
-    const queues = extendPieces(setup.solve_pattern);
+    const queues = sfinderPieces(parsePattern(setup.solve_pattern));
 
     if (isPC(setup.fumen)) {
       const { error: genPathErr } = await generatePCPath(setup.fumen, queues, output);
@@ -134,7 +134,10 @@ async function uploadPath(setup: Setup, stat: Statistic): Promise<boolean> {
 
     return true;
   } catch (error) {
-    console.error(`An error occurred when generating ${supabaseFilename}:`, error.message);
+    console.error(
+      `An error occurred when generating ${supabaseFilename}:`,
+      (error as Error).message
+    );
   }
 
   return false;

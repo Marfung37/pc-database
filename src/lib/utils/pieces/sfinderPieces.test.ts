@@ -4,6 +4,7 @@ import { comb, perm } from './utils';
 
 describe('sfinder pieces', () => {
   test('same as generator', () => {
+    expect(sfinderPieces(parsePattern('')).length).toBe(0);
     expect(sfinderPieces(parsePattern('T')).length).toBe(1);
     expect(sfinderPieces(parsePattern('I')).length).toBe(1);
     expect(sfinderPieces(parsePattern('L')).length).toBe(1);
@@ -98,6 +99,7 @@ function helper(pattern: string): boolean {
 
 describe('random sfinder pieces', () => {
   test('same as generator', () => {
+    expect(helper('')).toBeTruthy();
     expect(helper('T')).toBeTruthy();
     expect(helper('I')).toBeTruthy();
     expect(helper('L')).toBeTruthy();
