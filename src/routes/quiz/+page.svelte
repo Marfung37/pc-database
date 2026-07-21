@@ -408,7 +408,7 @@
 
       <h3 class="text-xl">Presets</h3>
       <form method="POST" action="?/quizPreset" use:enhance={handlePreset}>
-        <select name="preset">
+        <select class="bg-base-300" name="preset">
           {#each presets as preset (preset.name)}
             <option value={preset.filename}>{preset.name}</option>
           {/each}
