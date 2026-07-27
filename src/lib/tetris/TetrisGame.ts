@@ -67,7 +67,7 @@ export class TetrisGame {
     this.pendingEvents = [];
 
     this.random = new PRNG();
-    this.seed = [-1, -1, -1, -1]
+    this.seed = [-1, -1, -1, -1];
 
     this.simulating = false;
 
@@ -272,7 +272,9 @@ export class TetrisGame {
     for (const piece of this.operations) {
       if (this.active.type !== piece.type) {
         if (this.holdPiece !== piece.type) {
-          console.error(`Undo neither piece in operations matches pieces in queue (active ${PieceEnum[this.active.type]}, hold ${PieceEnum[this.holdPiece]}, expected ${PieceEnum[piece.type]})`);
+          console.error(
+            `Undo neither piece in operations matches pieces in queue (active ${PieceEnum[this.active.type]}, hold ${PieceEnum[this.holdPiece]}, expected ${PieceEnum[piece.type]})`
+          );
         }
         this.hold();
       }
