@@ -67,7 +67,7 @@ export class TetrisGame {
     this.pendingEvents = [];
 
     this.random = new PRNG();
-    this.seed = this.random.reseed();
+    this.seed = [-1, -1, -1, -1]
 
     this.simulating = false;
 
@@ -101,6 +101,7 @@ export class TetrisGame {
 
   fullReset(): void {
     this.seed = this.random.reseed();
+
     this.operations = [];
     this.totalPieceCount = 0;
     this.reset();
@@ -257,8 +258,9 @@ export class TetrisGame {
   }
 
   undo(): void {
-    this.random.seed(this.seed);
     if (this.mode === 'pure' || this.operations.length == 0) return;
+
+    this.random.seed(this.seed);
 
     // remove last piece placed
     this.operations.pop();
@@ -270,7 +272,7 @@ export class TetrisGame {
     for (const piece of this.operations) {
       if (this.active.type !== piece.type) {
         if (this.holdPiece !== piece.type) {
-          console.error('Wrong piece from hold also');
+          console.error(`Undo neither piece in operations matches pieces in queue (active ${PieceEnum[this.active.type]}, hold ${PieceEnum[this.holdPiece]}, expected ${PieceEnum[piece.type]})`);
         }
         this.hold();
       }
