@@ -438,7 +438,7 @@
         if (e.key === 'Enter' || e.key === ' ') showSettings = false;
       }}
     >
-      <div class="flex h-7/8 w-auto flex-col justify-evenly rounded bg-white px-6 py-2">
+      <div class="flex h-7/8 w-auto flex-col justify-evenly rounded px-6 py-2 bg-base-100">
         <div>
           <h3 class="py-2 text-lg font-bold">Keybinds</h3>
           <table>
@@ -448,7 +448,7 @@
                   <td class="px-2">{action}</td>
                   <td>
                     <input
-                      class="text-sm caret-transparent disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-700"
+                      class="text-sm caret-transparent disabled:cursor-not-allowed bg-base-300 disabled:bg-neutral/50 disabled:text-neutral-content"
                       value={key}
                       on:keydown|preventDefault|stopPropagation={(e) => {
                         keybinds.set(action as Action, e.code);
@@ -471,7 +471,7 @@
               <div class="flex justify-between">
                 <label for={tuning}>{tuning}</label>
                 <input
-                  class="text-sm"
+                  class="text-sm bg-base-300"
                   id={tuning}
                   type="number"
                   value={game.handling[tuning]}
