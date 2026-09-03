@@ -26,3 +26,6 @@ export const COLUMN_UNUSED_PIECES = '未使用ミノ';
 export const COLUMN_UNUSED_PIECES_DELIMITER = ';';
 export const COLUMN_FUMENS = 'テト譜';
 export const COLUMN_FUMENS_DELIMITER = ';';
+
+export const DEFAULT_KICKTABLE = 'srs180';
+export const DEFAULT_HOLD_TYPE = 'any';

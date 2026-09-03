@@ -28,6 +28,7 @@
   "home_quiz_description": "Quiz yourself with personalized sets of setups",
   "shortcut_go": "Go",
   "database_pc_number": "PC数",
+  "database_leftover": "Leftover",
   "database_description": "4L PC基地数据库",
   "database_docs": "详细文档",
   "exact_cover_pattern": "是否为100%搭建率",
