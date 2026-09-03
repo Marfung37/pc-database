@@ -1,9 +1,16 @@
 <script lang="ts">
   import { page } from '$app/state';
   import { resolve } from '$app/paths';
-  import { goto } from '$app/navigation';
+  import { goto, invalidate } from '$app/navigation';
   import { m } from '$lib/paraglide/messages.js';
-  import { ChevronLeft, ChevronsLeft, ChevronRight, ChevronsRight } from '@lucide/svelte';
+  import SetupMiniInfo from '$lib/components/SetupMiniInfo.svelte';
+
+  const { data } = $props();
+
+  const setups = $derived(data.setups ?? []);
+  const uniqueLeftovers = $derived(data.leftovers ?? []);
+
+  const setupGroups = $derived([...Map.groupBy(setups, (setup) => setup.leftover)]);
 
   const pcs = [
     { id: 1, pc: '1st' },
@@ -18,16 +25,10 @@
   ];
 
   let params = $derived(page.url.searchParams);
-  const pageNumber = $derived(Number(params.get('page') ?? '1'));
   const pcNumber: number | null = $derived(
     params.get('pc') !== null ? parseInt(params.get('pc')!) : null
   );
-
-  async function changePage(value: number) {
-    params.set('page', String(value));
-
-    await goto(resolve(`/database?${params.toString()}`));
-  }
+  const leftover = $derived(params.get('leftover'));
 
   async function changePC(value: number) {
     if (value == -1) {
@@ -35,18 +36,28 @@
     } else {
       params.set('pc', String(value));
     }
+    params.set('page', String(1));
 
     await goto(resolve(`/database?${params.toString()}`));
+    await invalidate('setups');
+  }
+
+  async function changeLeftover(value: string) {
+    params.set('leftover', value);
+    params.set('page', String(1));
+
+    await goto(resolve(`/database?${params.toString()}`));
+    await invalidate('setups');
   }
 </script>
 
-<div class="hero min-h-[60vh]">
+<div class="hero min-h-[20vh]">
   <div class="hero-content py-12 text-center">
     <div class="container flex flex-col gap-2">
       <div
         class="from-primary to-accent mb-3 bg-linear-to-r bg-clip-text pb-1 text-xl font-bold text-transparent md:mb-7 md:text-3xl"
       >
-        WIP: {m.nav_database()}
+        {m.nav_database()}
       </div>
     </div>
   </div>
@@ -65,21 +76,33 @@
         <option value={pc.id} selected={pc.id == pcNumber}>{pc.pc}</option>
       {/each}
     </select>
+
+    {#if pcNumber !== null}
+      <label for="leftover">{m.database_leftover()}</label>
+      <select
+        id="leftover"
+        class="bg-base-300 rounded"
+        onchange={(e) => changeLeftover(e.currentTarget.value)}
+      >
+        <option value={-1}>All</option>
+        {#each uniqueLeftovers as lo (lo)}
+          <option value={lo} selected={lo == leftover}>{lo}</option>
+        {/each}
+      </select>
+    {/if}
   </section>
-  <div id="results"></div>
-  <div class="join">
-    <button class="join-item btn" onclick={() => changePage(1)} disabled={pageNumber == 1}
-      ><ChevronsLeft /></button
-    >
-    <button
-      class="join-item btn"
-      onclick={() => changePage(pageNumber - 1)}
-      disabled={pageNumber == 1}><ChevronLeft /></button
-    >
-    <button class="join-item btn">Page {pageNumber}</button>
-    <button class="join-item btn" onclick={() => changePage(pageNumber + 1)}
-      ><ChevronRight /></button
-    >
-    <button class="join-item btn"><ChevronsRight /></button>
+  <div id="results" class="flex flex-col m-4">
+    {#each setupGroups as [leftover, setups] (leftover)}
+      <div>
+        <h3 class="mino text-4xl pl-8">{leftover}</h3>
+        <div class="flex flex-wrap">
+          {#each setups as setup (setup.setup_id)}
+            <div class="basis-1/4 p-8">
+              <SetupMiniInfo fumen={setup.fumen} solve_percent={setup.solve_percent} />
+            </div>
+          {/each}
+        </div>
+      </div>
+    {/each}
   </div>
 </div>
