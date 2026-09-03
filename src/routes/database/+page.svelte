@@ -1,13 +1,9 @@
 <script lang="ts">
+  import { page } from '$app/state';
   import { resolve } from '$app/paths';
-  import type { SubmitFunction } from './$types.ts';
-  import { enhance, applyAction } from '$app/forms';
+  import { goto } from '$app/navigation';
   import { m } from '$lib/paraglide/messages.js';
-  import { Grid, Willow, type IColumnConfig } from '@svar-ui/svelte-grid';
-
-  export let form;
-
-  let loading = false;
+  import { ChevronLeft, ChevronsLeft, ChevronRight, ChevronsRight } from '@lucide/svelte';
 
   const pcs = [
     { id: 1, pc: '1st' },
@@ -21,75 +17,27 @@
     { id: 9, pc: '9th' }
   ];
 
-  const handleSubmit: SubmitFunction = () => {
-    loading = true;
-    return async ({ result }) => {
-      loading = false;
-      applyAction(result);
-    };
-  };
+  let params = $derived(page.url.searchParams);
+  const pageNumber = $derived(Number(params.get('page') ?? '1'));
+  const pcNumber: number | null = $derived(
+    params.get('pc') !== null ? parseInt(params.get('pc')!) : null
+  );
 
-  const columns: IColumnConfig[] = [
-    {
-      id: 'setup_id',
-      header: ['Setup ID', { filter: 'text' }],
-      footer: 'Setup ID',
-      width: 150,
-      treetoggle: true,
-      resize: true
-    },
-    {
-      id: 'leftover',
-      width: 100,
-      header: ['Leftover', { filter: 'text' }],
-      footer: 'Leftover'
-    },
-    {
-      id: 'build',
-      header: ['Build', { filter: 'text' }],
-      footer: 'Build',
-      width: 100
-    },
-    {
-      id: 'cover_pattern',
-      header: ['Cover Pattern', { filter: 'text' }],
-      footer: 'Cover Pattern',
-      width: 150,
-      flexgrow: 1,
-      resize: true,
-      editor: 'text'
-    },
-    {
-      id: 'fumen',
-      header: ['Fumen', { filter: 'text' }],
-      footer: 'Fumen',
-      width: 200,
-      flexgrow: 1,
-      resize: true,
-      editor: 'text'
-    },
-    {
-      id: 'solve_pattern',
-      header: ['Solve Pattern', { filter: 'text' }],
-      footer: 'Solve Pattern',
-      width: 100,
-      flexgrow: 1,
-      resize: true,
-      editor: 'text'
-    },
-    {
-      id: 'mirror',
-      header: ['Mirror', { filter: 'text' }],
-      footer: 'Mirror',
-      width: 120
-    },
-    {
-      id: 'solve_percent',
-      header: ['Solve %', { filter: 'text' }],
-      footer: 'Solve %',
-      width: 100
+  async function changePage(value: number) {
+    params.set('page', String(value));
+
+    await goto(resolve(`/database?${params.toString()}`));
+  }
+
+  async function changePC(value: number) {
+    if (value == -1) {
+      params.delete('pc');
+    } else {
+      params.set('pc', String(value));
     }
-  ];
+
+    await goto(resolve(`/database?${params.toString()}`));
+  }
 </script>
 
 <div class="hero min-h-[60vh]">
@@ -100,58 +48,38 @@
       >
         WIP: {m.nav_database()}
       </div>
-
-      <div class="mx-auto flex flex-col items-center gap-2">
-        <p class="px-2 text-2xl font-bold md:text-4xl">{m.database_description()}</p>
-        <a class="btn btn-outline btn-primary max-w-sm px-6" href={resolve('/database/docs')}
-          >{m.database_docs()}</a
-        >
-      </div>
-
-      <form
-        class="flex w-md whitespace-nowrap"
-        method="POST"
-        action="?/pcnum"
-        use:enhance={handleSubmit}
-      >
-        <div class="flex items-center gap-2">
-          <label for="pc-select" class="block text-lg font-medium">
-            {m.database_pc_number()}
-          </label>
-          <select
-            id="pc-select"
-            name="pc"
-            class="focus:shadow-outline bg-base-300 block w-full appearance-none rounded border border-gray-300 px-4 py-2 pr-8 leading-tight shadow hover:border-gray-400 focus:outline-none"
-          >
-            {#each pcs as pc (pc.id)}
-              <option value={pc.id}>{pc.pc}</option>
-            {/each}
-          </select>
-          <div>
-            <button
-              type="submit"
-              class="bg-info text-info-content hover:bg-info/70 focus:ring-base-content flex w-full cursor-pointer justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
-              disabled={loading}
-            >
-              {loading ? m.loading() : m.btn_submit()}
-            </button>
-          </div>
-        </div>
-      </form>
-      {#if form?.message}
-        <div
-          class="rounded-md p-3 text-sm {form?.success
-            ? 'bg-green-100 text-green-700'
-            : 'bg-red-100 text-red-700'}"
-          role="alert"
-        >
-          {form?.message}
-        </div>
-      {/if}
-
-      <Willow>
-        <Grid tree={true} footer={true} data={form?.gridData ?? []} {columns} />
-      </Willow>
     </div>
+  </div>
+</div>
+
+<div class="flex flex-col items-center">
+  <section id="filter">
+    <label for="pc">{m.database_pc_number()}</label>
+    <select
+      id="pc"
+      class="bg-base-300 rounded"
+      onchange={(e) => changePC(Number(e.currentTarget.value))}
+    >
+      <option value={-1}>All</option>
+      {#each pcs as pc (pc.id)}
+        <option value={pc.id} selected={pc.id == pcNumber}>{pc.pc}</option>
+      {/each}
+    </select>
+  </section>
+  <div id="results"></div>
+  <div class="join">
+    <button class="join-item btn" onclick={() => changePage(1)} disabled={pageNumber == 1}
+      ><ChevronsLeft /></button
+    >
+    <button
+      class="join-item btn"
+      onclick={() => changePage(pageNumber - 1)}
+      disabled={pageNumber == 1}><ChevronLeft /></button
+    >
+    <button class="join-item btn">Page {pageNumber}</button>
+    <button class="join-item btn" onclick={() => changePage(pageNumber + 1)}
+      ><ChevronRight /></button
+    >
+    <button class="join-item btn"><ChevronsRight /></button>
   </div>
 </div>
