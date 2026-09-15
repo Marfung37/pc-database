@@ -68,6 +68,7 @@ CREATE TABLE "setups" (
   "build" queue NOT NULL CHECK (LENGTH(build) <= 10), -- enforce tetris pieces
   "cover_pattern" text NOT NULL, -- difficult to constrain
   "type" setup_type NOT NULL DEFAULT 'regular',
+  "oqb_root" boolean, -- root node for oqb
   "fumen" fumen NOT NULL, -- enforce fumen structure with version 115
   "solve_pattern" text, -- difficult to constrain
   "mirror" setupid,
@@ -242,6 +243,8 @@ COMMENT ON COLUMN "setups"."build" IS 'Pieces used in setup. Only TILJSZO allowe
 COMMENT ON COLUMN "setups"."cover_pattern" IS 'Extended pieces notation for when setup is covered. Need not be perfect';
 
 COMMENT ON COLUMN "setups"."type" IS 'Type of setup for regular, qb, or oqb';
+
+COMMENT ON COLUMN "setups"."oqb_root" IS 'Setup is a root node of oqb';
 
 COMMENT ON COLUMN "setups"."fumen" IS 'Fumen of the setup';
 

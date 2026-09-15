@@ -17,7 +17,7 @@ CREATE TYPE setup_saves_data AS (
   minimal_count smallint
 );
 
---- bare minimal data to determine if a given setup is actually buildable based on leftover
+-- bare minimal data to determine if a given setup is actually buildable based on leftover
 CREATE OR REPLACE FUNCTION public.find_bare_setup_leftover (
   p_leftover queue,
   kicktable kicktable DEFAULT 'srs180',
@@ -421,7 +421,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-- bare minimal data to determine if a given setup is actually buildable based on leftover
+-- bare minimal data to determine if a given setup is actually buildable based on leftover
 CREATE OR REPLACE FUNCTION public.find_bare_setup_leftover (
   p_leftover queue,
   kicktable kicktable DEFAULT 'srs180',

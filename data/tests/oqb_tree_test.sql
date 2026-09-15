@@ -1,4 +1,4 @@
--- 1. Setup test environment with DEFERRED constraints
+-- Setup test environment with DEFERRED constraints
 BEGIN;
 
 CREATE TEMP TABLE test_setups (LIKE setups INCLUDING ALL) ON
@@ -18,27 +18,6 @@ DROP CONSTRAINT test_setup_oqb_paths_oqb_path_key;
 ALTER TABLE test_setup_oqb_paths
 ADD CONSTRAINT test_oqb_path_unique UNIQUE (oqb_path)
 DEFERRABLE INITIALLY IMMEDIATE;
-
--- Function to initialize oqb setups as root nodes
-CREATE OR REPLACE FUNCTION test_initialize_tree_paths () RETURNS TRIGGER SECURITY DEFINER -- Runs with owner's privileges
-SET
-  search_path = public,
-  extensions AS $$
-BEGIN
-    IF TG_OP = 'UPDATE' AND OLD.type <> NEW.type AND OLD.type = 'oqb' THEN
-      -- Delete entry if changed from oqb
-      DELETE FROM test_setup_oqb_paths
-      WHERE setup_id = OLD.setup_id;
-    ELSE 
-        IF NEW.type = 'oqb' THEN
-            INSERT INTO test_setup_oqb_paths (setup_id, oqb_path)
-            VALUES (NEW.setup_id, NEW.setup_id::ltree);
-        END IF;
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
 
 -- Function to update path when links change
 CREATE OR REPLACE FUNCTION test_add_setup_edge (parent_id setupid, child_id setupid) RETURNS void SECURITY DEFINER -- Runs with owner's privileges
@@ -94,6 +73,9 @@ BEGIN
         -- Cleanup the old paths
         DELETE FROM test_setup_oqb_paths s WHERE s.oqb_path ~ (child_id || '.*')::lquery;
 
+        -- Update child_id can't be a root node on setups table
+        UPDATE test_setups SET oqb_root = false WHERE setup_id = child_id;
+
     EXCEPTION WHEN OTHERS THEN
         RAISE NOTICE 'Tree path update aborted: %', SQLERRM;
     END;
@@ -122,6 +104,18 @@ BEGIN
         WHERE a.ctid < b.ctid
           AND a.setup_id = b.setup_id
           AND a.oqb_path = b.oqb_path;
+
+        -- update parent and child if root node
+        UPDATE test_setups s
+        SET oqb_root = true 
+        WHERE s.setup_id = ANY(ARRAY[parent_id, child_id])
+        AND EXISTS (
+          SELECT 1
+          FROM test_setup_oqb_paths sop
+          WHERE s.setup_id = sop.setup_id
+          AND nlevel(sop.oqb_path) = 1
+        );
+
     EXCEPTION WHEN OTHERS THEN
         RAISE NOTICE 'Tree path update aborted: %', SQLERRM;
     END;
@@ -156,6 +150,14 @@ BEGIN
     BEGIN
         -- don't check uniqueness as going to have duplicate rows
         SET CONSTRAINTS test_oqb_path_unique DEFERRED;
+
+        -- set all direct children of node to be root node in setups
+        UPDATE test_setups SET oqb_root = true 
+        WHERE setup_id = ANY(
+          SELECT setup_id 
+          FROM test_setup_oqb_paths
+          WHERE oqb_path ~ ('*.' || node_id || '.*{1}')::lquery
+        );
 
         -- removes for all descendants of the node all ancestors including this node and above
         -- this creates duplicates on oqb_path
@@ -194,6 +196,8 @@ BEGIN
         IF NEW.type = 'oqb' THEN
             INSERT INTO test_setup_oqb_paths (setup_id, oqb_path)
             VALUES (NEW.setup_id, NEW.setup_id::ltree);
+
+            UPDATE test_setups SET oqb_root = true WHERE setup_id = NEW.setup_id;
         END IF;
     END IF;
 
@@ -242,10 +246,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger to handle path updates
-CREATE TRIGGER trigger_test_initialize_tree_path
+CREATE TRIGGER trigger_test_initialize_oqb_tree_path
 AFTER INSERT OR UPDATE OF type ON test_setups FOR EACH ROW
-EXECUTE FUNCTION test_initialize_tree_paths ();
+EXECUTE FUNCTION test_initialize_oqb_tree_paths ();
 
 -- Trigger to delete nodes
 CREATE TRIGGER trigger_test_delete_oqb_tree_node
@@ -296,7 +299,6 @@ SELECT 'digraph G {' || E'\n' ||
 FROM pairs;
 $$;
 
--- 4. Test Cases with Unusual Insertion Orders
 DO $$
 DECLARE
     root1_id setupid := '1' || substring(md5('root1') FROM 1 FOR 11);
@@ -322,6 +324,10 @@ BEGIN
         -- Insert some nodes
         INSERT INTO test_setups (setup_id, pc, leftover, build, cover_pattern, fumen, type) VALUES
             (setup1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb');
+
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = setup1_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: setup should be root on initialization of oqb setup', test_count;
+        END IF;
 
         -- Try to insert link to non-existent parent (should fail)
         BEGIN
@@ -365,6 +371,12 @@ BEGIN
             (setup1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
             (grandsetup1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb');
 
+
+        -- Verify initial values of root node
+        IF (SELECT COUNT(*) FROM test_setups WHERE oqb_root = true) <> 3 THEN
+            RAISE EXCEPTION 'Test % failed: child setup should no longer be root node', test_count;
+        END IF;
+
         -- Verify full path
         PERFORM test_add_setup_edge(root1_id, setup1_id);
         IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = root1_id AND oqb_path = root1_id::ltree)
@@ -374,6 +386,14 @@ BEGIN
         IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = setup1_id AND oqb_path = (root1_id || '.' || setup1_id)::ltree)
         THEN
             RAISE EXCEPTION 'Test % failed: Incorrect direct child link', test_count;
+        END IF;
+        -- Verify child is no longer a root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = setup1_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: child setup should no longer be root node', test_count;
+        END IF;
+        -- Verify parent is still a root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = root1_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: child setup should no longer be root node', test_count;
         END IF;
 
         -- Verify full path
@@ -389,6 +409,14 @@ BEGIN
         IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = grandsetup1_id AND oqb_path = (root1_id || '.' || setup1_id || '.' || grandsetup1_id)::ltree)
         THEN
             RAISE EXCEPTION 'Test % failed: Incorrect grandchild link', test_count;
+        END IF;
+        -- Verify grandchild is no longer a root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE grandsetup_id = setup1_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: child setup should no longer be root node', test_count;
+        END IF;
+        -- Verify grandparent is still a root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = root1_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: child setup should no longer be root node', test_count;
         END IF;
 
         RAISE NOTICE 'Test % passed: Added child and grandchild', test_count;
@@ -1014,5 +1042,4 @@ BEGIN
     RAISE NOTICE '=== TEST RESULTS: %/% tests passed ===', passed_count, test_count;
 END $$;
 
--- 5. Clean up
 ROLLBACK;
