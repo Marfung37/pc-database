@@ -1,5 +1,5 @@
 -- leftovers for each pc
-CREATE VIEW pc_leftovers AS
+CREATE VIEW pc_leftovers WITH (security_invoker=true) AS
 SELECT DISTINCT
   pc,
   leftover,

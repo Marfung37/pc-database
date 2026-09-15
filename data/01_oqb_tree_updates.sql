@@ -52,6 +52,9 @@ BEGIN
         -- Cleanup the old paths
         DELETE FROM setup_oqb_paths s WHERE s.oqb_path ~ (child_id || '.*')::lquery;
 
+        -- Update child_id can't be a root node on setups table
+        UPDATE setups SET oqb_root = false WHERE setup_id = child_id;
+
     EXCEPTION WHEN OTHERS THEN
         RAISE NOTICE 'Tree path update aborted: %', SQLERRM;
     END;
@@ -106,6 +109,17 @@ BEGIN
           AND a.setup_id = b.setup_id
           AND a.oqb_path = b.oqb_path;
 
+        -- update parent and child if root node
+        UPDATE setups s
+        SET oqb_root = true 
+        WHERE s.setup_id = ANY(ARRAY[parent_id, child_id])
+        AND EXISTS (
+          SELECT 1
+          FROM setup_oqb_paths sop
+          WHERE s.setup_id = sop.setup_id
+          AND nlevel(sop.oqb_path) = 1
+        );
+
     EXCEPTION WHEN OTHERS THEN
         RAISE NOTICE 'Tree path update aborted: %', SQLERRM;
     END;
@@ -141,7 +155,15 @@ BEGIN
         -- don't check uniqueness as going to have duplicate rows
         SET CONSTRAINTS oqb_path_unique DEFERRED;
 
-        -- removes for all descendants of the node all ancestors including this node and above
+        -- set all direct children of node to be root node in setups
+        UPDATE setups SET oqb_root = true 
+        WHERE setup_id = ANY(
+          SELECT setup_id 
+          FROM setup_oqb_paths
+          WHERE oqb_path ~ ('*.' || node_id || '.*{1}')::lquery
+        );
+
+        -- removes all ancestors including this node and above for all descendants of the node 
         -- this creates duplicates on oqb_path
         UPDATE setup_oqb_paths
         SET oqb_path = subpath(oqb_path, index(oqb_path, node_id::ltree) + 1)
@@ -178,6 +200,8 @@ BEGIN
         IF NEW.type = 'oqb' THEN
             INSERT INTO setup_oqb_paths (setup_id, oqb_path)
             VALUES (NEW.setup_id, NEW.setup_id::ltree);
+
+            UPDATE setups SET oqb_root = true WHERE setup_id = NEW.setup_id;
         END IF;
     END IF;
 
