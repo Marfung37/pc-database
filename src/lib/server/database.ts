@@ -12,10 +12,10 @@ export async function getDatabaseSetups(
 ) {
   let query = supabase
     .from('setups')
-    .select('setup_id, pc, leftover, build, fumen, statistics!inner(solve_percent)')
+    .select('setup_id, pc, leftover, build, fumen, type, statistics!inner(solve_percent)')
     .eq('statistics.hold_type', DEFAULT_HOLD_TYPE)
     .eq('statistics.kicktable', DEFAULT_KICKTABLE)
-    .or('oqb_root.is.null, oqb_root.eq.false');
+    .or('oqb_root.is.null, oqb_root.eq.true');
 
   if (pc) {
     query = query.eq('pc', pc);
@@ -44,6 +44,7 @@ export async function getDatabaseSetups(
       leftover: row.leftover,
       build: row.build,
       fumen: row.fumen,
+      type: row.type,
       solve_percent: row.statistics[0].solve_percent
     };
   });
