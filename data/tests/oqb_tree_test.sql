@@ -392,8 +392,8 @@ BEGIN
             RAISE EXCEPTION 'Test % failed: child setup should no longer be root node', test_count;
         END IF;
         -- Verify parent is still a root node
-        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = root1_id AND oqb_root = false) THEN
-            RAISE EXCEPTION 'Test % failed: child setup should no longer be root node', test_count;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = root1_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: parent setup should be root node', test_count;
         END IF;
 
         -- Verify full path
@@ -411,12 +411,16 @@ BEGIN
             RAISE EXCEPTION 'Test % failed: Incorrect grandchild link', test_count;
         END IF;
         -- Verify grandchild is no longer a root node
-        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE grandsetup_id = setup1_id AND oqb_root = false) THEN
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = grandsetup1_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: grandchild setup should no longer be root node', test_count;
+        END IF;
+        -- Verify child is no longer a root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = setup1_id AND oqb_root = false) THEN
             RAISE EXCEPTION 'Test % failed: child setup should no longer be root node', test_count;
         END IF;
         -- Verify grandparent is still a root node
         IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = root1_id AND oqb_root = true) THEN
-            RAISE EXCEPTION 'Test % failed: child setup should no longer be root node', test_count;
+            RAISE EXCEPTION 'Test % failed: grandparent setup should be root node', test_count;
         END IF;
 
         RAISE NOTICE 'Test % passed: Added child and grandchild', test_count;
@@ -440,21 +444,43 @@ BEGIN
         -- Insert middle node
         INSERT INTO test_setups (setup_id, pc, leftover, build, cover_pattern, fumen, type) VALUES
             (setup2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb');
-        
+
         -- Create link between them
         PERFORM test_add_setup_edge(setup2_id, grandsetup2_id);
-        
+
+        -- Verify grandchild is no longer a root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = grandsetup2_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: grandchild setup should no longer be root node', test_count;
+        END IF;
+        -- Verify child is a root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = setup2_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: child setup should still be root node', test_count;
+        END IF;
+
         -- Insert root last
         INSERT INTO test_setups (setup_id, pc, leftover, build, cover_pattern, fumen, type) VALUES
             (root2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb');
         
         -- Complete the chain
         PERFORM test_add_setup_edge(root2_id, setup2_id);
-        
+
         -- Verify full path
         IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = grandsetup2_id AND oqb_path = (root2_id || '.' || setup2_id || '.' || grandsetup2_id)::ltree)
         THEN
             RAISE EXCEPTION 'Test % failed: Incorrect path in out-of-order build', test_count;
+        END IF;
+
+        -- Verify grandchild is no longer a root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = grandsetup2_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: grandchild setup should no longer be root node', test_count;
+        END IF;
+        -- Verify child is no longer a root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = setup2_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: child setup should no longer be root node', test_count;
+        END IF;
+        -- Verify grandparent is still a root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = root2_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: grandparent setup should be root node', test_count;
         END IF;
         
         RAISE NOTICE 'Test % passed: Complex out-of-order build', test_count;
@@ -479,6 +505,19 @@ BEGIN
  
         PERFORM test_add_setup_edge(root1_id, setup2_id);
         PERFORM test_add_setup_edge(root2_id, setup2_id);
+
+        -- Verify which setups are root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = root1_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: root 1 setup should still be root node', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = root2_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: root 2 setup should still be root node', test_count;
+        END IF;
+        -- Verify child is not root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = setup2_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: child setup should no longer be root node', test_count;
+        END IF;
+ 
        
         -- Verify full path
         IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = setup2_id AND oqb_path = (root1_id || '.' || setup2_id)::ltree)
@@ -530,7 +569,21 @@ BEGIN
         THEN
             RAISE EXCEPTION 'Test % failed: Incorrect path for grandchild in diamond shape', test_count;
         END IF;
- 
+
+        -- Verify which setups are root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = root1_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: root 1 setup should still be root node', test_count;
+        END IF;
+        -- Verify child is not root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = setup1_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: child 1 setup should no longer be root node', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = setup2_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: child 2 setup should no longer be root node', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = grandsetup1_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: grandchild setup should no longer be root node', test_count;
+        END IF;
         
         RAISE NOTICE 'Test % passed: Diamond graph', test_count;
         passed_count := passed_count + 1;
@@ -550,28 +603,45 @@ BEGIN
         INSERT INTO test_setups (setup_id, pc, leftover, build, cover_pattern, fumen, type) VALUES
             (root1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
             (setup1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
-            (root2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
+            (setup2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
             (grandsetup1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
             (grandsetup2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb');
  
         PERFORM test_add_setup_edge(root1_id, setup1_id);
-        PERFORM test_add_setup_edge(root2_id, grandsetup1_id);
-        PERFORM test_add_setup_edge(root2_id, grandsetup2_id);
-        PERFORM test_add_setup_edge(setup1_id, root2_id);
+        PERFORM test_add_setup_edge(setup2_id, grandsetup1_id);
+        PERFORM test_add_setup_edge(setup2_id, grandsetup2_id);
+        PERFORM test_add_setup_edge(setup1_id, setup2_id);
        
         -- Verify full path
-        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = grandsetup1_id AND oqb_path = (root1_id || '.' || setup1_id || '.' || root2_id || '.' || grandsetup1_id)::ltree)
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = grandsetup1_id AND oqb_path = (root1_id || '.' || setup1_id || '.' || setup2_id || '.' || grandsetup1_id)::ltree)
         THEN
             RAISE EXCEPTION 'Test % failed: Incorrect path for connecting two graphs', test_count;
         END IF;
 
         -- Verify full path
-        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = grandsetup2_id AND oqb_path = (root1_id || '.' || setup1_id || '.' || root2_id || '.' || grandsetup2_id)::ltree)
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = grandsetup2_id AND oqb_path = (root1_id || '.' || setup1_id || '.' || setup2_id || '.' || grandsetup2_id)::ltree)
         THEN
             RAISE EXCEPTION 'Test % failed: Incorrect path for connecting two graphs', test_count;
         END IF;
+
+        -- Verify which setups are root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = root1_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: root 1 setup should still be root node', test_count;
+        END IF;
+        -- Verify child is not root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = setup1_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: child 1 setup should no longer be root node', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = setup2_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: child 2 setup should still be root node', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = grandsetup1_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: grandchild 1 setup should no longer be root node', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = grandsetup2_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: grandchild 2 setup should no longer be root node', test_count;
+        END IF;
  
-        
         RAISE NOTICE 'Test % passed: Connecting two graphs', test_count;
         passed_count := passed_count + 1;
     EXCEPTION WHEN OTHERS THEN
@@ -625,7 +695,27 @@ BEGIN
         THEN
             RAISE EXCEPTION 'Test % failed: Incorrect path for connecting two graphs in diamond shape', test_count;
         END IF;
- 
+
+        -- Verify which setups are root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = root1_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: root 1 setup should still be root node', test_count;
+        END IF;
+        -- Verify child is not root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = root2_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: root 2 setup should no longer be root node', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = setup1_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: child 1 setup should no longer be root node', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = setup2_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: child 2 setup should no longer be root node', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = grandsetup1_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: grandchild 1 setup should no longer be root node', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = grandsetup2_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: grandchild 2 setup should no longer be root node', test_count;
+        END IF;
         
         RAISE NOTICE 'Test % passed: Connecting two graphs in diamond shape', test_count;
         passed_count := passed_count + 1;
@@ -756,6 +846,16 @@ BEGIN
             RAISE EXCEPTION 'Test % failed: Incorrect path after deleting edge', test_count;
         END IF;
 
+        -- Verify which setups are root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = root1_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: root setup should be root node', test_count;
+        END IF;
+        -- Verify former child is root again
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = setup1_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: child setup should be root node', test_count;
+        END IF;
+ 
+
         RAISE NOTICE 'Test % passed: Correctly delete edge', test_count;
         passed_count := passed_count + 1;
     END;
@@ -771,14 +871,14 @@ BEGIN
         -- Insert some nodes
         INSERT INTO test_setups (setup_id, pc, leftover, build, cover_pattern, fumen, type) VALUES
             (root1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
+            (root2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
             (setup1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
-            (grandsetup1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
-            (root2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb');
+            (setup2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb');
 
         PERFORM test_add_setup_edge(root1_id, setup1_id);
-        PERFORM test_add_setup_edge(setup1_id, grandsetup1_id);
-        PERFORM test_add_setup_edge(grandsetup1_id, root2_id);
-        PERFORM test_delete_setup_edge(setup1_id, grandsetup1_id);
+        PERFORM test_add_setup_edge(setup1_id, root2_id);
+        PERFORM test_add_setup_edge(root2_id, setup2_id);
+        PERFORM test_delete_setup_edge(setup1_id, root2_id);
 
         -- Verify full path
         IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = root1_id AND oqb_path = root1_id::ltree)
@@ -793,16 +893,32 @@ BEGIN
         END IF;
 
         -- Verify full path
-        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = grandsetup1_id AND oqb_path = grandsetup1_id::ltree)
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = root2_id AND oqb_path = root2_id::ltree)
         THEN
             RAISE EXCEPTION 'Test % failed: Incorrect path after deleting edge', test_count;
         END IF;
 
         -- Verify full path
-        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = root2_id AND oqb_path = (grandsetup1_id || '.' || root2_id)::ltree)
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = setup2_id AND oqb_path = (root2_id || '.' || setup2_id)::ltree)
         THEN
             RAISE EXCEPTION 'Test % failed: Incorrect path after deleting edge', test_count;
         END IF;
+
+        -- Verify which setups are root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = root1_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: root 1 setup should be root node', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = root1_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: root 2 setup should be root node', test_count;
+        END IF;
+        -- Verify child is not root
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = setup1_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: child 1 setup should not be root node', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = setup2_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: child 2 setup should not be root node', test_count;
+        END IF;
+ 
 
         RAISE NOTICE 'Test % passed: Correctly delete later edge', test_count;
         passed_count := passed_count + 1;
@@ -892,6 +1008,24 @@ BEGIN
             RAISE EXCEPTION 'Test % failed: More paths to grandchild than expected', test_count;
         END IF;
 
+        -- Verify which setups are root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = root1_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: root 1 setup should be root node', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = root1_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: root 2 setup should be root node', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = setup2_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: child 2 setup should be root node', test_count;
+        END IF;
+        -- Verify child is not root
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = grandsetup1_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: grandchild 1 setup should not be root node', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = grandsetup1_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: grandchild 2 setup should not be root node', test_count;
+        END IF;
+
         RAISE NOTICE 'Test % passed: Correctly delete edge with multiple parents', test_count;
         passed_count := passed_count + 1;
     END;
@@ -969,11 +1103,128 @@ BEGIN
             RAISE EXCEPTION 'Test % failed: More paths to grandchild than expected', test_count;
         END IF;
 
+        -- Verify which setups are root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = root1_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: root 1 setup should be root node', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = root1_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: root 2 setup should be root node', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = setup2_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: child 2 setup should be root node', test_count;
+        END IF;
+        -- Verify child is not root
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = grandsetup1_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: grandchild 1 setup should be root node', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = grandsetup1_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: grandchild 2 setup should be root node', test_count;
+        END IF;
+
         RAISE NOTICE 'Test % passed: Correctly delete node', test_count;
         passed_count := passed_count + 1;
     END;
 
-    -- Test 15: Updating a node
+    -- Test 15: Deleting a node with mutiple children
+    BEGIN
+        test_count := test_count + 1;
+        
+        -- Clear previous data
+        DELETE FROM test_setup_oqb_paths;
+        DELETE FROM test_setups;
+        
+        -- Insert some nodes
+        INSERT INTO test_setups (setup_id, pc, leftover, build, cover_pattern, fumen, type) VALUES
+            (root1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
+            (root2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
+            (setup1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
+            (setup2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
+            (grandsetup1_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb'),
+            (grandsetup2_id, 1, 'TILJSZO', 'TILJSZO', 'test', 'v115@test', 'oqb');
+
+        PERFORM test_add_setup_edge(root1_id, setup1_id);
+        PERFORM test_add_setup_edge(root2_id, setup1_id);
+        PERFORM test_add_setup_edge(setup1_id, setup2_id);
+        PERFORM test_add_setup_edge(setup2_id, grandsetup1_id);
+        PERFORM test_add_setup_edge(setup2_id, grandsetup2_id);
+
+        DELETE FROM test_setups WHERE setup_id = setup2_id;
+
+        -- Verify full path
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = root1_id AND oqb_path = root1_id::ltree)
+        THEN
+            RAISE EXCEPTION 'Test % failed: Incorrect root1 path after deleting node', test_count;
+        END IF;
+
+        -- Verify full path
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = root2_id AND oqb_path = root2_id::ltree)
+        THEN
+            RAISE EXCEPTION 'Test % failed: Incorrect root2 path after deleting node', test_count;
+        END IF;
+
+        -- Verify full path
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = setup1_id AND oqb_path = (root1_id || '.' || setup1_id)::ltree)
+        THEN
+            RAISE EXCEPTION 'Test % failed: Incorrect setup1 path after deleting edge', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = setup1_id AND oqb_path = (root2_id || '.' || setup1_id)::ltree)
+        THEN
+            RAISE EXCEPTION 'Test % failed: Incorrect setup1 path after deleting edge', test_count;
+        END IF;
+
+        -- Verify full path
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = grandsetup1_id AND oqb_path = grandsetup1_id::ltree)
+        THEN
+            RAISE EXCEPTION 'Test % failed: Incorrect grandsetup1 path after deleting edge', test_count;
+        END IF;
+
+        -- Verify full path
+        IF NOT EXISTS (SELECT 1 FROM test_setup_oqb_paths WHERE setup_id = grandsetup2_id AND oqb_path = grandsetup2_id::ltree)
+        THEN
+            RAISE EXCEPTION 'Test % failed: Incorrect grandsetup1 path after deleting edge', test_count;
+        END IF;
+
+        -- Verify full path
+        IF (SELECT COUNT(*) FROM test_setup_oqb_paths WHERE setup_id = setup2_id) > 1
+        THEN
+            RAISE EXCEPTION 'Test % failed: More paths to child than expected', test_count;
+        END IF;
+
+        -- Verify full path
+        IF (SELECT COUNT(*) FROM test_setup_oqb_paths WHERE setup_id = grandsetup1_id) > 1
+        THEN
+            RAISE EXCEPTION 'Test % failed: More paths to grandchild than expected', test_count;
+        END IF;
+
+        -- Verify full path
+        IF (SELECT COUNT(*) FROM test_setup_oqb_paths WHERE setup_id = grandsetup2_id) > 1
+        THEN
+            RAISE EXCEPTION 'Test % failed: More paths to grandchild than expected', test_count;
+        END IF;
+
+        -- Verify which setups are root node
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = root1_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: root 1 setup should be root node', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = root1_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: root 2 setup should be root node', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = grandsetup1_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: grandchild 1 setup should be root node', test_count;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = grandsetup1_id AND oqb_root = true) THEN
+            RAISE EXCEPTION 'Test % failed: grandchild 2 setup should be root node', test_count;
+        END IF;
+        -- Verify child is not root
+        IF NOT EXISTS (SELECT 1 FROM test_setups WHERE setup_id = setup1_id AND oqb_root = false) THEN
+            RAISE EXCEPTION 'Test % failed: child 2 setup should not be root node', test_count;
+        END IF;
+
+        RAISE NOTICE 'Test % passed: Correctly delete node', test_count;
+        passed_count := passed_count + 1;
+    END;
+
+    -- Test 16: Updating a node
     BEGIN
         test_count := test_count + 1;
         
