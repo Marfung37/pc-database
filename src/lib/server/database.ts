@@ -1,7 +1,7 @@
 import { DEFAULT_KICKTABLE, DEFAULT_HOLD_TYPE } from '$lib/constants';
 import type { Queue, SetupID } from '$lib/types';
 
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 20;
 
 export async function getDatabaseSetups(
   supabase: App.Locals['supabase'],
@@ -14,7 +14,8 @@ export async function getDatabaseSetups(
     .from('setups')
     .select('setup_id, pc, leftover, build, fumen, statistics!inner(solve_percent)')
     .eq('statistics.hold_type', DEFAULT_HOLD_TYPE)
-    .eq('statistics.kicktable', DEFAULT_KICKTABLE);
+    .eq('statistics.kicktable', DEFAULT_KICKTABLE)
+    .or('oqb_root.is.null, oqb_root.eq.false');
 
   if (pc) {
     query = query.eq('pc', pc);
