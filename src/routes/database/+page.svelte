@@ -8,6 +8,8 @@
 
   const { data } = $props();
 
+  const skeletonAmt = 12;
+
   let setups = $derived(data.setups ?? []);
   const uniqueLeftovers = $derived(data.leftovers ?? []);
   let hasMore = $derived(data.hasMore ?? false);
@@ -31,6 +33,28 @@
     params.get('pc') !== null ? parseInt(params.get('pc')!) : null
   );
   const leftover = $derived(params.get('leftover'));
+
+  let loading = $state(false);
+  let sentinel = $state<HTMLDivElement>(); // element to detect reaching bottom of page
+
+  $effect(() => {
+    if (!sentinel || !hasMore || loading) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          sentinel!.closest('form')?.requestSubmit();
+        }
+      },
+      {
+        rootMargin: '800px'
+      }
+    );
+
+    observer.observe(sentinel);
+
+    return () => observer.disconnect();
+  });
 
   async function changePC(value: number) {
     if (value == -1) {
@@ -93,24 +117,36 @@
       </select>
     {/if}
   </section>
-  <div id="results" class="flex flex-col m-4">
+  <div id="results" class="w-full flex flex-col p-4">
     {#each setupGroups as [leftover, setups] (leftover)}
       <div>
         <h3 class="mino text-4xl pl-8">{leftover}</h3>
         <div class="flex flex-wrap">
           {#each setups as setup (setup.setup_id)}
-            <div class="basis-1/4 p-8">
+            <div class="md:basis-1/2 xl:basis-1/3 2xl:basis-1/4 p-8">
               <SetupMiniInfo fumen={setup.fumen} solve_percent={setup.solve_percent} />
             </div>
           {/each}
         </div>
       </div>
     {/each}
+
+    {#if loading}
+      <div class="flex flex-wrap">
+        {#each Array.from(Array(skeletonAmt), (_, i) => i) as id (id)}
+          <div class="w-full md:basis-1/2 xl:basis-1/3 2xl:basis-1/4 h-64 p-12">
+            <div class="skeleton h-full min-w-72"></div>
+          </div>
+        {/each}
+      </div>
+    {/if}
+
     {#if hasMore && setups.length > 0}
       <form
         method="POST"
         action="?/loadMore"
         use:enhance={() => {
+          loading = true;
           return async ({ result }) => {
             if (result.type === 'success') {
               const data = result.data as {
@@ -122,6 +158,7 @@
             } else if (result.type === 'failure') {
               console.error(result.data);
             }
+            loading = false;
           };
         }}
         class="w-full flex justify-center"
@@ -129,9 +166,14 @@
         <input name="pc" value={pcNumber} type="hidden" />
         <input name="leftover" value={leftover} type="hidden" />
         <input name="cursor" value={setups[setups.length - 1].setup_id} type="hidden" />
-        <button type="submit" class="btn p-6 bg-info text-info-content hover:bg-info/70 text-lg"
-          >Load More...</button
-        >
+
+        <div bind:this={sentinel} id="sentinel"></div>
+
+        <noscript>
+          <button type="submit" class="btn p-6 bg-info text-info-content hover:bg-info/70 text-lg">
+            Load More...
+          </button>
+        </noscript>
       </form>
     {/if}
   </div>

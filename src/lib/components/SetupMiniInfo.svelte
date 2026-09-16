@@ -5,10 +5,12 @@
 </script>
 
 <div class="card flex flex-col">
-  <div class="flex min-w-80 basis-1/2 items-center justify-center p-4 md:basis-1/3 xl:basis-1/4">
+  <div class="flex min-w-80 items-center justify-center p-4">
     <FumenRender {fumen} minHeight={4} />
   </div>
-  <div class="flex justify-center">
-    <p>{solve_percent.toFixed(2)}%</p>
-  </div>
+  {#if solve_percent}
+    <div class="flex justify-center">
+      <p>{solve_percent.toFixed(2)}%</p>
+    </div>
+  {/if}
 </div>
