@@ -381,7 +381,4 @@ FROM
 INSERT INTO
   schema_metadata (version, description)
 VALUES
-  (
-    '2.1.0',
-    'Changes from category per set to usage of tags on sets'
-  );
+  ('2.2.0', 'Adds oqb_root column in setups ');

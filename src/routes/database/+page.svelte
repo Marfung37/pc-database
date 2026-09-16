@@ -62,15 +62,17 @@
     } else {
       params.set('pc', String(value));
     }
-    params.set('page', String(1));
 
     await goto(resolve(`/database?${params.toString()}`));
     await invalidate('setups');
   }
 
   async function changeLeftover(value: string) {
-    params.set('leftover', value);
-    params.set('page', String(1));
+    if (value == 'All') {
+      params.delete('leftover');
+    } else {
+      params.set('leftover', value);
+    }
 
     await goto(resolve(`/database?${params.toString()}`));
     await invalidate('setups');
@@ -110,7 +112,7 @@
         class="bg-base-300 rounded"
         onchange={(e) => changeLeftover(e.currentTarget.value)}
       >
-        <option value={-1}>All</option>
+        <option value="All">All</option>
         {#each uniqueLeftovers as lo (lo)}
           <option value={lo} selected={lo == leftover}>{lo}</option>
         {/each}
@@ -124,7 +126,11 @@
         <div class="flex flex-wrap">
           {#each setups as setup (setup.setup_id)}
             <div class="md:basis-1/2 xl:basis-1/3 2xl:basis-1/4 p-8">
-              <SetupMiniInfo fumen={setup.fumen} solve_percent={setup.solve_percent} />
+              <SetupMiniInfo
+                fumen={setup.fumen}
+                solve_percent={setup.solve_percent}
+                type={setup.type}
+              />
             </div>
           {/each}
         </div>
