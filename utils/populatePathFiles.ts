@@ -55,6 +55,7 @@ async function uploadPath(setup: Setup, stat: Statistic): Promise<boolean> {
   console.log('Creating path file', pathFilename);
 
   try {
+    console.log(setup.solve_pattern);
     const queues = sfinderPieces(parsePattern(setup.solve_pattern));
 
     if (isPC(setup.fumen)) {

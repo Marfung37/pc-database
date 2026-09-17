@@ -381,4 +381,7 @@ FROM
 INSERT INTO
   schema_metadata (version, description)
 VALUES
-  ('2.2.0', 'Adds oqb_root column in setups ');
+  (
+    '2.3.0',
+    'Moves oqb in setupid to be after leftovers'
+  );

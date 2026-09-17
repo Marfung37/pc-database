@@ -36,4 +36,9 @@ else
     echo "Warning: .env.local not found at $ENV_FILE. Proceeding without it."
 fi
 
-pg_dump $POSTGRES_URL_NON_POOLING --disable-triggers > $1
+if [ $# -ne 1 ]; then
+  echo "Usage: ./genSupabaseBackup.sh <filename>"
+  exit 1;
+fi
+
+pg_dump $POSTGRES_URL_NON_POOLING --disable-triggers -f $1
