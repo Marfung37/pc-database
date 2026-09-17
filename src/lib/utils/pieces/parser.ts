@@ -58,9 +58,6 @@ function compileLexerRegex(spec: SpecTuple[]): RegExp {
 const GEN_REGEX = compileLexerRegex(GEN_SPEC);
 const FILTER_REGEX = compileLexerRegex(FILTER_SPEC);
 
-// regex to separate generator and filter contexts
-const CONTEXT_SPLIT_REGEX = /(\{.+?\})|([^{}]+)|(.)/g;
-
 class Token {
   constructor(
     public kind: TokenKind,
@@ -75,33 +72,32 @@ class Token {
 const LBRACE_TOKEN = new Token('LBRACE', '{');
 const RBRACE_TOKEN = new Token('RBRACE', '}');
 
+function findEndFilterContext(text: string, start: number) {
+  let i = start + 1;
+  let inRegex = false;
+
+  while (i < text.length) {
+    const c = text[i];
+    if (c === '/') inRegex = !inRegex;
+    else if (c === '}' && !inRegex) return i;
+    i++;
+  }
+
+  throw new Error('Unterminated filter {...}');
+}
+
 export function tokenize(text: string): Token[] {
   const tokens: Token[] = [];
+  let i = 0;
 
-  for (const match of text.matchAll(CONTEXT_SPLIT_REGEX)) {
-    const [_, filterBlock, genBlock, invalid] = match;
+  while (i < text.length) {
+    const c = text[i];
 
-    if (genBlock) {
-      for (const m of genBlock.matchAll(GEN_REGEX)) {
-        const groups = m.groups;
-        if (!groups) continue;
-
-        const kind = Object.keys(groups).find((key) => groups[key] !== undefined)!;
-        const value = groups[kind];
-
-        // skip whitespace
-        if (kind === 'WS') continue;
-        if (kind === 'MISMATCH') {
-          throw new Error(`Unexpected character '${value}' at position ${m.index}`);
-        }
-
-        tokens.push(new Token(kind as TokenKind, value));
-      }
-    } else if (filterBlock) {
-      // strip the {}
-      const insideFilter = filterBlock.slice(1, -1);
+    if (c == '{') {
+      const end = findEndFilterContext(text, i);
 
       tokens.push(LBRACE_TOKEN);
+      const insideFilter = text.slice(i + 1, end);
 
       for (const m of insideFilter.matchAll(FILTER_REGEX)) {
         const groups = m.groups;
@@ -122,11 +118,35 @@ export function tokenize(text: string): Token[] {
         tokens.push(new Token(kind as TokenKind, value));
       }
       tokens.push(RBRACE_TOKEN);
-    } else if (invalid) {
-      // only possible invalid characters are { or }
-      throw new Error(`Found '${invalid}' without its counterpart`);
+      i = end + 1;
+
+      continue;
+    } else if (c == '}') {
+      throw new Error("Found closing '}' without open '{'");
     }
+
+    let end = i + 1;
+    while (end < text.length && text[end] !== '{') end++;
+    const genBlock = text.slice(i, end);
+
+    for (const m of genBlock.matchAll(GEN_REGEX)) {
+      const groups = m.groups;
+      if (!groups) continue;
+
+      const kind = Object.keys(groups).find((key) => groups[key] !== undefined)!;
+      const value = groups[kind];
+
+      // skip whitespace
+      if (kind === 'WS') continue;
+      if (kind === 'MISMATCH') {
+        throw new Error(`Unexpected character '${value}' at position ${m.index}`);
+      }
+
+      tokens.push(new Token(kind as TokenKind, value));
+    }
+    i = end;
   }
+
   return tokens;
 }
 

@@ -150,6 +150,9 @@ describe('pieces parser', () => {
     expect(parser.parse('{/^T/}')).toEqual([
       { type: ASTNode.FilterBlock, expr: { type: ASTNode.RegexLiteral, value: /^T/ } }
     ]);
+    expect(parser.parse('{/T{2}/}')).toEqual([
+      { type: ASTNode.FilterBlock, expr: { type: ASTNode.RegexLiteral, value: /T{2}/ } }
+    ]);
     expect(parser.parse('{1:/^T/}')).toEqual([
       {
         type: ASTNode.FilterBlock,
