@@ -1,66 +1,39 @@
 import { fail } from '@sveltejs/kit';
-import { isQueue } from '$lib/utils/queueUtils';
 import { BAG } from '$lib/constants';
 import { PCNUM2LONUM } from '$lib/utils/formulas';
 import { setupFinder } from '$lib/utils/setupFinder';
+import { formAction, pcSchema, queueSchema } from '$lib/server/forms';
+import { z } from 'zod';
+import { m } from '$lib/paraglide/messages.js';
+import { getLocale } from '$lib/paraglide/runtime';
 import type { Actions, PageServerLoad } from './$types';
 import type { Queue } from '$lib/types';
-import { getLocale } from '$lib/paraglide/runtime';
-import { m } from '$lib/paraglide/messages.js';
 
-export const load: PageServerLoad = async () => {};
+export const load: PageServerLoad = async () => { };
+
+const lookupSchema = () => z.object({
+  pc: pcSchema(),
+  queue: queueSchema(m.queue())
+})
 
 export const actions: Actions = {
-  lookup: async ({ request }) => {
-    const formData = await request.formData();
-    const pcStr = formData.get('pc') as string;
-    const queueStr = formData.get('queue') as string;
-
+  lookup: formAction(lookupSchema(), async ({ data: { pc, queue } }) => {
     const returnData = {
-      pc: pcStr,
-      queue: queueStr
+      pc,
+      queue
     };
 
-    // checking if valid pc number
-    if (!pcStr.match(/^[1-9]$/)) {
-      return fail(400, {
-        success: false,
-        ...returnData,
-        message: m.lookup_error_invalid_pc()
-      });
-    }
-    if (queueStr.length === 0) {
-      return fail(400, {
-        success: false,
-        ...returnData,
-        message: m.lookup_error_empty_queue()
-      });
-    }
-
-    if (!isQueue(queueStr)) {
-      return fail(400, {
-        success: false,
-        ...returnData,
-        message: m.lookup_error_invalid_queue()
-      });
-    }
-
-    const pc = parseInt(pcStr) as number;
-
-    let queue: Queue;
-    if (pc == 1 && queueStr.length == 6 && new Set(queueStr).size == 6) {
+    if (pc == 1 && queue.length == 6 && new Set(queue).size == 6) {
       const bagValue = [...BAG].reduce((sum, c) => sum + c.charCodeAt(0), 0);
-      const queueValue = [...queueStr].reduce((sum, c) => sum + c.charCodeAt(0), 0);
-      queue = (queueStr + String.fromCharCode(bagValue - queueValue)) as Queue;
-    } else {
-      queue = queueStr as Queue;
+      const queueValue = [...queue].reduce((sum, c) => sum + c.charCodeAt(0), 0);
+      queue = (queue + String.fromCharCode(bagValue - queueValue)) as Queue;
     }
 
     if (pc !== 1 && queue.length < PCNUM2LONUM(pc)) {
       return fail(400, {
         success: false,
         ...returnData,
-        message: m.lookup_error_leftover_uncertain()
+        error: m.database_error_leftover_uncertain()
       });
     }
 
@@ -78,7 +51,7 @@ export const actions: Actions = {
       return fail(500, {
         success: false,
         ...returnData,
-        message: m.lookup_error_find_setup()
+        error: m.database_error_find_setup()
       });
     }
 
@@ -86,7 +59,7 @@ export const actions: Actions = {
       return {
         success: false,
         ...returnData,
-        message: m.lookup_error_no_setup()
+        error: m.database_error_no_setup()
       };
     }
 
@@ -104,5 +77,5 @@ export const actions: Actions = {
       success: true,
       setups
     };
-  }
+  })
 };

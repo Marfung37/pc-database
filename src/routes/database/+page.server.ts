@@ -4,6 +4,7 @@ import { isQueue } from '$lib/utils/queueUtils';
 import { getDatabaseSetups } from '$lib/server/database.js';
 import { formAction, setupIDSchema, pcSchema, queueSchema } from '$lib/server/forms';
 import { z } from 'zod';
+import { m } from '$lib/paraglide/messages.js';
 import type { Actions, PageServerLoad } from './$types';
 import type { Queue } from '$lib/types';
 
@@ -80,15 +81,15 @@ function normalizeParams(params: URLSearchParams): FilterOptions | null {
   return options;
 }
 
-const loadMoreSchema = z.object({
-  pc: z.preprocess((value) => (value === '' ? undefined : value), pcSchema.optional()),
-  leftover: z.preprocess((value) => (value === '' ? undefined : value), queueSchema.optional()),
-  cursor: setupIDSchema
+const loadMoreSchema = () => z.object({
+  pc: z.preprocess((value) => (value === '' ? undefined : value), pcSchema().optional()),
+  leftover: z.preprocess((value) => (value === '' ? undefined : value), queueSchema(m.leftover()).optional()),
+  cursor: setupIDSchema(m.cursor())
 });
 
 export const actions: Actions = {
   loadMore: formAction(
-    loadMoreSchema,
+    loadMoreSchema(),
     async ({ data: { pc, leftover, cursor }, locals: { supabase } }) => {
       const { data, hasMore, error } = await getDatabaseSetups(supabase, pc, leftover, cursor);
 
