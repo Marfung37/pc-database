@@ -60,7 +60,7 @@
   >
     <div class="flex flex-wrap items-center gap-2">
       <div class="flex items-center justify-center gap-2">
-        <label for="pc-select" class="block text-lg font-medium"> {m.lookup_pc_number()} </label>
+        <label for="pc-select" class="block text-lg font-medium"> {m.database_pc_number()} </label>
         <select
           id="pc-select"
           name="pc"
@@ -72,7 +72,7 @@
         </select>
       </div>
       <div class="flex items-center justify-center gap-2">
-        <label for="queue-text" class="block text-lg font-medium"> {m.lookup_queue()} </label>
+        <label for="queue-text" class="block text-lg font-medium"> {m.database_queue()} </label>
         <input
           id="queue-text"
           name="queue"
@@ -95,14 +95,16 @@
       </div>
     </div>
   </form>
-  {#if form?.message}
-    <div
-      class="rounded-md p-3 text-sm {form?.success
-        ? 'bg-green-100 text-green-700'
-        : 'bg-red-100 text-red-700'}"
-      role="alert"
-    >
-      {form?.message}
+  {#if form?.errors}
+    <div class="rounded-md p-3 text-sm bg-error text-error-content" role="alert">
+      {#each form.errors as error (error.key)}
+        {error.value}
+      {/each}
+    </div>
+  {/if}
+  {#if form?.error}
+    <div class="rounded-md p-3 text-sm bg-error text-error-content" role="alert">
+      {form?.error}
     </div>
   {/if}
 

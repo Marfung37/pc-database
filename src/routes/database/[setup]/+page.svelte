@@ -22,8 +22,6 @@
     queueValue = input.value.replace(/[^TILJSZOtiljszo]/g, '').toUpperCase();
   }
 
-  $effect(() => {});
-
   const handleSaveSubmit: SubmitFunction = () => {
     loading = true;
     return async ({ result }) => {
@@ -47,25 +45,25 @@
     <div class="container flex flex-col gap-2">
       <div
         class="from-primary to-accent mb-3 bg-linear-to-r bg-clip-text pb-1 text-xl font-bold text-transparent md:mb-7 md:text-3xl"
-      >
-        {m.nav_lookup()}
-      </div>
+      ></div>
     </div>
   </div>
 </div>
 
 <div class="container mx-auto flex flex-col gap-2 p-2 pb-20 text-left">
-  <h1 class="py-2 text-3xl">{m.lookup_current_setup()}</h1>
+  <h1 class="py-2 text-3xl">{m.database_current_setup()}</h1>
   <SetupInfo {setup} submittedQueue={subbuild} />
 
   {#if setup.solve_pattern}
     <form
       class="flex w-full items-center gap-2 whitespace-nowrap"
       method="post"
-      action="?/saves_percent"
+      action="?/savesPercent"
       use:enhance={handleSaveSubmit}
     >
-      <label for="wanted-save" class="block text-lg font-medium"> {m.lookup_wanted_saves()} </label>
+      <label for="wanted-save" class="block text-lg font-medium">
+        {m.database_wanted_saves()}
+      </label>
       <input
         id="wanted-save"
         name="wantedSaves"
@@ -85,24 +83,26 @@
         {loading ? m.loading() : m.btn_submit()}
       </button>
     </form>
-    {#if form?.message}
-      <div
-        class="rounded-md p-3 text-sm {form?.success
-          ? 'bg-green-100 text-green-700'
-          : 'bg-red-100 text-red-700'}"
-        role="alert"
-      >
-        {form?.message}
+    {#if form?.savesErrors}
+      <div class="rounded-md p-3 text-sm bg-error text-error-content" role="alert">
+        {#each form.savesErrors as error (error.key)}
+          {error.value}
+        {/each}
+      </div>
+    {/if}
+    {#if form?.savesError}
+      <div class="rounded-md p-3 text-sm bg-error text-error-content" role="alert">
+        {form?.savesError}
       </div>
     {/if}
     <p>
-      {m.lookup_save_percent()}:
+      {m.database_save_percent()}:
       {#if form?.fractions}
         {loading
           ? m.loading()
           : (form?.fractions
               .map(
-                (f) =>
+                (f: string) =>
                   `${((parseInt(f.split('/')[0]) / parseInt(f.split('/')[1])) * 100).toFixed(2)}% (${f})`
               )
               .join(', ') ?? '')}
@@ -111,7 +111,7 @@
   {/if}
 
   {#if !setup.leaf_node}
-    <h1 class="py-2 text-3xl">{m.lookup_next_setup()}</h1>
+    <h1 class="py-2 text-3xl">{m.database_next_setup()}</h1>
     <form
       class="flex w-full whitespace-nowrap"
       method="POST"
@@ -119,7 +119,7 @@
       use:enhance={handleSubmit}
     >
       <div class="flex flex-wrap items-center gap-2">
-        <label for="queue-text" class="block text-lg font-medium"> {m.lookup_queue()}: </label>
+        <label for="queue-text" class="block text-lg font-medium"> {m.database_queue()}: </label>
         <span class="mino text-2xl">
           {subbuild}
         </span>
@@ -145,14 +145,16 @@
         </div>
       </div>
     </form>
-    {#if form?.message}
-      <div
-        class="rounded-md p-3 text-sm {form?.success
-          ? 'bg-green-100 text-green-700'
-          : 'bg-red-100 text-red-700'}"
-        role="alert"
-      >
-        {form?.message}
+    {#if form?.lookupErrors}
+      <div class="rounded-md p-3 text-sm bg-error text-error-content" role="alert">
+        {#each form.lookupErrors as error (error.key)}
+          {error.value}
+        {/each}
+      </div>
+    {/if}
+    {#if form?.lookupError}
+      <div class="rounded-md p-3 text-sm bg-error text-error-content" role="alert">
+        {form?.lookupError}
       </div>
     {/if}
 
@@ -164,7 +166,7 @@
   {/if}
   {#if setup.solve_pattern !== null}
     <div>
-      <h1 class="py-2 text-3xl">{m.lookup_saves()}</h1>
+      <h1 class="py-2 text-3xl">{m.database_saves()}</h1>
       {#each setup.saves as save (save.save)}
         <SaveAccordian {save} />
       {/each}

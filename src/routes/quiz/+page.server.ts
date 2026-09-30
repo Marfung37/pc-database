@@ -1,4 +1,7 @@
 import { error } from '@sveltejs/kit';
+import { formAction } from '$lib/server/forms';
+import { z } from 'zod';
+import { m } from '$lib/paraglide/messages.js';
 import type { Actions, PageServerLoad } from './$types';
 
 const presets: { filename: string; name: string }[] = [
@@ -11,15 +14,16 @@ export const load: PageServerLoad = async () => {
   return { presets };
 };
 
-export const actions: Actions = {
-  quizPreset: async ({ request, locals: { supabase } }) => {
-    const formData = await request.formData();
-    const filename = formData.get('preset') as string;
+const quizPresetSchema = () => z.object({
+  preset: z.string()
+})
 
+export const actions: Actions = {
+  quizPreset: formAction(quizPresetSchema(), async ({ data: { preset }, locals: { supabase } }) => {
     // TODO: change bucket name to something else
     const { data, error: storageError } = await supabase.storage
       .from('covertree')
-      .download(filename);
+      .download(preset);
 
     if (storageError) {
       console.error('Supabase download error:', storageError);
@@ -36,5 +40,5 @@ export const actions: Actions = {
       console.error('JSON parsing failed:', parseError);
       throw error(500, 'Invalid JSON format in stored file.');
     }
-  }
+  })
 };

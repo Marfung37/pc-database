@@ -127,6 +127,7 @@
           {#each setups as setup (setup.setup_id)}
             <div class="md:basis-1/2 xl:basis-1/3 2xl:basis-1/4 p-8">
               <SetupMiniInfo
+                setup_id={setup.setup_id}
                 fumen={setup.fumen}
                 solve_percent={setup.solve_percent}
                 type={setup.type}

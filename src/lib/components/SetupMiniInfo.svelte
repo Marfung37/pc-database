@@ -1,8 +1,8 @@
 <script lang="ts">
   import FumenRender from '$lib/components/FumenRender.svelte';
-  import { Split } from '@lucide/svelte';
+  import { Split, ArrowRight } from '@lucide/svelte';
 
-  let { fumen, solve_percent, type } = $props();
+  let { setup_id, fumen, solve_percent, type } = $props();
 </script>
 
 <div class="card flex flex-col">
@@ -13,13 +13,17 @@
     {#if solve_percent}
       <p>{solve_percent.toFixed(2)}%</p>
     {/if}
-    <div class="setup-icons absolute right-0 flex gap-1">
+    <div class="setup-icons absolute left-0 flex gap-1">
       {#if type == 'qb'}
         <span class="text-lg">QB</span>
       {/if}
       {#if type == 'oqb'}
         <Split />
       {/if}
+    </div>
+
+    <div class="setup-icons absolute right-0 flex gap-1">
+      <a class="btn" href={'/database/' + setup_id}><ArrowRight /></a>
     </div>
   </div>
 </div>

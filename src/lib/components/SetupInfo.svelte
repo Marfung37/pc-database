@@ -23,7 +23,7 @@
       <h2 class="py-2 text-2xl">{setup.setup_id}</h2>
       <!-- <h3 class="text-xl pb-2">Statistics</h3> -->
       {#if setup.solve_percent}
-        <p>{m.lookup_solve_percent()}: {setup.solve_percent}%</p>
+        <p>{m.database_solve_percent()}: {setup.solve_percent}%</p>
       {/if}
       <p>OQB: {oqb ? m.yes() : m.no()}</p>
       {#if setup.cover_description}
@@ -35,7 +35,7 @@
       </div>
       <p>{m.exact_cover_pattern()}: {setup.cover_data === null ? m.yes() : m.no()}</p>
       <p>{m.minimal_solves_count()}: {setup.minimal_count}</p>
-      <p>{m.lookup_credit()}: {setup.credit ? setup.credit : m.lookup_unknown()}</p>
+      <p>{m.database_credit()}: {setup.credit ? setup.credit : m.database_unknown()}</p>
       {#if setup.solve_pattern}
         <PathDownload setupid={setup.setup_id as SetupID} />
       {/if}
@@ -53,7 +53,7 @@
             </p>
           {:else if save.priority_save_percent !== null && save.priority_save_fraction !== null}
             <div>
-              <p>{m.lookup_priority_saves()}</p>
+              <p>{m.database_priority_saves()}</p>
               {#each save.priority_save_percent as save_percent, index (index)}
                 {@const save_fraction = save.priority_save_fraction[index] as Fraction}
                 {@const description = save.name?.split(', ')[index] ?? save.save!.split(',')[index]}
@@ -72,7 +72,7 @@
       class="flex min-w-20 items-center justify-center rounded-r-3xl transition-colors duration-500 ease-in-out {oqb
         ? 'bg-base-200 hover:bg-base-100'
         : 'hover:bg-base-100'}"
-      href={resolve(`/lookup/${setup.setup_id + (oqb ? `+${submittedQueue}` : '')}`)}
+      href={resolve(`/database/${setup.setup_id + (oqb ? `+${submittedQueue}` : '')}`)}
     >
       <ChevronRight size={32} />
     </a>
