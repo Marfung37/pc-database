@@ -9,12 +9,13 @@ import { getLocale } from '$lib/paraglide/runtime';
 import type { Actions, PageServerLoad } from './$types';
 import type { Queue } from '$lib/types';
 
-export const load: PageServerLoad = async () => { };
+export const load: PageServerLoad = async () => {};
 
-const lookupSchema = () => z.object({
-  pc: pcSchema(),
-  queue: queueSchema(m.queue())
-})
+const lookupSchema = () =>
+  z.object({
+    pc: pcSchema(),
+    queue: queueSchema(m.queue())
+  });
 
 export const actions: Actions = {
   lookup: formAction(lookupSchema(), async ({ data: { pc, queue } }) => {
