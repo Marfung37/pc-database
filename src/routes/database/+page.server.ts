@@ -81,11 +81,15 @@ function normalizeParams(params: URLSearchParams): FilterOptions | null {
   return options;
 }
 
-const loadMoreSchema = () => z.object({
-  pc: z.preprocess((value) => (value === '' ? undefined : value), pcSchema().optional()),
-  leftover: z.preprocess((value) => (value === '' ? undefined : value), queueSchema(m.leftover()).optional()),
-  cursor: setupIDSchema(m.cursor())
-});
+const loadMoreSchema = () =>
+  z.object({
+    pc: z.preprocess((value) => (value === '' ? undefined : value), pcSchema().optional()),
+    leftover: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      queueSchema(m.leftover()).optional()
+    ),
+    cursor: setupIDSchema(m.cursor())
+  });
 
 export const actions: Actions = {
   loadMore: formAction(

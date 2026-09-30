@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { resolve } from '$app/paths';
   import FumenRender from '$lib/components/FumenRender.svelte';
   import { Split, ArrowRight } from '@lucide/svelte';
 
@@ -23,7 +24,7 @@
     </div>
 
     <div class="setup-icons absolute right-0 flex gap-1">
-      <a class="btn" href={'/database/' + setup_id}><ArrowRight /></a>
+      <a class="btn" href={resolve(`/database/${setup_id}`)}><ArrowRight /></a>
     </div>
   </div>
 </div>

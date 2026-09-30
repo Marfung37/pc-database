@@ -54,20 +54,24 @@ export const load: PageServerLoad = async ({ params }) => {
   return { setup, subbuild };
 };
 
-const lookupSchema = () => z.object({
-  queue: queueSchema(m.queue())
-});
+const lookupSchema = () =>
+  z.object({
+    queue: queueSchema(m.queue())
+  });
 
-const savesSchema = () => z.object({
-  pc: pcSchema(),
-  leftover: queueSchema(m.leftover()),
-  build: queueSchema(m.build()),
-  setupid: setupIDSchema(m.setupid()),
-  wantedSaves: z.string()
-});
+const savesSchema = () =>
+  z.object({
+    pc: pcSchema(),
+    leftover: queueSchema(m.leftover()),
+    build: queueSchema(m.build()),
+    setupid: setupIDSchema(m.setupid()),
+    wantedSaves: z.string()
+  });
 
 export const actions: Actions = {
-  lookup: formAction(lookupSchema(), { errorKey: "lookupErrors" },
+  lookup: formAction(
+    lookupSchema(),
+    { errorKey: 'lookupErrors' },
     async ({ data: { queue }, params }) => {
       const [parent_id, subbuild] = params.setup!.split('+');
 
@@ -132,8 +136,11 @@ export const actions: Actions = {
         success: true,
         setups
       };
-    }),
-  savesPercent: formAction(savesSchema(), { errorKey: "savesErrors" },
+    }
+  ),
+  savesPercent: formAction(
+    savesSchema(),
+    { errorKey: 'savesErrors' },
     async ({ data: { pc, leftover, build, setupid, wantedSaves }, locals: { supabase } }) => {
       const returnData = {
         wantedSaves,
@@ -236,5 +243,6 @@ export const actions: Actions = {
         wantedSaves,
         fractions: fractions.map((f: Fraction) => f.toString())
       };
-    })
+    }
+  )
 };
