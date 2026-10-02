@@ -27,7 +27,7 @@ export const load: PageServerLoad = async ({ params }) => {
   }
 
   if (!isSetupID(setupid)) {
-    error(404, { message: m.database_error_invalid_setup_id() });
+    error(404, { message: m.validation_invalid_setupid({ type: m.setupid() }) });
   }
 
   const { data: setup, error: setupErr } = await getSetup(
@@ -65,7 +65,7 @@ const savesSchema = () =>
     leftover: queueSchema(m.leftover()),
     build: queueSchema(m.build()),
     setupid: setupIDSchema(m.setupid()),
-    wantedSaves: z.string()
+    wantedSaves: z.string().nonempty({ error: () => m.validation_empty({ type: m.save_query() }) })
   });
 
 export const actions: Actions = {
@@ -87,7 +87,7 @@ export const actions: Actions = {
         return fail(400, {
           success: false,
           queue,
-          lookupError: m.database_error_invalid_queue()
+          lookupError: m.validation_invalid_queue({ type: m.queue() })
         });
       }
 
@@ -149,14 +149,6 @@ export const actions: Actions = {
         leftover,
         pc
       };
-
-      if (wantedSaves.length == 0) {
-        return fail(400, {
-          success: false,
-          ...returnData,
-          savesError: m.database_error_empty_wanted_saves()
-        });
-      }
 
       const filename = generateBucketPathFilename(
         setupid,

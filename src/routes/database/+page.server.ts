@@ -34,7 +34,7 @@ export const load: PageServerLoad = async function ({ url, locals: { supabase },
   if (error) {
     console.error(`Failed to get setup data: ${error.message}`);
     return fail(500, {
-      message: `Failed to get setup data`
+      message: m.database_error_load_setups()
     });
   }
 
@@ -45,7 +45,7 @@ export const load: PageServerLoad = async function ({ url, locals: { supabase },
     if (leftoverErr) {
       console.error(`Failed to get list of leftovers: ${leftoverErr.message}`);
       return fail(500, {
-        message: `Failed to get leftover data`
+        message: m.database_error_load_filters()
       });
     }
 
